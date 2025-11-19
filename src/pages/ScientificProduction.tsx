@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ArticleMetadataFetcher } from "@/components/ArticleMetadataFetcher";
+import { toast } from "@/hooks/use-toast";
 
 const mockArticles = [
   {
@@ -54,6 +57,15 @@ const mockBooks = [
 
 export default function ScientificProduction() {
   const [activeTab, setActiveTab] = useState("articles");
+  const [isArticleDialogOpen, setIsArticleDialogOpen] = useState(false);
+
+  const handleArticleSubmit = () => {
+    toast({
+      title: "Artículo guardado",
+      description: "El artículo ha sido registrado exitosamente.",
+    });
+    setIsArticleDialogOpen(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -74,58 +86,31 @@ export default function ScientificProduction() {
 
         <TabsContent value="articles" className="space-y-4">
           <div className="flex justify-end">
-            <Dialog>
+            <Dialog open={isArticleDialogOpen} onOpenChange={setIsArticleDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
                   Agregar Artículo
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Registrar Artículo Científico</DialogTitle>
                   <DialogDescription>
                     Complete la información de la publicación
                   </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="article-title">Título</Label>
-                    <Input id="article-title" placeholder="Título del artículo" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="authors">Autores</Label>
-                    <Input id="authors" placeholder="Apellido, N., Apellido, N." />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="year">Año</Label>
-                      <Input id="year" type="number" placeholder="2024" />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="indexed">Base Indexada</Label>
-                      <Select>
-                        <SelectTrigger id="indexed">
-                          <SelectValue placeholder="Seleccione base" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="scopus">Scopus</SelectItem>
-                          <SelectItem value="wos">Web of Science</SelectItem>
-                          <SelectItem value="latindex">Latindex</SelectItem>
-                          <SelectItem value="scielo">SciELO</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="doi">DOI/URL</Label>
-                    <Input id="doi" placeholder="https://doi.org/..." />
-                  </div>
+                <div className="py-4">
+                  <ArticleMetadataFetcher />
                 </div>
-                <div className="flex justify-end gap-3">
-                  <Button variant="outline">Cancelar</Button>
-                  <Button>Guardar Artículo</Button>
-                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsArticleDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleArticleSubmit}>
+                    Guardar Artículo
+                  </Button>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
           </div>
