@@ -38,6 +38,42 @@ export type Database = {
         }
         Relationships: []
       }
+      project_investigators: {
+        Row: {
+          created_at: string
+          id: string
+          investigator_id: string
+          project_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          investigator_id: string
+          project_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          investigator_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_investigators_investigator_id_fkey"
+            columns: ["investigator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_investigators_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           created_at: string

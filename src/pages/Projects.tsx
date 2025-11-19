@@ -52,8 +52,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
+import { MultiSelect, type Option } from "@/components/ui/multi-select";
 
-type Project = Tables<"projects">;
+type Project = Tables<"projects"> & {
+  profiles?: { full_name: string } | null;
+  project_investigators?: Array<{
+    investigator_id: string;
+    profiles: { full_name: string } | null;
+  }>;
+};
 
 const ITEMS_PER_PAGE = 5;
 
@@ -86,13 +93,33 @@ export default function Projects() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedInvestigators, setSelectedInvestigators] = useState<string[]>([]);
   
   const { fetchMetadata, isLoading: isImporting } = useProjectMetadata();
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch projects from Supabase
+  // Fetch all profiles for investigator selection
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .order("full_name");
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const investigatorOptions: Option[] = profiles.map((profile) => ({
+    label: profile.full_name,
+    value: profile.id,
+  }));
+
+  // Fetch projects from Supabase with investigators
   const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
@@ -102,6 +129,12 @@ export default function Projects() {
           *,
           profiles:investigator_id (
             full_name
+          ),
+          project_investigators (
+            investigator_id,
+            profiles:investigator_id (
+              full_name
+            )
           )
         `)
         .order("created_at", { ascending: false });
@@ -120,15 +153,34 @@ export default function Projects() {
       start_date: string;
       type: "Basic Research" | "Applied Research" | "Tech Development" | "Innovation";
       status: "Proposed" | "In Progress" | "Finished";
+      investigators: string[];
     }) => {
-      const { data, error } = await supabase
+      const { investigators, ...projectData } = newProject;
+      
+      // Create the project
+      const { data: project, error: projectError } = await supabase
         .from("projects")
-        .insert([newProject])
+        .insert([projectData])
         .select()
         .single();
       
-      if (error) throw error;
-      return data;
+      if (projectError) throw projectError;
+      
+      // Add investigators
+      if (investigators.length > 0) {
+        const investigatorRecords = investigators.map(investigatorId => ({
+          project_id: project.id,
+          investigator_id: investigatorId,
+        }));
+        
+        const { error: investigatorsError } = await supabase
+          .from("project_investigators")
+          .insert(investigatorRecords);
+        
+        if (investigatorsError) throw investigatorsError;
+      }
+      
+      return project;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
@@ -156,8 +208,11 @@ export default function Projects() {
       start_date: string;
       type: "Basic Research" | "Applied Research" | "Tech Development" | "Innovation";
       status: "Proposed" | "In Progress" | "Finished";
+      investigators: string[];
     }) => {
-      const { id, ...updates } = updatedProject;
+      const { id, investigators, ...updates } = updatedProject;
+      
+      // Update the project
       const { data, error } = await supabase
         .from("projects")
         .update(updates)
@@ -166,6 +221,26 @@ export default function Projects() {
         .single();
       
       if (error) throw error;
+      
+      // Delete existing investigators and add new ones
+      await supabase
+        .from("project_investigators")
+        .delete()
+        .eq("project_id", id);
+      
+      if (investigators.length > 0) {
+        const investigatorRecords = investigators.map(investigatorId => ({
+          project_id: id,
+          investigator_id: investigatorId,
+        }));
+        
+        const { error: investigatorsError } = await supabase
+          .from("project_investigators")
+          .insert(investigatorRecords);
+        
+        if (investigatorsError) throw investigatorsError;
+      }
+      
       return data;
     },
     onSuccess: () => {
@@ -286,6 +361,7 @@ export default function Projects() {
       start_date: startDate,
       type: projectType as "Basic Research" | "Applied Research" | "Tech Development" | "Innovation",
       status: projectStatus as "Proposed" | "In Progress" | "Finished",
+      investigators: selectedInvestigators,
     });
   };
 
@@ -308,6 +384,7 @@ export default function Projects() {
       start_date: startDate,
       type: projectType as "Basic Research" | "Applied Research" | "Tech Development" | "Innovation",
       status: projectStatus as "Proposed" | "In Progress" | "Finished",
+      investigators: selectedInvestigators,
     });
   };
 
@@ -325,6 +402,7 @@ export default function Projects() {
     setProjectStatus("");
     setImportInput("");
     setIsAutoFilled(false);
+    setSelectedInvestigators([]);
     setIsCreateDialogOpen(false);
   };
 
@@ -335,6 +413,11 @@ export default function Projects() {
     setProjectType(project.type);
     setStartDate(project.start_date);
     setProjectStatus(project.status);
+    
+    // Set selected investigators from project_investigators
+    const investigatorIds = project.project_investigators?.map(pi => pi.investigator_id) || [];
+    setSelectedInvestigators(investigatorIds);
+    
     setIsEditDialogOpen(true);
   };
 
@@ -435,7 +518,19 @@ export default function Projects() {
                     disabled
                   />
                   <p className="text-xs text-muted-foreground">
-                    Se asignará automáticamente tu usuario
+                    Se asignará automáticamente tu usuario como investigador principal
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="additional-investigators">Investigadores Adicionales</Label>
+                  <MultiSelect
+                    options={investigatorOptions}
+                    selected={selectedInvestigators}
+                    onChange={setSelectedInvestigators}
+                    placeholder="Seleccionar investigadores adicionales"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Puede agregar más investigadores al proyecto
                   </p>
                 </div>
                 <div className="grid gap-2">
@@ -548,7 +643,14 @@ export default function Projects() {
                     <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
                       <TableCell className="font-medium text-slate-900 dark:text-slate-50">{project.title}</TableCell>
                       <TableCell className="text-slate-700 dark:text-slate-300">
-                        {project.profiles?.full_name || "Desconocido"}
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium">{project.profiles?.full_name || "Desconocido"}</span>
+                          {project.project_investigators && project.project_investigators.length > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                              +{project.project_investigators.length} investigador{project.project_investigators.length > 1 ? 'es' : ''}
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-slate-700 dark:text-slate-300">
                         {projectTypeMap[project.type] || project.type}
@@ -656,6 +758,30 @@ export default function Projects() {
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-investigator">Investigador Principal *</Label>
+              <Input
+                id="edit-investigator"
+                placeholder="Nombre del investigador"
+                value={editingProject?.profiles?.full_name || ""}
+                disabled
+              />
+              <p className="text-xs text-muted-foreground">
+                El investigador principal no puede ser modificado
+              </p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-additional-investigators">Investigadores Adicionales</Label>
+              <MultiSelect
+                options={investigatorOptions}
+                selected={selectedInvestigators}
+                onChange={setSelectedInvestigators}
+                placeholder="Seleccionar investigadores adicionales"
+              />
+              <p className="text-xs text-muted-foreground">
+                Puede agregar o quitar investigadores del proyecto
+              </p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="edit-type">Tipo de Investigación *</Label>
