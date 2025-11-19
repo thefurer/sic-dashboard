@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import gisicfLogo from "@/assets/gisicf-logo.png";
 
 export default function Auth() {
   const { signIn, signUp, signInWithGoogle } = useAuth();
@@ -47,13 +48,14 @@ export default function Auth() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-center text-primary-foreground"
+          className="text-center text-primary-foreground flex flex-col items-center"
         >
-          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-primary-foreground/10 flex items-center justify-center">
-            <span className="text-5xl font-bold">U</span>
-          </div>
-          <h1 className="text-4xl font-bold mb-4">UNESUM GISICF</h1>
-          <p className="text-lg opacity-90">
+          <img 
+            src={gisicfLogo} 
+            alt="GISICF Logo" 
+            className="w-80 h-auto mb-6 rounded-lg shadow-lg"
+          />
+          <p className="text-lg opacity-90 max-w-md">
             Plataforma de Gestión de Investigación
           </p>
         </motion.div>
