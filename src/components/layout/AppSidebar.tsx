@@ -39,23 +39,26 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className={state === "collapsed" ? "w-14" : "w-64"} collapsible="icon">
-      <SidebarContent>
-        <div className="p-4 border-b border-sidebar-border">
+    <Sidebar 
+      className={state === "collapsed" ? "w-14" : "w-64"} 
+      collapsible="icon"
+    >
+      <SidebarContent className="bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800">
           {state === "expanded" ? (
             <div>
-              <h2 className="text-lg font-bold text-sidebar-foreground">UNESUM</h2>
-              <p className="text-xs text-sidebar-foreground/80">Sistemas Inteligentes</p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">UNESUM</h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Sistemas Inteligentes</p>
             </div>
           ) : (
-            <div className="w-8 h-8 rounded bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm">
+            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
               U
             </div>
           )}
         </div>
         
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/60">Navegación</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-slate-500 dark:text-slate-400 text-xs font-medium px-3">Navegación</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -63,8 +66,8 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className="hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent font-medium"
+                      className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                      activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
                     >
                       <item.icon className="h-5 w-5" />
                       {state === "expanded" && <span>{item.title}</span>}

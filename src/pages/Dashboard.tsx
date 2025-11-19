@@ -29,20 +29,22 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">Dashboard</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Grupo de Investigación: Sistemas Inteligentes y Ciberfísicos
         </p>
       </div>
 
-      {/* Bento Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Module A - Large Line Chart (60% width on desktop) */}
-        <Card className="lg:col-span-7 hover:shadow-md transition-all">
-          <CardHeader>
-            <CardTitle>Producción Científica en el Tiempo</CardTitle>
+      {/* Bento Grid Layout - Row 1: Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Module A - Large Line Chart (66% width on desktop) */}
+        <Card className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+          <CardHeader className="p-6 pb-4">
+            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              Proyectos / Inversión en el Tiempo
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 pt-0">
             {isLoading ? (
               <div className="space-y-3">
                 <Skeleton className="h-[300px] w-full" />
@@ -95,12 +97,14 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Module B - Donut Chart (40% width on desktop) */}
-        <Card className="lg:col-span-5 hover:shadow-md transition-all">
-          <CardHeader>
-            <CardTitle>Proyectos por Tipo</CardTitle>
+        {/* Module B - Donut Chart (33% width on desktop) */}
+        <Card className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+          <CardHeader className="p-6 pb-4">
+            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              Tipos de Investigación
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 pt-0">
             {isLoading ? (
               <div className="flex items-center justify-center">
                 <Skeleton className="h-[250px] w-[250px] rounded-full" />
@@ -134,70 +138,39 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
-
-        {/* Module C - Impact Score Card (Full width on mobile, right side on desktop) */}
-        <Card className="lg:col-span-12 hover:shadow-md transition-all bg-gradient-to-br from-primary/10 to-accent/10">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Puntuación de Impacto Total
-                </p>
-                {isLoading ? (
-                  <Skeleton className="h-12 w-32" />
-                ) : (
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-4xl font-bold">{data?.totalImpactScore || 0}%</p>
-                    <span
-                      className={`text-sm font-medium flex items-center gap-1 ${
-                        (data?.impactTrend || 0) >= 0 ? "text-primary" : "text-destructive"
-                      }`}
-                    >
-                      <TrendingUp className="h-4 w-4" />
-                      {data?.impactTrend || 0}%
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
-                <TrendingUp className="h-8 w-8 text-primary" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* KPI Cards Grid */}
+      {/* KPI Cards Grid - Row 2 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Card 1: Active Projects */}
-        <Card className="hover:shadow-md transition-all">
+        <Card className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Proyectos Activos</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Proyectos Activos</p>
                 {isLoading ? (
                   <Skeleton className="h-8 w-20" />
                 ) : (
-                  <p className="text-3xl font-bold">{data?.activeProjects || 0}</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-slate-50">{data?.activeProjects || 0}</p>
                 )}
               </div>
-              <div className="w-12 h-12 rounded-xl bg-chart-1/10 flex items-center justify-center">
-                <FolderKanban className="h-6 w-6 text-chart-1" />
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <FolderKanban className="h-6 w-6 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Card 2: Articles Indexed */}
-        <Card className="hover:shadow-md transition-all">
+        <Card className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Artículos Indexados</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Artículos Indexados</p>
                 {isLoading ? (
                   <Skeleton className="h-8 w-20" />
                 ) : (
-                  <p className="text-3xl font-bold">{data?.articlesIndexed || 0}</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-slate-50">{data?.articlesIndexed || 0}</p>
                 )}
               </div>
               <div className="w-12 h-12 rounded-xl bg-chart-2/10 flex items-center justify-center">
@@ -208,15 +181,15 @@ export default function Dashboard() {
         </Card>
 
         {/* Card 3: Total Beneficiaries */}
-        <Card className="hover:shadow-md transition-all">
+        <Card className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Beneficiarios Totales</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Beneficiarios Totales</p>
                 {isLoading ? (
                   <Skeleton className="h-8 w-20" />
                 ) : (
-                  <p className="text-3xl font-bold">
+                  <p className="text-2xl font-bold text-slate-900 dark:text-slate-50">
                     {data?.totalBeneficiaries.toLocaleString() || 0}
                   </p>
                 )}
@@ -229,15 +202,15 @@ export default function Dashboard() {
         </Card>
 
         {/* Card 4: Pending Approvals */}
-        <Card className="hover:shadow-md transition-all">
+        <Card className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Aprobaciones Pendientes</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Aprobaciones Pendientes</p>
                 {isLoading ? (
                   <Skeleton className="h-8 w-20" />
                 ) : (
-                  <p className="text-3xl font-bold">{data?.pendingApprovals || 0}</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-slate-50">{data?.pendingApprovals || 0}</p>
                 )}
               </div>
               <div className="w-12 h-12 rounded-xl bg-chart-4/10 flex items-center justify-center">

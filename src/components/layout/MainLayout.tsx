@@ -79,7 +79,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
-          <div className="flex-1 p-6 overflow-auto">
+          <div className="flex-1 p-6 overflow-auto bg-slate-50 dark:bg-slate-950">
             {children}
           </div>
         </main>
