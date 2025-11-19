@@ -24,7 +24,7 @@ const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Proyectos", url: "/projects", icon: FolderKanban },
   { title: "Producción Científica", url: "/production", icon: BookOpen },
-  { title: "Medición de Impactos", url: "/impacts", icon: Target },
+  { title: "Impactos", url: "/impacts", icon: Target },
   { title: "Vinculación", url: "/vinculacion", icon: Users },
 ];
 
