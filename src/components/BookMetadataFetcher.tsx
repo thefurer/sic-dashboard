@@ -28,6 +28,11 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
     }
   };
 
+  const handleMetadataChange = (updatedMetadata: BookMetadata) => {
+    setMetadata(updatedMetadata);
+    onMetadataFetched?.(updatedMetadata);
+  };
+
   return (
     <div className="space-y-6">
       {/* Glassmorphism Auto-Fetch Card */}
@@ -119,7 +124,7 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
                 <Input
                   id="title"
                   value={metadata.title}
-                  onChange={(e) => setMetadata({ ...metadata, title: e.target.value })}
+                  onChange={(e) => handleMetadataChange({ ...metadata, title: e.target.value })}
                   className="bg-background"
                 />
               </div>
@@ -130,7 +135,7 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
                   id="authors"
                   placeholder="Apellido, N., et al."
                   value={metadata.authors}
-                  onChange={(e) => setMetadata({ ...metadata, authors: e.target.value })}
+                  onChange={(e) => handleMetadataChange({ ...metadata, authors: e.target.value })}
                   className="bg-background"
                 />
               </div>
@@ -142,7 +147,7 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
                     id="year"
                     placeholder="2024"
                     value={metadata.year}
-                    onChange={(e) => setMetadata({ ...metadata, year: e.target.value })}
+                    onChange={(e) => handleMetadataChange({ ...metadata, year: e.target.value })}
                     className="bg-background"
                   />
                 </div>
@@ -153,7 +158,7 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
                     id="isbn-display"
                     placeholder="978-84-1234-567-8"
                     value={metadata.isbn}
-                    onChange={(e) => setMetadata({ ...metadata, isbn: e.target.value })}
+                    onChange={(e) => handleMetadataChange({ ...metadata, isbn: e.target.value })}
                     className="bg-background"
                   />
                 </div>
@@ -165,7 +170,7 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
                   id="editorial"
                   placeholder="Nombre de la editorial"
                   value={metadata.editorial || ""}
-                  onChange={(e) => setMetadata({ ...metadata, editorial: e.target.value })}
+                  onChange={(e) => handleMetadataChange({ ...metadata, editorial: e.target.value })}
                   className="bg-background"
                 />
               </div>

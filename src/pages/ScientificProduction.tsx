@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,20 +48,75 @@ const mockArticles = [
   },
 ];
 
-const mockBooks = [
-  {
-    id: 1,
-    title: "Inteligencia Artificial: Fundamentos y Aplicaciones",
-    authors: "González, M., et al.",
-    year: 2023,
-    isbn: "978-84-1234-567-8",
-    editorial: "Editorial Académica",
-  },
-];
-
 export default function ScientificProduction() {
   const [activeTab, setActiveTab] = useState("articles");
   const [isArticleDialogOpen, setIsArticleDialogOpen] = useState(false);
+  const [isBookDialogOpen, setIsBookDialogOpen] = useState(false);
+  const [bookMetadata, setBookMetadata] = useState<any>(null);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Query to fetch books
+  const { data: books = [], isLoading: booksLoading } = useQuery({
+    queryKey: ["scientific_books"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("scientific_books")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Mutation to create a book
+  const createBookMutation = useMutation({
+    mutationFn: async (bookData: any) => {
+      const { data, error } = await supabase
+        .from("scientific_books")
+        .insert([
+          {
+            ...bookData,
+            user_id: user?.id,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["scientific_books"] });
+      toast({
+        title: "Libro guardado",
+        description: "El libro ha sido registrado exitosamente.",
+      });
+      setIsBookDialogOpen(false);
+      setBookMetadata(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error al guardar",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleBookSubmit = () => {
+    if (!bookMetadata) {
+      toast({
+        title: "Error",
+        description: "Por favor complete los datos del libro",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createBookMutation.mutate(bookMetadata);
+  };
 
   const handleArticleSubmit = () => {
     toast({
@@ -143,7 +201,7 @@ export default function ScientificProduction() {
 
         <TabsContent value="books" className="space-y-4">
           <div className="flex justify-end">
-            <Dialog>
+            <Dialog open={isBookDialogOpen} onOpenChange={setIsBookDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
@@ -158,32 +216,52 @@ export default function ScientificProduction() {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
-                  <BookMetadataFetcher />
+                  <BookMetadataFetcher onMetadataFetched={setBookMetadata} />
                 </div>
                 <DialogFooter>
-                  <Button variant="outline">Cancelar</Button>
-                  <Button>Guardar Libro</Button>
+                  <Button variant="outline" onClick={() => setIsBookDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleBookSubmit} disabled={createBookMutation.isPending}>
+                    {createBookMutation.isPending ? "Guardando..." : "Guardar Libro"}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
           </div>
 
           <div className="grid gap-4">
-            {mockBooks.map((book) => (
-              <Card key={book.id}>
+            {booksLoading ? (
+              <Card>
                 <CardContent className="p-6">
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg">{book.title}</h3>
-                    <p className="text-sm text-muted-foreground">{book.authors}</p>
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="text-muted-foreground">Año: {book.year}</span>
-                      <span className="text-muted-foreground">ISBN: {book.isbn}</span>
-                      <span className="text-muted-foreground">{book.editorial}</span>
-                    </div>
-                  </div>
+                  <p className="text-muted-foreground">Cargando libros...</p>
                 </CardContent>
               </Card>
-            ))}
+            ) : books.length === 0 ? (
+              <Card>
+                <CardContent className="p-6">
+                  <p className="text-muted-foreground">No hay libros registrados</p>
+                </CardContent>
+              </Card>
+            ) : (
+              books.map((book: any) => (
+                <Card key={book.id}>
+                  <CardContent className="p-6">
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-lg">{book.title}</h3>
+                      <p className="text-sm text-muted-foreground">{book.authors}</p>
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="text-muted-foreground">Año: {book.year}</span>
+                        <span className="text-muted-foreground">ISBN: {book.isbn}</span>
+                        {book.editorial && (
+                          <span className="text-muted-foreground">{book.editorial}</span>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </TabsContent>
 

@@ -118,6 +118,42 @@ export type Database = {
           },
         ]
       }
+      scientific_books: {
+        Row: {
+          authors: string
+          created_at: string
+          editorial: string | null
+          id: string
+          isbn: string
+          title: string
+          updated_at: string
+          user_id: string
+          year: string
+        }
+        Insert: {
+          authors: string
+          created_at?: string
+          editorial?: string | null
+          id?: string
+          isbn: string
+          title: string
+          updated_at?: string
+          user_id: string
+          year: string
+        }
+        Update: {
+          authors?: string
+          created_at?: string
+          editorial?: string | null
+          id?: string
+          isbn?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          year?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
