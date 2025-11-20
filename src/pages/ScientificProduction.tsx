@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ArticleMetadataFetcher } from "@/components/ArticleMetadataFetcher";
+import { BookMetadataFetcher } from "@/components/BookMetadataFetcher";
 import { toast } from "@/hooks/use-toast";
 
 const mockArticles = [
@@ -149,41 +150,20 @@ export default function ScientificProduction() {
                   Agregar Libro
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Registrar Libro</DialogTitle>
                   <DialogDescription>
                     Complete la información de la publicación
                   </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="book-title">Título</Label>
-                    <Input id="book-title" placeholder="Título del libro" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="book-authors">Autores</Label>
-                    <Input id="book-authors" placeholder="Apellido, N., et al." />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="book-year">Año</Label>
-                      <Input id="book-year" type="number" placeholder="2024" />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="isbn">ISBN</Label>
-                      <Input id="isbn" placeholder="978-84-1234-567-8" />
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="editorial">Editorial</Label>
-                    <Input id="editorial" placeholder="Nombre de la editorial" />
-                  </div>
+                <div className="py-4">
+                  <BookMetadataFetcher />
                 </div>
-                <div className="flex justify-end gap-3">
+                <DialogFooter>
                   <Button variant="outline">Cancelar</Button>
                   <Button>Guardar Libro</Button>
-                </div>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
           </div>
