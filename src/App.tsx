@@ -14,6 +14,7 @@ import Projects from "./pages/Projects";
 import ScientificProduction from "./pages/ScientificProduction";
 import Impacts from "./pages/Impacts";
 import Vinculacion from "./pages/Vinculacion";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,11 @@ const App = () => (
             <Route path="/vinculacion" element={
               <ProtectedRoute>
                 <MainLayout><Vinculacion /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <MainLayout><Profile /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

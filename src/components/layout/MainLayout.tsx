@@ -67,7 +67,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { window.location.href = '/profile'; }}>
                   <User className="mr-2 h-4 w-4" />
                   Perfil
                 </DropdownMenuItem>
