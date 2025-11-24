@@ -9,6 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, phoneNumber: string, researcherCode: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -102,6 +103,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
+  const signUp = async (email: string, password: string, phoneNumber: string, researcherCode: string) => {
+    // Validate email domain
+    if (!email.endsWith('@unesum.edu.ec')) {
+      toast.error('Solo se permiten correos con dominio @unesum.edu.ec');
+      return { error: { message: 'Invalid email domain' } };
+    }
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth`,
+        data: {
+          phone_number: phoneNumber,
+          researcher_code: researcherCode,
+        },
+      },
+    });
+    
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Registro exitoso. Por favor espere la aprobación del administrador.');
+    }
+    
+    return { error };
+  };
+
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -128,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );
