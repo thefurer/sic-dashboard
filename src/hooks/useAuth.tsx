@@ -24,11 +24,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        // Validate email domain for Google OAuth
-        if (session?.user?.email && !session.user.email.endsWith('@unesum.edu.ec')) {
+      async (event, session) => {
+        // Validate email domain only on sign-in events
+        if (event === 'SIGNED_IN' && session?.user?.email && !session.user.email.endsWith('@unesum.edu.ec')) {
           toast.error('Solo se permiten correos con dominio @unesum.edu.ec');
-          supabase.auth.signOut();
+          // Use setTimeout to avoid blocking the auth flow
+          setTimeout(async () => {
+            await supabase.auth.signOut();
+            navigate('/auth');
+          }, 100);
           return;
         }
         
@@ -36,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         // Defer navigation to avoid blocking auth flow
-        if (session?.user) {
+        if (session?.user && event === 'SIGNED_IN') {
           setTimeout(() => {
             if (window.location.pathname === '/auth') {
               navigate('/dashboard');
@@ -48,6 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      // Validate existing session
+      if (session?.user?.email && !session.user.email.endsWith('@unesum.edu.ec')) {
+        toast.error('Solo se permiten correos con dominio @unesum.edu.ec');
+        supabase.auth.signOut();
+        setLoading(false);
+        return;
+      }
+      
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
