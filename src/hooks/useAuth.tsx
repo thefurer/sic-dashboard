@@ -9,7 +9,6 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -26,6 +25,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        // Validate email domain for Google OAuth
+        if (session?.user?.email && !session.user.email.endsWith('@unesum.edu.ec')) {
+          toast.error('Solo se permiten correos con dominio @unesum.edu.ec');
+          supabase.auth.signOut();
+          return;
+        }
+        
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -51,6 +57,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
+    // Validate email domain
+    if (!email.endsWith('@unesum.edu.ec')) {
+      toast.error('Solo se permiten correos con dominio @unesum.edu.ec');
+      return { error: { message: 'Invalid email domain' } };
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -65,34 +77,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    const redirectUrl = `${window.location.origin}/dashboard`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-        },
-      },
-    });
-    
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Account created! Please check your email to verify.');
-    }
-    
-    return { error };
-  };
-
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
+        queryParams: {
+          hd: 'unesum.edu.ec', // Restrict to unesum.edu.ec domain
+        },
       },
     });
     
@@ -110,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );
