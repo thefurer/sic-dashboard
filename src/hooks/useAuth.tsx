@@ -25,25 +25,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state change:', event, session?.user?.email);
         
-        if (event === 'SIGNED_IN') {
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          // Navigate to dashboard
-          if (window.location.pathname === '/auth') {
-            navigate('/dashboard');
-          }
-        } else if (event === 'SIGNED_OUT') {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (event === 'SIGNED_OUT') {
           setSession(null);
           setUser(null);
-        } else {
-          // For other events, just update the state
-          setSession(session);
-          setUser(session?.user ?? null);
         }
+        
+        // Don't auto-navigate on SIGNED_IN - let ProtectedRoute handle approval check
       }
     );
 

@@ -35,6 +35,7 @@ export default function PendingApprovals() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-approvals-count"] });
       toast.success("Usuario aprobado y notificado");
     },
     onError: () => {
@@ -51,6 +52,7 @@ export default function PendingApprovals() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-approvals-count"] });
       toast.success("Solicitud rechazada");
     },
     onError: () => {

@@ -11,14 +11,21 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("is_approved")
         .eq("id", user.id)
         .single();
+      
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return null;
+      }
       return data;
     },
     enabled: !!user,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
   if (loading || profileLoading) {
