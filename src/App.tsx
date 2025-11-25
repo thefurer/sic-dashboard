@@ -10,11 +10,8 @@ import NotFound from "./pages/NotFound";
 import { MainLayout } from "./components/layout/MainLayout";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import Projects from "./pages/Projects";
-import ScientificProduction from "./pages/ScientificProduction";
-import Impacts from "./pages/Impacts";
-import Vinculacion from "./pages/Vinculacion";
 import Profile from "./pages/Profile";
+import Evaluation from "./pages/Evaluation";
 import PendingApprovals from "./pages/admin/PendingApprovals";
 import UserDirectory from "./pages/admin/UserDirectory";
 import InstitutionalDocs from "./pages/admin/InstitutionalDocs";
@@ -37,24 +34,9 @@ const App = () => (
                 <MainLayout><Dashboard /></MainLayout>
               </ProtectedRoute>
             } />
-            <Route path="/projects" element={
+            <Route path="/evaluation" element={
               <ProtectedRoute>
-                <MainLayout><Projects /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/production" element={
-              <ProtectedRoute>
-                <MainLayout><ScientificProduction /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/impacts" element={
-              <ProtectedRoute>
-                <MainLayout><Impacts /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/vinculacion" element={
-              <ProtectedRoute>
-                <MainLayout><Vinculacion /></MainLayout>
+                <MainLayout><Evaluation /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
