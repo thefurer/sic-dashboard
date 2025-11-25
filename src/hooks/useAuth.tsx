@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Registro exitoso. Por favor espere la aprobación del administrador.');
+      toast.success('Registro exitoso revise su correo. Por favor espere la aprobación del administrador.');
     }
     
     return { error };
