@@ -32,11 +32,13 @@ export default function PendingApprovals() {
         .eq("id", userId);
 
       if (error) throw error;
+      return userId;
     },
-    onSuccess: () => {
+    onSuccess: (userId) => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
       queryClient.invalidateQueries({ queryKey: ["pending-approvals-count"] });
-      toast.success("Usuario aprobado y notificado");
+      queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+      toast.success("Usuario aprobado correctamente");
     },
     onError: () => {
       toast.error("Error al aprobar usuario");
