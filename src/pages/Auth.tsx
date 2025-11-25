@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import gisicfLogo from "@/assets/gisicf-logo.png";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Lightweight particle background (no extra deps).
@@ -145,7 +146,8 @@ function ParticleBackground({ count = 60 }: { count?: number }) {
 }
 
 export default function Auth() {
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
@@ -155,10 +157,20 @@ export default function Auth() {
     researcherCode: "",
   });
 
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await signIn(loginData.email, loginData.password);
+    const { error } = await signIn(loginData.email, loginData.password);
+    if (!error) {
+      navigate("/dashboard");
+    }
     setLoading(false);
   };
 
