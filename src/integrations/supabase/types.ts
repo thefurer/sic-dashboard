@@ -46,9 +46,12 @@ export type Database = {
           category: string
           created_at: string | null
           evidence_url: string | null
+          fase: string | null
           id: string
           indicator_name: string
           justification: string | null
+          monto: number | null
+          porcentaje_ejecucion: number | null
           quantity: number | null
           report_id: string
           score_obtained: number | null
@@ -58,9 +61,12 @@ export type Database = {
           category: string
           created_at?: string | null
           evidence_url?: string | null
+          fase?: string | null
           id?: string
           indicator_name: string
           justification?: string | null
+          monto?: number | null
+          porcentaje_ejecucion?: number | null
           quantity?: number | null
           report_id: string
           score_obtained?: number | null
@@ -70,9 +76,12 @@ export type Database = {
           category?: string
           created_at?: string | null
           evidence_url?: string | null
+          fase?: string | null
           id?: string
           indicator_name?: string
           justification?: string | null
+          monto?: number | null
+          porcentaje_ejecucion?: number | null
           quantity?: number | null
           report_id?: string
           score_obtained?: number | null

@@ -8,8 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FileText, Send } from "lucide-react";
+import { FileText, Send, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EvaluationItem {
   category: string;
@@ -18,6 +19,9 @@ interface EvaluationItem {
   evidence_url?: string;
   quantity?: number;
   justification?: string;
+  monto?: number;
+  fase?: string;
+  porcentaje_ejecucion?: number;
 }
 
 interface ReviewStepProps {
@@ -48,6 +52,11 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting }
       .reduce((sum, item) => sum + item.score_obtained, 0);
   };
 
+  const getCategoryItems = (category: string) => {
+    return items.filter((item) => item.category === category);
+  };
+
+  const canSubmit = totalScore === 100;
   const categories = ["A", "B", "C", "D"];
 
   return (
@@ -58,6 +67,16 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting }
           Revise su evaluación antes de enviar el informe final
         </p>
       </div>
+
+      {/* Validation Alert */}
+      {!canSubmit && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Debe completar 100 puntos para enviar la evaluación. Actualmente tiene {totalScore} puntos.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Summary by Category */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -92,102 +111,136 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting }
       </div>
 
       {/* Total Score Card */}
-      <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary">
+      <Card className={`border-2 ${canSubmit ? "bg-gradient-to-r from-green-500/10 to-green-500/5 border-green-500" : "bg-gradient-to-r from-primary/10 to-primary/5 border-primary"}`}>
         <CardContent className="pt-6">
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Puntuación Total</p>
-            <p className="text-6xl font-bold text-primary mb-2">{totalScore}</p>
+            <p className={`text-6xl font-bold mb-2 ${canSubmit ? "text-green-600" : "text-primary"}`}>
+              {totalScore}
+            </p>
             <p className="text-2xl text-muted-foreground">/ 100 puntos</p>
             <div className="mt-4">
               <Badge
-                variant={totalScore >= 80 ? "default" : totalScore >= 50 ? "secondary" : "outline"}
-                className="text-lg px-4 py-1"
+                variant={canSubmit ? "default" : "outline"}
+                className={`text-lg px-4 py-1 ${canSubmit ? "bg-green-600" : ""}`}
               >
-                {totalScore >= 80
-                  ? "Excelente"
-                  : totalScore >= 50
-                  ? "Bueno"
-                  : "Necesita Mejorar"}
+                {canSubmit ? "Completo" : `Faltan ${100 - totalScore} puntos`}
               </Badge>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Detailed Items Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Detalle de Indicadores</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead>Indicador</TableHead>
-                  <TableHead className="text-center">Cantidad</TableHead>
-                  <TableHead className="text-center">Puntos</TableHead>
-                  <TableHead className="text-center">Evidencia</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      No hay items registrados
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  items.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">{item.category}</TableCell>
-                      <TableCell>{item.indicator_name}</TableCell>
-                      <TableCell className="text-center">
-                        {item.category === "D" ? "-" : item.quantity || 0}
-                      </TableCell>
-                      <TableCell className="text-center font-semibold text-primary">
-                        {item.score_obtained}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.evidence_url ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.open(item.evidence_url, "_blank")}
-                          >
-                            <FileText className="w-4 h-4" />
-                          </Button>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">Sin evidencia</span>
-                        )}
-                      </TableCell>
+      {/* Detailed Items by Category */}
+      {categories.map((category) => {
+        const categoryItems = getCategoryItems(category);
+        if (categoryItems.length === 0) return null;
+
+        return (
+          <Card key={category}>
+            <CardHeader>
+              <CardTitle>
+                Sección {category}: {CATEGORY_NAMES[category as keyof typeof CATEGORY_NAMES]}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Indicador</TableHead>
+                      <TableHead className="text-center">Cantidad</TableHead>
+                      {category === "C" && (
+                        <>
+                          <TableHead className="text-center">Monto</TableHead>
+                          <TableHead className="text-center">Fase</TableHead>
+                          <TableHead className="text-center">% Ejec.</TableHead>
+                        </>
+                      )}
+                      <TableHead className="text-center">Puntos</TableHead>
+                      <TableHead className="text-center">Evidencia</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {categoryItems.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{item.indicator_name}</TableCell>
+                        <TableCell className="text-center">
+                          {category === "D" ? "-" : item.quantity || 0}
+                        </TableCell>
+                        {category === "C" && (
+                          <>
+                            <TableCell className="text-center">
+                              ${item.monto?.toLocaleString() || 0}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item.fase || "-"}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item.porcentaje_ejecucion || 0}%
+                            </TableCell>
+                          </>
+                        )}
+                        <TableCell className="text-center font-semibold text-primary">
+                          {item.score_obtained}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.evidence_url ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(item.evidence_url, "_blank")}
+                            >
+                              <FileText className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">Sin evidencia</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {category === "D" && categoryItems.map((item) => item.justification && (
+                      <TableRow key={`${item.indicator_name}-justification`}>
+                        <TableCell colSpan={4} className="text-sm">
+                          <span className="font-medium">Justificación:</span> {item.justification}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
 
       {/* Submit Button */}
-      <Card className="border-2 border-green-500/20 bg-green-50 dark:bg-green-950/20">
+      <Card className={`border-2 ${canSubmit ? "border-green-500/20 bg-green-50 dark:bg-green-950/20" : "border-orange-500/20 bg-orange-50 dark:bg-orange-950/20"}`}>
         <CardContent className="pt-6">
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-4">
-              Al enviar, su evaluación será sometida para revisión por el equipo administrativo.
-              <br />
-              No podrá realizar cambios después del envío.
+              {canSubmit ? (
+                <>
+                  Al enviar, su evaluación será sometida para revisión por el equipo administrativo.
+                  <br />
+                  No podrá realizar cambios después del envío.
+                </>
+              ) : (
+                <>
+                  Complete todos los campos obligatorios y alcance 100 puntos para enviar la evaluación.
+                  <br />
+                  Faltan {100 - totalScore} puntos para completar.
+                </>
+              )}
             </p>
             <Button
               size="lg"
               onClick={onSubmit}
-              disabled={isSubmitting || items.length === 0}
-              className="bg-green-600 hover:bg-green-700"
+              disabled={isSubmitting || !canSubmit}
+              className={canSubmit ? "bg-green-600 hover:bg-green-700" : ""}
             >
               <Send className="w-5 h-5 mr-2" />
-              {isSubmitting ? "Enviando..." : "Enviar Evaluación Final"}
+              {isSubmitting ? "Enviando..." : canSubmit ? "Enviar Evaluación Final" : "Complete 100 puntos para enviar"}
             </Button>
           </div>
         </CardContent>

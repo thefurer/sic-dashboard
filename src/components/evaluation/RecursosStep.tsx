@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,6 +17,9 @@ interface EvaluationItem {
   score_obtained: number;
   evidence_url?: string;
   quantity: number;
+  monto?: number;
+  fase?: string;
+  porcentaje_ejecucion?: number;
 }
 
 interface RecursosStepProps {
@@ -28,6 +32,8 @@ const INDICATORS = [
   { name: "Convocatorias Internacionales", points: 10, unitScore: 10 },
   { name: "Convocatorias Nacionales", points: 5, unitScore: 5 },
 ];
+
+const FASES = ["Propuesta", "Ejecución", "Finalizado"];
 
 export default function RecursosStep({ reportId, items, onItemsChange }: RecursosStepProps) {
   const [uploading, setUploading] = useState<string | null>(null);
@@ -44,6 +50,9 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
             quantity: item.quantity,
             score_obtained: item.score_obtained,
             evidence_url: item.evidence_url,
+            monto: item.monto,
+            fase: item.fase,
+            porcentaje_ejecucion: item.porcentaje_ejecucion,
           })
           .eq("id", existingItem.id);
 
@@ -65,28 +74,34 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
     },
   });
 
-  const handleQuantityChange = async (indicatorName: string, quantity: number, unitScore: number) => {
+  const handleFieldChange = async (
+    indicatorName: string,
+    field: string,
+    value: any,
+    unitScore: number
+  ) => {
     if (!reportId) return;
 
-    const score = Math.min(
-      quantity * unitScore,
-      INDICATORS.find((i) => i.name === indicatorName)?.points || 0
-    );
     const existingItem = items.find((i) => i.indicator_name === indicatorName);
-
-    const item: EvaluationItem = {
+    
+    const updatedItem: EvaluationItem = {
       report_id: reportId,
       category: "C",
       indicator_name: indicatorName,
-      score_obtained: score,
-      quantity: quantity,
+      quantity: field === "quantity" ? value : (existingItem?.quantity || 0),
+      score_obtained: field === "quantity" 
+        ? Math.min(value * unitScore, INDICATORS.find((i) => i.name === indicatorName)?.points || 0)
+        : (existingItem?.score_obtained || 0),
       evidence_url: existingItem?.evidence_url || "",
+      monto: field === "monto" ? value : (existingItem?.monto || 0),
+      fase: field === "fase" ? value : (existingItem?.fase || ""),
+      porcentaje_ejecucion: field === "porcentaje_ejecucion" ? value : (existingItem?.porcentaje_ejecucion || 0),
     };
 
-    await saveItemMutation.mutateAsync(item);
+    await saveItemMutation.mutateAsync(updatedItem);
 
     const updatedItems = items.filter((i) => i.indicator_name !== indicatorName);
-    onItemsChange([...updatedItems, item]);
+    onItemsChange([...updatedItems, updatedItem]);
   };
 
   const handleFileUpload = async (indicatorName: string, file: File) => {
@@ -127,6 +142,9 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
         score_obtained: existingItem?.score_obtained || 0,
         quantity: existingItem?.quantity || 0,
         evidence_url: publicUrl,
+        monto: existingItem?.monto || 0,
+        fase: existingItem?.fase || "",
+        porcentaje_ejecucion: existingItem?.porcentaje_ejecucion || 0,
       };
 
       await saveItemMutation.mutateAsync(item);
@@ -147,6 +165,9 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
       quantity: 0,
       score_obtained: 0,
       evidence_url: "",
+      monto: 0,
+      fase: "",
+      porcentaje_ejecucion: 0,
     };
   };
 
@@ -180,15 +201,17 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor={`quantity-${indicator.name}`}>Cantidad</Label>
+                    <Label htmlFor={`quantity-${indicator.name}`}>Cantidad *</Label>
                     <Input
                       id={`quantity-${indicator.name}`}
                       type="number"
                       min="0"
+                      required
                       value={itemData.quantity}
                       onChange={(e) =>
-                        handleQuantityChange(
+                        handleFieldChange(
                           indicator.name,
+                          "quantity",
                           parseInt(e.target.value) || 0,
                           indicator.unitScore
                         )
@@ -201,42 +224,128 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
                   </div>
 
                   <div>
-                    <Label>Evidencia (PDF)</Label>
-                    {itemData.evidence_url ? (
-                      <div className="flex items-center gap-2 mt-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => window.open(itemData.evidence_url, "_blank")}
-                        >
-                          <FileText className="w-4 h-4 mr-2" />
-                          Ver evidencia
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="mt-1">
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          disabled={uploading === indicator.name}
-                          onClick={() => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = ".pdf";
-                            input.onchange = (e) => {
-                              const file = (e.target as HTMLInputElement).files?.[0];
-                              if (file) handleFileUpload(indicator.name, file);
-                            };
-                            input.click();
-                          }}
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          {uploading === indicator.name ? "Subiendo..." : "Subir PDF"}
-                        </Button>
-                      </div>
-                    )}
+                    <Label htmlFor={`monto-${indicator.name}`}>Monto (USD) *</Label>
+                    <Input
+                      id={`monto-${indicator.name}`}
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      required
+                      value={itemData.monto || ""}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          indicator.name,
+                          "monto",
+                          parseFloat(e.target.value) || 0,
+                          indicator.unitScore
+                        )
+                      }
+                      className="mt-1"
+                      placeholder="0.00"
+                    />
                   </div>
+
+                  <div>
+                    <Label htmlFor={`fase-${indicator.name}`}>Fase *</Label>
+                    <Select
+                      value={itemData.fase || ""}
+                      onValueChange={(value) =>
+                        handleFieldChange(indicator.name, "fase", value, indicator.unitScore)
+                      }
+                    >
+                      <SelectTrigger id={`fase-${indicator.name}`} className="mt-1">
+                        <SelectValue placeholder="Seleccione fase" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FASES.map((fase) => (
+                          <SelectItem key={fase} value={fase}>
+                            {fase}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`porcentaje-${indicator.name}`}>
+                      % Ejecución *
+                    </Label>
+                    <Input
+                      id={`porcentaje-${indicator.name}`}
+                      type="number"
+                      min="0"
+                      max="100"
+                      required
+                      value={itemData.porcentaje_ejecucion || ""}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          indicator.name,
+                          "porcentaje_ejecucion",
+                          parseInt(e.target.value) || 0,
+                          indicator.unitScore
+                        )
+                      }
+                      className="mt-1"
+                      placeholder="0"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Ingrese valor entre 0 y 100
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Evidencia (PDF) *</Label>
+                  {itemData.evidence_url ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => window.open(itemData.evidence_url, "_blank")}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Ver evidencia
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = ".pdf";
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleFileUpload(indicator.name, file);
+                          };
+                          input.click();
+                        }}
+                      >
+                        Cambiar
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mt-1">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={uploading === indicator.name}
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = ".pdf";
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleFileUpload(indicator.name, file);
+                          };
+                          input.click();
+                        }}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {uploading === indicator.name ? "Subiendo..." : "Subir PDF"}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
