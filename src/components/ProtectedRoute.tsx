@@ -7,6 +7,27 @@ import { supabase } from "@/integrations/supabase/client";
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
+  const { data: userRole, isLoading: roleLoading } = useQuery({
+    queryKey: ["user-role", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (error) {
+        console.error("Error fetching role:", error);
+        return null;
+      }
+      return data?.role;
+    },
+    enabled: !!user,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+  });
+
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
@@ -28,7 +49,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     refetchOnWindowFocus: true,
   });
 
-  if (loading || profileLoading) {
+  if (loading || profileLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -40,7 +61,11 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/auth" replace />;
   }
 
-  if (profile && !profile.is_approved) {
+  // Admins bypass approval check
+  const isAdmin = userRole === "admin";
+  
+  // Only check approval for non-admin users
+  if (!isAdmin && profile && !profile.is_approved) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
