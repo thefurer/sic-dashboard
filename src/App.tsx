@@ -18,6 +18,7 @@ import Profile from "./pages/Profile";
 import PendingApprovals from "./pages/admin/PendingApprovals";
 import UserDirectory from "./pages/admin/UserDirectory";
 import InstitutionalDocs from "./pages/admin/InstitutionalDocs";
+import Tasks from "./pages/Tasks";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,11 @@ const App = () => (
             <Route path="/admin/users" element={
               <ProtectedRoute>
                 <MainLayout><UserDirectory /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/tasks" element={
+              <ProtectedRoute>
+                <MainLayout><Tasks /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/admin/institutional" element={

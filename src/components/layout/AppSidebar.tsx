@@ -8,6 +8,7 @@ import {
   Users,
   UserPlus,
   FileText,
+  CheckSquare,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -29,12 +30,6 @@ const menuItems = [
   { title: "Producción Científica", url: "/production", icon: BookOpen },
   { title: "Impactos", url: "/impacts", icon: Target },
   { title: "Vinculación", url: "/vinculacion", icon: Users },
-];
-
-const adminMenuItems = [
-  { title: "Solicitudes Pendientes", url: "/admin/pending-approvals", icon: UserPlus },
-  { title: "Directorio de Usuarios", url: "/admin/users", icon: Users },
-  { title: "Gestión Institucional", url: "/admin/institutional", icon: FileText },
 ];
 
 export function AppSidebar() {
@@ -86,33 +81,62 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-slate-500 dark:text-slate-400 text-xs font-medium px-3">Administración</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminMenuItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
+              
+              {isAdmin && (
+                <>
+                  <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <NavLink
-                        to={item.url}
+                        to="/admin/pending-approvals"
                         className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                         activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
                       >
-                        <item.icon className="h-5 w-5" />
-                        {state === "expanded" && <span>{item.title}</span>}
+                        <UserPlus className="h-5 w-5" />
+                        {state === "expanded" && <span>Solicitudes Pendientes</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/admin/users"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <Users className="h-5 w-5" />
+                        {state === "expanded" && <span>Directorio de Usuarios</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/tasks"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <CheckSquare className="h-5 w-5" />
+                        {state === "expanded" && <span>Tareas</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/admin/institutional"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <FileText className="h-5 w-5" />
+                        {state === "expanded" && <span>Gestión Institucional</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );
