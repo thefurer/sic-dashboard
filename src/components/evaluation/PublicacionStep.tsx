@@ -3,10 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, X } from "lucide-react";
+import { Upload, FileText, X, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDOIMetadata } from "@/hooks/useDOIMetadata";
+import { useISBNMetadata } from "@/hooks/useISBNMetadata";
 
 interface EvaluationItem {
   id?: string;
@@ -16,6 +18,12 @@ interface EvaluationItem {
   score_obtained: number;
   evidence_url?: string;
   quantity: number;
+  evidence_urls?: string[]; // Multiple evidence URLs
+}
+
+interface Evidence {
+  url: string;
+  index: number;
 }
 
 interface PublicacionStepProps {
@@ -34,11 +42,20 @@ const INDICATORS = [
 
 export default function PublicacionStep({ reportId, items, onItemsChange }: PublicacionStepProps) {
   const [uploading, setUploading] = useState<string | null>(null);
+  const [doiSearch, setDoiSearch] = useState<Record<string, string>>({});
+  const [isbnSearch, setIsbnSearch] = useState<Record<string, string>>({});
   const queryClient = useQueryClient();
+  const { fetchMetadata: fetchDOI, isLoading: loadingDOI } = useDOIMetadata();
+  const { fetchMetadata: fetchISBN, isLoading: loadingISBN } = useISBNMetadata();
 
   const saveItemMutation = useMutation({
     mutationFn: async (item: EvaluationItem) => {
       const existingItem = items.find((i) => i.indicator_name === item.indicator_name);
+
+      // Store evidence_urls as JSON in evidence_url field
+      const evidenceUrlToStore = item.evidence_urls && item.evidence_urls.length > 0 
+        ? JSON.stringify(item.evidence_urls) 
+        : item.evidence_url || "";
 
       if (existingItem?.id) {
         const { error } = await supabase
@@ -46,7 +63,7 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
           .update({
             quantity: item.quantity,
             score_obtained: item.score_obtained,
-            evidence_url: item.evidence_url,
+            evidence_url: evidenceUrlToStore,
           })
           .eq("id", existingItem.id);
 
@@ -55,7 +72,10 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
       } else {
         const { data, error } = await supabase
           .from("evaluation_items")
-          .insert(item)
+          .insert({
+            ...item,
+            evidence_url: evidenceUrlToStore,
+          })
           .select()
           .single();
 
@@ -89,7 +109,7 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     onItemsChange([...updatedItems, item]);
   };
 
-  const handleFileUpload = async (indicatorName: string, file: File) => {
+  const handleFileUpload = async (indicatorName: string, file: File, evidenceIndex: number) => {
     if (!reportId) {
       toast.error("Error", { description: "No hay informe activo" });
       return;
@@ -100,13 +120,13 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
       return;
     }
 
-    setUploading(indicatorName);
+    setUploading(`${indicatorName}-${evidenceIndex}`);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated");
 
-      const fileName = `${user.id}/${reportId}/${indicatorName.replace(/\s+/g, "_")}_${Date.now()}.pdf`;
+      const fileName = `${user.id}/${reportId}/${indicatorName.replace(/\s+/g, "_")}_${evidenceIndex}_${Date.now()}.pdf`;
       
       const { error: uploadError } = await supabase.storage
         .from("evaluation-evidence")
@@ -119,6 +139,9 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
         .getPublicUrl(fileName);
 
       const existingItem = items.find((i) => i.indicator_name === indicatorName);
+      const currentUrls = existingItem?.evidence_urls || [];
+      const newUrls = [...currentUrls];
+      newUrls[evidenceIndex] = publicUrl;
       
       const item: EvaluationItem = {
         report_id: reportId,
@@ -126,7 +149,8 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
         indicator_name: indicatorName,
         score_obtained: existingItem?.score_obtained || 0,
         quantity: existingItem?.quantity || 0,
-        evidence_url: publicUrl,
+        evidence_url: newUrls[0] || "", // Keep first URL in evidence_url for compatibility
+        evidence_urls: newUrls,
       };
 
       await saveItemMutation.mutateAsync(item);
@@ -142,8 +166,53 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     }
   };
 
+  const handleSearchMetadata = async (indicatorName: string) => {
+    const isArticle = indicatorName.includes("Artículos");
+    const isBook = indicatorName.includes("Libros");
+    
+    if (isArticle) {
+      const doi = doiSearch[indicatorName];
+      if (!doi) {
+        toast.error("Error", { description: "Ingrese un DOI" });
+        return;
+      }
+      const metadata = await fetchDOI(doi);
+      if (metadata) {
+        toast.success("Metadata encontrada", { 
+          description: `${metadata.title} - ${metadata.authors}` 
+        });
+      }
+    } else if (isBook) {
+      const isbn = isbnSearch[indicatorName];
+      if (!isbn) {
+        toast.error("Error", { description: "Ingrese un ISBN" });
+        return;
+      }
+      const metadata = await fetchISBN(isbn);
+      if (metadata) {
+        toast.success("Metadata encontrada", { 
+          description: `${metadata.title} - ${metadata.authors}` 
+        });
+      }
+    }
+  };
+
   const getItemData = (indicatorName: string) => {
-    return items.find((i) => i.indicator_name === indicatorName) || { quantity: 0, score_obtained: 0, evidence_url: "" };
+    const item = items.find((i) => i.indicator_name === indicatorName);
+    if (item) {
+      // Parse evidence_urls if stored as JSON string
+      if (item.evidence_url && item.evidence_url.startsWith('[')) {
+        try {
+          item.evidence_urls = JSON.parse(item.evidence_url);
+        } catch {
+          item.evidence_urls = [item.evidence_url];
+        }
+      } else if (item.evidence_url) {
+        item.evidence_urls = [item.evidence_url];
+      }
+      return item;
+    }
+    return { quantity: 0, score_obtained: 0, evidence_url: "", evidence_urls: [] };
   };
 
   const totalScore = items.reduce((sum, item) => sum + (item.score_obtained || 0), 0);
@@ -168,6 +237,9 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
       <div className="space-y-4">
         {INDICATORS.map((indicator) => {
           const itemData = getItemData(indicator.name);
+          const evidenceUrls = itemData.evidence_urls || (itemData.evidence_url ? [itemData.evidence_url] : []);
+          const isArticle = indicator.name.includes("Artículos");
+          const isBook = indicator.name.includes("Libros");
           
           return (
             <Card key={indicator.name} className="border-l-4 border-l-primary">
@@ -180,13 +252,14 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <Label htmlFor={`quantity-${indicator.name}`}>Cantidad</Label>
+                    <Label htmlFor={`quantity-${indicator.name}`}>Cantidad *</Label>
                     <Input
                       id={`quantity-${indicator.name}`}
                       type="number"
                       min="0"
+                      required
                       value={itemData.quantity}
                       onChange={(e) =>
                         handleQuantityChange(
@@ -202,42 +275,117 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                     </p>
                   </div>
 
-                  <div>
-                    <Label>Evidencia (PDF)</Label>
-                    {itemData.evidence_url ? (
-                      <div className="flex items-center gap-2 mt-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => window.open(itemData.evidence_url, "_blank")}
-                        >
-                          <FileText className="w-4 h-4 mr-2" />
-                          Ver evidencia
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="mt-1">
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          disabled={uploading === indicator.name}
-                          onClick={() => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = ".pdf";
-                            input.onchange = (e) => {
-                              const file = (e.target as HTMLInputElement).files?.[0];
-                              if (file) handleFileUpload(indicator.name, file);
-                            };
-                            input.click();
+                  {/* DOI/ISBN Search for Articles and Books */}
+                  {(isArticle || isBook) && (
+                    <div className="border border-primary/20 rounded-lg p-4 bg-primary/5">
+                      <Label className="text-sm font-medium mb-2 block">
+                        Búsqueda Inteligente {isArticle ? "DOI" : "ISBN"}
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder={isArticle ? "10.1234/example.2024" : "978-84-1234-567-8"}
+                          value={isArticle ? (doiSearch[indicator.name] || "") : (isbnSearch[indicator.name] || "")}
+                          onChange={(e) => {
+                            if (isArticle) {
+                              setDoiSearch({ ...doiSearch, [indicator.name]: e.target.value });
+                            } else {
+                              setIsbnSearch({ ...isbnSearch, [indicator.name]: e.target.value });
+                            }
                           }}
+                          className="flex-1"
+                        />
+                        <Button
+                          variant="secondary"
+                          onClick={() => handleSearchMetadata(indicator.name)}
+                          disabled={loadingDOI || loadingISBN}
+                          size="sm"
                         >
-                          <Upload className="w-4 h-4 mr-2" />
-                          {uploading === indicator.name ? "Subiendo..." : "Subir PDF"}
+                          {(loadingDOI || loadingISBN) ? "Buscando..." : "Buscar"}
                         </Button>
                       </div>
-                    )}
+                      {isArticle && (
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="mt-2 p-0 h-auto text-xs"
+                          onClick={() => window.open("https://miar.ub.edu/idioma/es", "_blank")}
+                        >
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          Verificar en MIAR
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Dynamic Evidence Upload Fields */}
+                  <div>
+                    <Label className="mb-2 block">Evidencias (PDF) *</Label>
+                    <div className="space-y-2">
+                      {Array.from({ length: Math.max(itemData.quantity, 1) }).map((_, index) => {
+                        const hasEvidence = evidenceUrls[index];
+                        const isUploading = uploading === `${indicator.name}-${index}`;
+                        
+                        return (
+                          <div key={index} className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground w-8">
+                              {index + 1}.
+                            </span>
+                            {hasEvidence ? (
+                              <div className="flex items-center gap-2 flex-1">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => window.open(evidenceUrls[index], "_blank")}
+                                >
+                                  <FileText className="w-4 h-4 mr-2" />
+                                  Ver evidencia {index + 1}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const input = document.createElement("input");
+                                    input.type = "file";
+                                    input.accept = ".pdf";
+                                    input.onchange = (e) => {
+                                      const file = (e.target as HTMLInputElement).files?.[0];
+                                      if (file) handleFileUpload(indicator.name, file, index);
+                                    };
+                                    input.click();
+                                  }}
+                                >
+                                  Cambiar
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                disabled={isUploading}
+                                onClick={() => {
+                                  const input = document.createElement("input");
+                                  input.type = "file";
+                                  input.accept = ".pdf";
+                                  input.onchange = (e) => {
+                                    const file = (e.target as HTMLInputElement).files?.[0];
+                                    if (file) handleFileUpload(indicator.name, file, index);
+                                  };
+                                  input.click();
+                                }}
+                              >
+                                <Upload className="w-4 h-4 mr-2" />
+                                {isUploading ? "Subiendo..." : `Subir evidencia ${index + 1}`}
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      * Se requiere evidencia para cada ítem declarado
+                    </p>
                   </div>
                 </div>
               </CardContent>

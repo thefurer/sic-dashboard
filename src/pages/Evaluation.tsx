@@ -343,11 +343,15 @@ export default function Evaluation() {
             ) : (
               <Button
                 onClick={handleSubmit}
-                disabled={submitMutation.isPending}
-                className="bg-green-600 hover:bg-green-700"
+                disabled={submitMutation.isPending || totalScore !== 100}
+                className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
               >
                 <Send className="w-4 h-4 mr-2" />
-                {submitMutation.isPending ? "Enviando..." : "Enviar Evaluación Final"}
+                {submitMutation.isPending 
+                  ? "Enviando..." 
+                  : totalScore !== 100 
+                  ? `Complete 100 puntos (${totalScore}/100)` 
+                  : "Enviar Evaluación Final"}
               </Button>
             )}
           </div>
