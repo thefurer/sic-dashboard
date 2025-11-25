@@ -14,26 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      documents: {
+        Row: {
+          category: string
+          file_url: string
+          id: string
+          title: string
+          updated_at: string
+          uploaded_at: string
+        }
+        Insert: {
+          category: string
+          file_url: string
+          id?: string
+          title: string
+          updated_at?: string
+          uploaded_at?: string
+        }
+        Update: {
+          category?: string
+          file_url?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          uploaded_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           full_name: string
           id: string
+          is_approved: boolean
+          phone: string | null
+          researcher_code: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name: string
           id: string
+          is_approved?: boolean
+          phone?: string | null
+          researcher_code?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name?: string
           id?: string
+          is_approved?: boolean
+          phone?: string | null
+          researcher_code?: string | null
           updated_at?: string
         }
         Relationships: []

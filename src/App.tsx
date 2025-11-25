@@ -15,6 +15,9 @@ import ScientificProduction from "./pages/ScientificProduction";
 import Impacts from "./pages/Impacts";
 import Vinculacion from "./pages/Vinculacion";
 import Profile from "./pages/Profile";
+import PendingApprovals from "./pages/admin/PendingApprovals";
+import UserDirectory from "./pages/admin/UserDirectory";
+import InstitutionalDocs from "./pages/admin/InstitutionalDocs";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +59,21 @@ const App = () => (
             <Route path="/profile" element={
               <ProtectedRoute>
                 <MainLayout><Profile /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/pending-approvals" element={
+              <ProtectedRoute>
+                <MainLayout><PendingApprovals /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute>
+                <MainLayout><UserDirectory /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/institutional" element={
+              <ProtectedRoute>
+                <MainLayout><InstitutionalDocs /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
