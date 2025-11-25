@@ -3,9 +3,10 @@ import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
 
   const { data: userRole, isLoading: roleLoading } = useQuery({
     queryKey: ["user-role", user?.id],
@@ -68,11 +69,18 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!isAdmin && profile && !profile.is_approved) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center">
+        <div className="text-center space-y-4">
           <h2 className="text-2xl font-bold mb-2">Cuenta Pendiente de Aprobación</h2>
           <p className="text-muted-foreground">
             Tu cuenta está siendo revisada por un administrador. Te notificaremos cuando sea aprobada.
           </p>
+          <Button 
+            onClick={signOut}
+            variant="outline"
+            className="mt-4"
+          >
+            Cerrar Sesión
+          </Button>
         </div>
       </div>
     );
