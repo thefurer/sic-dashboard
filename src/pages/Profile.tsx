@@ -17,13 +17,30 @@ export default function Profile() {
   const [researcherCode, setResearcherCode] = useState<string>(metadata.researcher_code ?? "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(metadata.avatar_url ?? null);
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [cvUrl, setCvUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setFullName(metadata.full_name ?? "");
-    setPhone(metadata.phone_number ?? "");
-    setResearcherCode(metadata.researcher_code ?? "");
-    setAvatarPreview(metadata.avatar_url ?? null);
+    const loadProfile = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (data) {
+        setFullName(data.full_name ?? "");
+        setPhone(data.phone ?? "");
+        setResearcherCode(data.researcher_code ?? "");
+        setAvatarPreview(data.avatar_url ?? null);
+        setCvUrl(data.cv_url ?? null);
+      }
+    };
+    
+    loadProfile();
   }, [user]);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,20 +49,34 @@ export default function Profile() {
     if (f) setAvatarPreview(URL.createObjectURL(f));
   };
 
+  const handleCvFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] ?? null;
+    if (f && f.type === 'application/pdf') {
+      setCvFile(f);
+    } else {
+      toast.error('Por favor selecciona un archivo PDF');
+    }
+  };
+
   const uploadAvatar = async (file: File, userId: string) => {
     const ext = file.name.split('.').pop();
-    const filePath = `avatars/${userId}/${Date.now()}.${ext}`;
+    const filePath = `${userId}/${Date.now()}.${ext}`;
 
     const { error } = await supabase.storage.from('avatars').upload(filePath, file, { cacheControl: '3600', upsert: true });
     if (error) throw error;
 
-    // Try to get public URL (requires bucket public)
-    try {
-      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-      return data.publicUrl;
-    } catch (e) {
-      return null;
-    }
+    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    return data.publicUrl;
+  };
+
+  const uploadCV = async (file: File, userId: string) => {
+    const filePath = `${userId}/cv_${Date.now()}.pdf`;
+
+    const { error } = await supabase.storage.from('cvs').upload(filePath, file, { cacheControl: '3600', upsert: true });
+    if (error) throw error;
+
+    const { data } = supabase.storage.from('cvs').getPublicUrl(filePath);
+    return data.publicUrl;
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -55,28 +86,36 @@ export default function Profile() {
 
     try {
       let avatarUrl = avatarPreview;
+      let newCvUrl = cvUrl;
 
       if (avatarFile) {
-        const publicUrl = await uploadAvatar(avatarFile, user.id);
-        if (publicUrl) avatarUrl = publicUrl;
+        avatarUrl = await uploadAvatar(avatarFile, user.id);
       }
 
-      const { error } = await supabase.auth.updateUser({
-        data: {
+      if (cvFile) {
+        newCvUrl = await uploadCV(cvFile, user.id);
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
           full_name: fullName,
-          phone_number: phone,
+          phone: phone,
           researcher_code: researcherCode,
           avatar_url: avatarUrl,
-        },
-      });
+          cv_url: newCvUrl,
+        })
+        .eq('id', user.id);
 
       if (error) {
         toast.error(error.message || 'Error al actualizar el perfil');
       } else {
         toast.success('Perfil actualizado correctamente');
+        setCvFile(null);
+        setAvatarFile(null);
       }
     } catch (err: any) {
-      toast.error(err?.message || 'Error subiendo la imagen');
+      toast.error(err?.message || 'Error al guardar los archivos');
     } finally {
       setSaving(false);
     }
@@ -118,9 +157,33 @@ export default function Profile() {
                 <Input id="researcher" value={researcherCode} onChange={(e) => setResearcherCode(e.target.value)} />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="cv">Curriculum Vitae (PDF)</Label>
+                <div className="flex items-center gap-3">
+                  <input 
+                    id="cv"
+                    aria-label="Subir CV" 
+                    type="file" 
+                    accept=".pdf,application/pdf" 
+                    onChange={handleCvFile}
+                    className="text-sm"
+                  />
+                  {cvUrl && (
+                    <a 
+                      href={cvUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Ver CV actual
+                    </a>
+                  )}
+                </div>
+              </div>
+
               <div className="flex items-center gap-3">
                 <Button type="submit" disabled={saving}>{saving ? 'Guardando...' : 'Guardar cambios'}</Button>
-                <Button variant="ghost" onClick={() => { setAvatarFile(null); setAvatarPreview(metadata.avatar_url ?? null); }}>Restaurar</Button>
+                <Button variant="ghost" onClick={() => { setAvatarFile(null); setCvFile(null); setAvatarPreview(avatarPreview); }}>Restaurar</Button>
               </div>
             </form>
           </CardContent>
