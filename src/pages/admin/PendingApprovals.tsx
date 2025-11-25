@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import { format } from "date-fns";
 
 export default function PendingApprovals() {
@@ -39,6 +39,21 @@ export default function PendingApprovals() {
     },
     onError: () => {
       toast.error("Error al aprobar usuario");
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      // Delete from auth.users (cascade will delete profile)
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
+      toast.success("Solicitud rechazada");
+    },
+    onError: () => {
+      toast.error("Error al rechazar solicitud");
     },
   });
 
@@ -82,15 +97,26 @@ export default function PendingApprovals() {
                       {format(new Date(user.created_at), "dd/MM/yyyy")}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="sm"
-                        className="bg-primary hover:bg-primary/90"
-                        onClick={() => approveMutation.mutate(user.id)}
-                        disabled={approveMutation.isPending}
-                      >
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Aprobar
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-primary hover:bg-primary/90"
+                          onClick={() => approveMutation.mutate(user.id)}
+                          disabled={approveMutation.isPending || rejectMutation.isPending}
+                        >
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Aprobar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => rejectMutation.mutate(user.id)}
+                          disabled={approveMutation.isPending || rejectMutation.isPending}
+                        >
+                          <XCircle className="mr-2 h-4 w-4" />
+                          Rechazar
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
