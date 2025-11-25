@@ -44,8 +44,9 @@ export default function PendingApprovals() {
 
   const rejectMutation = useMutation({
     mutationFn: async (userId: string) => {
-      // Delete from auth.users (cascade will delete profile)
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      const { error } = await supabase.functions.invoke("reject-user", {
+        body: { userId },
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -91,7 +92,7 @@ export default function PendingApprovals() {
               <TableBody>
                 {pendingUsers.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.full_name}</TableCell>
+                    <TableCell className="font-medium">{user.email || user.full_name}</TableCell>
                     <TableCell>{user.researcher_code || "N/A"}</TableCell>
                     <TableCell>
                       {format(new Date(user.created_at), "dd/MM/yyyy")}
