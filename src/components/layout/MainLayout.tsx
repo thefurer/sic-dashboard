@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { User, LogOut, Sun, Moon } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -48,6 +49,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>
             </Button>
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 hover:opacity-80 transition-opacity">
