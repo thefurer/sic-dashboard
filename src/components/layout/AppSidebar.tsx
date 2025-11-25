@@ -2,9 +2,7 @@ import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
-  FolderKanban,
-  BookOpen,
-  Target,
+  ClipboardCheck,
   Users,
   UserPlus,
   FileText,
@@ -26,10 +24,7 @@ import {
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Proyectos", url: "/projects", icon: FolderKanban },
-  { title: "Producción Científica", url: "/production", icon: BookOpen },
-  { title: "Impactos", url: "/impacts", icon: Target },
-  { title: "Vinculación", url: "/vinculacion", icon: Users },
+  { title: "Evaluación", url: "/evaluation", icon: ClipboardCheck },
 ];
 
 export function AppSidebar() {

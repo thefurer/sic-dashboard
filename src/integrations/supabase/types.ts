@@ -41,6 +41,89 @@ export type Database = {
         }
         Relationships: []
       }
+      evaluation_items: {
+        Row: {
+          category: string
+          created_at: string | null
+          evidence_url: string | null
+          id: string
+          indicator_name: string
+          justification: string | null
+          quantity: number | null
+          report_id: string
+          score_obtained: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          evidence_url?: string | null
+          id?: string
+          indicator_name: string
+          justification?: string | null
+          quantity?: number | null
+          report_id: string
+          score_obtained?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          evidence_url?: string | null
+          id?: string
+          indicator_name?: string
+          justification?: string | null
+          quantity?: number | null
+          report_id?: string
+          score_obtained?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_items_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluation_reports: {
+        Row: {
+          created_at: string | null
+          group_id: string
+          id: string
+          status: string
+          submitted_at: string | null
+          total_score: number | null
+          updated_at: string | null
+          user_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          group_id: string
+          id?: string
+          status?: string
+          submitted_at?: string | null
+          total_score?: number | null
+          updated_at?: string | null
+          user_id: string
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string
+          id?: string
+          status?: string
+          submitted_at?: string | null
+          total_score?: number | null
+          updated_at?: string | null
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
