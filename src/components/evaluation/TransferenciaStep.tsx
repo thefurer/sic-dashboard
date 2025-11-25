@@ -25,8 +25,7 @@ interface TransferenciaStepProps {
 }
 
 const INDICATORS = [
-  { name: "Patentes", points: 5, unitScore: 5 },
-  { name: "Proyectos de Vinculación", points: 5, unitScore: 2.5 },
+  { name: "Proyectos de Vinculación", points: 10, unitScore: 5 },
 ];
 
 export default function TransferenciaStep({ reportId, items, onItemsChange }: TransferenciaStepProps) {
@@ -89,7 +88,7 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
     onItemsChange([...updatedItems, item]);
   };
 
-  const handleFileUpload = async (indicatorName: string, file: File) => {
+  const handleFileUpload = async (indicatorName: string, file: File, index: number) => {
     if (!reportId) {
       toast.error("Error", { description: "No hay informe activo" });
       return;
@@ -100,13 +99,13 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
       return;
     }
 
-    setUploading(indicatorName);
+    setUploading(`${indicatorName}-${index}`);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated");
 
-      const fileName = `${user.id}/${reportId}/${indicatorName.replace(/\s+/g, "_")}_${Date.now()}.pdf`;
+      const fileName = `${user.id}/${reportId}/${indicatorName.replace(/\s+/g, "_")}_${index + 1}_${Date.now()}.pdf`;
 
       const { error: uploadError } = await supabase.storage
         .from("evaluation-evidence")
@@ -119,6 +118,13 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
         .getPublicUrl(fileName);
 
       const existingItem = items.find((i) => i.indicator_name === indicatorName);
+      const existingUrls = existingItem?.evidence_url
+        ? JSON.parse(existingItem.evidence_url)
+        : [];
+
+      // Update the URL at the specific index
+      const updatedUrls = [...existingUrls];
+      updatedUrls[index] = publicUrl;
 
       const item: EvaluationItem = {
         report_id: reportId,
@@ -126,7 +132,7 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
         indicator_name: indicatorName,
         score_obtained: existingItem?.score_obtained || 0,
         quantity: existingItem?.quantity || 0,
-        evidence_url: publicUrl,
+        evidence_url: JSON.stringify(updatedUrls),
       };
 
       await saveItemMutation.mutateAsync(item);
@@ -201,41 +207,58 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
                   </div>
 
                   <div>
-                    <Label>Evidencia (PDF)</Label>
-                    {itemData.evidence_url ? (
-                      <div className="flex items-center gap-2 mt-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => window.open(itemData.evidence_url, "_blank")}
-                        >
-                          <FileText className="w-4 h-4 mr-2" />
-                          Ver evidencia
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="mt-1">
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          disabled={uploading === indicator.name}
-                          onClick={() => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = ".pdf";
-                            input.onchange = (e) => {
-                              const file = (e.target as HTMLInputElement).files?.[0];
-                              if (file) handleFileUpload(indicator.name, file);
-                            };
-                            input.click();
-                          }}
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          {uploading === indicator.name ? "Subiendo..." : "Subir PDF"}
-                        </Button>
-                      </div>
-                    )}
+                    <Label>Evidencias (PDF)</Label>
+                    <div className="space-y-2 mt-1">
+                      {Array.from({ length: itemData.quantity || 0 }).map((_, idx) => {
+                        const evidenceUrls = itemData.evidence_url
+                          ? JSON.parse(itemData.evidence_url)
+                          : [];
+                        const url = evidenceUrls[idx];
+                        return (
+                          <div key={idx} className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground min-w-[80px]">
+                              Evidencia {idx + 1}:
+                            </span>
+                            {url ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => window.open(url, "_blank")}
+                              >
+                                <FileText className="w-4 h-4 mr-2" />
+                                Ver PDF
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                disabled={uploading === `${indicator.name}-${idx}`}
+                                onClick={() => {
+                                  const input = document.createElement("input");
+                                  input.type = "file";
+                                  input.accept = ".pdf";
+                                  input.onchange = (e) => {
+                                    const file = (e.target as HTMLInputElement).files?.[0];
+                                    if (file) handleFileUpload(indicator.name, file, idx);
+                                  };
+                                  input.click();
+                                }}
+                              >
+                                <Upload className="w-4 h-4 mr-2" />
+                                {uploading === `${indicator.name}-${idx}` ? "Subiendo..." : "Subir PDF"}
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {(itemData.quantity || 0) === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          Ingrese una cantidad para habilitar la carga de evidencias
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
