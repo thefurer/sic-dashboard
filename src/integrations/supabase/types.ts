@@ -14,26 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      documents: {
+        Row: {
+          category: string
+          file_url: string
+          id: string
+          title: string
+          updated_at: string
+          uploaded_at: string
+        }
+        Insert: {
+          category: string
+          file_url: string
+          id?: string
+          title: string
+          updated_at?: string
+          uploaded_at?: string
+        }
+        Update: {
+          category?: string
+          file_url?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          uploaded_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
+          cv_url: string | null
+          email: string | null
           full_name: string
           id: string
+          is_approved: boolean
+          phone: string | null
+          researcher_code: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
+          cv_url?: string | null
+          email?: string | null
           full_name: string
           id: string
+          is_approved?: boolean
+          phone?: string | null
+          researcher_code?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
+          cv_url?: string | null
+          email?: string | null
           full_name?: string
           id?: string
+          is_approved?: boolean
+          phone?: string | null
+          researcher_code?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -151,6 +196,45 @@ export type Database = {
           updated_at?: string
           user_id?: string
           year?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

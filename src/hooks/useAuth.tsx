@@ -25,55 +25,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state change:', event, session?.user?.email);
         
-        // Validate email domain on sign-in
-        if (event === 'SIGNED_IN') {
-          if (session?.user?.email && !session.user.email.endsWith('@unesum.edu.ec')) {
-            console.log('Invalid domain detected:', session.user.email);
-            toast.error('Solo se permiten correos institucionales con dominio @unesum.edu.ec');
-            // Sign out immediately
-            await supabase.auth.signOut();
-            setSession(null);
-            setUser(null);
-            navigate('/auth');
-            return;
-          }
-          
-          // Valid login
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          // Navigate to dashboard
-          if (window.location.pathname === '/auth') {
-            navigate('/dashboard');
-          }
-        } else if (event === 'SIGNED_OUT') {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (event === 'SIGNED_OUT') {
           setSession(null);
           setUser(null);
-        } else {
-          // For other events, just update the state
-          setSession(session);
-          setUser(session?.user ?? null);
         }
+        
+        // Don't auto-navigate on SIGNED_IN - let ProtectedRoute handle approval check
       }
     );
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      // Validate existing session
-      if (session?.user?.email) {
-        if (!session.user.email.endsWith('@unesum.edu.ec')) {
-          toast.error('Solo se permiten correos con dominio @unesum.edu.ec');
-          supabase.auth.signOut();
-          setSession(null);
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-      }
-      
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -83,12 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
-    // Validate email domain
-    if (!email.endsWith('@unesum.edu.ec')) {
-      toast.error('Solo se permiten correos con dominio @unesum.edu.ec');
-      return { error: { message: 'Invalid email domain' } };
-    }
-
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -104,12 +66,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, phoneNumber: string, researcherCode: string) => {
-    // Validate email domain
-    if (!email.endsWith('@unesum.edu.ec')) {
-      toast.error('Solo se permiten correos con dominio @unesum.edu.ec');
-      return { error: { message: 'Invalid email domain' } };
-    }
-
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -137,8 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: {
         redirectTo: `${window.location.origin}/auth`,
         queryParams: {
-          hd: 'unesum.edu.ec', // Suggest domain to Google
-          prompt: 'select_account', // Force account selection
+          prompt: 'select_account',
         },
       },
     });

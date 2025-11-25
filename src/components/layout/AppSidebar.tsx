@@ -6,7 +6,11 @@ import {
   BookOpen,
   Target,
   Users,
+  UserPlus,
+  FileText,
+  CheckSquare,
 } from "lucide-react";
+import { useUserRole } from "@/hooks/useUserRole";
 
 import {
   Sidebar,
@@ -32,6 +36,8 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { data: userRole } = useUserRole();
+  const isAdmin = userRole === "admin";
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return currentPath === "/dashboard";
@@ -75,6 +81,59 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              
+              {isAdmin && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/admin/pending-approvals"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <UserPlus className="h-5 w-5" />
+                        {state === "expanded" && <span>Solicitudes Pendientes</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/admin/users"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <Users className="h-5 w-5" />
+                        {state === "expanded" && <span>Directorio de Usuarios</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/tasks"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <CheckSquare className="h-5 w-5" />
+                        {state === "expanded" && <span>Tareas</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/admin/institutional"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <FileText className="h-5 w-5" />
+                        {state === "expanded" && <span>Gestión Institucional</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
