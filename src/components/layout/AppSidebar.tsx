@@ -9,6 +9,7 @@ import {
   CheckSquare,
   CalendarClock,
   Settings,
+  Landmark,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -26,6 +27,7 @@ import {
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Institucional", url: "/institutional", icon: Landmark },
   { title: "Evaluación", url: "/evaluation", icon: ClipboardCheck },
 ];
 
@@ -114,18 +116,6 @@ export function AppSidebar() {
                       >
                         <CheckSquare className="h-5 w-5" />
                         {state === "expanded" && <span>Tareas</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to="/admin/institutional"
-                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
-                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
-                      >
-                        <FileText className="h-5 w-5" />
-                        {state === "expanded" && <span>Gestión Institucional</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

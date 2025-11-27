@@ -1,0 +1,5 @@
+-- Add new columns to app_settings for mission, vision, and planning PDF
+ALTER TABLE app_settings
+ADD COLUMN mission_text text DEFAULT 'La carrera de Tecnologías de la Información tiene como misión formar profesionales competentes, éticos y comprometidos con el desarrollo tecnológico y la innovación, capaces de resolver problemas complejos mediante el uso de tecnologías de la información y comunicación, contribuyendo al desarrollo sostenible de la sociedad.',
+ADD COLUMN vision_text text DEFAULT 'Ser una carrera líder en la formación de profesionales en Tecnologías de la Información, reconocida por su excelencia académica, investigación aplicada e innovación tecnológica, que contribuya significativamente al desarrollo científico, tecnológico y social del país.',
+ADD COLUMN planning_pdf_url text;
