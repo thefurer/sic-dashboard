@@ -143,6 +143,16 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     await handleFieldUpdate(indicatorName, { quantity, score_obtained: score });
   };
 
+  // Sanitize filename to prevent storage errors
+  const sanitizeFilename = (filename: string): string => {
+    // Remove accents and special characters, convert to lowercase
+    return filename
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
+      .replace(/[^a-z0-9._-]/gi, "_") // Replace non-alphanumeric with underscore
+      .toLowerCase();
+  };
+
   const handleEvidenceUpload = async (indicatorName: string, file: File, description: string) => {
     if (!reportId) {
       toast.error("Error", { description: "No hay informe activo" });
@@ -155,7 +165,15 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated");
 
-      const fileName = `${user.id}/${reportId}/${indicatorName.replace(/\s+/g, "_")}_${Date.now()}.pdf`;
+      // Extract file extension
+      const fileExtension = file.name.split(".").pop() || "pdf";
+      
+      // Sanitize indicator name and create unique filename
+      const sanitizedIndicator = sanitizeFilename(indicatorName);
+      const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const sanitizedOriginalName = sanitizeFilename(file.name.replace(/\.[^/.]+$/, ""));
+      
+      const fileName = `${user.id}/${reportId}/${sanitizedIndicator}_${uniqueId}_${sanitizedOriginalName}.${fileExtension}`;
       
       const { error: uploadError } = await supabase.storage
         .from("evaluation-evidence")
@@ -205,19 +223,32 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     
     const metadata = await fetchDOI(doi);
     if (metadata) {
+      // Store metadata for display
       setArticleMetadata({
         ...articleMetadata,
         [indicatorName]: {
           title: metadata.title,
           authors: metadata.authors,
           journal: metadata.journal,
-          issn: metadata.issue, // ISSN typically comes in issue field
+          issn: metadata.issn,
         },
       });
       
-      toast.success("Metadata obtenida", { 
+      // Auto-populate article metadata fields
+      const autoQuartile = "Verificar en Web";
+      const autoRepo = metadata.issn ? "Scopus/Indexado" : "Verificar en Web";
+      
+      await handleFieldUpdate(indicatorName, {
+        article_metadata: {
+          issn: metadata.issn || "",
+          quartile: autoQuartile,
+          repo: autoRepo,
+        }
+      });
+      
+      toast.success("Metadata obtenida y campos actualizados", { 
         description: `${metadata.title} - ${metadata.journal}` 
-        });
+      });
     }
   };
 
@@ -407,60 +438,39 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label>Cuartil Scimago *</Label>
-                        <Select
-                          value={itemData.article_metadata?.quartile}
-                          onValueChange={(value) =>
-                            handleFieldUpdate(indicator.name, {
-                              article_metadata: { ...itemData.article_metadata, quartile: value }
-                            })
-                          }
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Seleccione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Q1">Q1</SelectItem>
-                            <SelectItem value="Q2">Q2</SelectItem>
-                            <SelectItem value="Q3">Q3</SelectItem>
-                            <SelectItem value="Q4">Q4</SelectItem>
-                            <SelectItem value="No aplica">No aplica</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Label>Cuartil Scimago (Auto-detectado)</Label>
+                        <Input
+                          value={itemData.article_metadata?.quartile || ""}
+                          readOnly
+                          className="mt-1 bg-muted/50 cursor-not-allowed"
+                          placeholder="Buscar DOI primero"
+                        />
                         <Button
                           variant="link"
                           size="sm"
                           className="mt-1 p-0 h-auto text-xs"
                           onClick={() => {
                             const issn = articleMetadata[indicator.name]?.issn || itemData.article_metadata?.issn;
-                            window.open(`https://www.scimagojr.com/journalsearch.php?q=${issn || ""}`, "_blank");
+                            if (!issn) {
+                              toast.error("ISSN no disponible", { description: "Realice la búsqueda DOI primero" });
+                              return;
+                            }
+                            window.open(`https://www.scimagojr.com/journalsearch.php?q=${issn}`, "_blank");
                           }}
                         >
                           <ExternalLink className="w-3 h-3 mr-1" />
-                          Verificar Cuartil
+                          Verificar en Scimago
                         </Button>
                       </div>
 
                       <div>
-                        <Label>Indizado en: *</Label>
-                        <Select
-                          value={itemData.article_metadata?.repo}
-                          onValueChange={(value) =>
-                            handleFieldUpdate(indicator.name, {
-                              article_metadata: { ...itemData.article_metadata, repo: value }
-                            })
-                          }
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Seleccione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Scopus">Scopus</SelectItem>
-                            <SelectItem value="WOS">Web of Science</SelectItem>
-                            <SelectItem value="Latindex">Latindex</SelectItem>
-                            <SelectItem value="Otro">Otro</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Label>Indizado en: (Auto-detectado)</Label>
+                        <Input
+                          value={itemData.article_metadata?.repo || ""}
+                          readOnly
+                          className="mt-1 bg-muted/50 cursor-not-allowed"
+                          placeholder="Buscar DOI primero"
+                        />
                       </div>
                     </div>
                   </div>
