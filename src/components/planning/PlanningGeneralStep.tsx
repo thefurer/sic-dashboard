@@ -15,13 +15,9 @@ interface PlanningGeneralStepProps {
   isLastStep: boolean;
 }
 
-export function PlanningGeneralStep({
-  planId,
-  setPlanId,
-  onNext,
-}: PlanningGeneralStepProps) {
+export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGeneralStepProps) {
   const [periodName, setPeriodName] = useState("");
-  const [presidentName, setPresidentName] = useState("Ing. Holger Delgado Lucas PhD");
+  const [presidentName, setPresidentName] = useState("Ing. Christian Caicedo Plúa, PhD.");
   const [meetingSchedule, setMeetingSchedule] = useState("Cada semana día miércoles");
   const [driveLink, setDriveLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,11 +31,7 @@ export function PlanningGeneralStep({
   const loadPlanData = async () => {
     if (!planId) return;
 
-    const { data, error } = await supabase
-      .from("planning_sheets")
-      .select("*")
-      .eq("id", planId)
-      .single();
+    const { data, error } = await supabase.from("planning_sheets").select("*").eq("id", planId).single();
 
     if (error) {
       toast.error("Error al cargar los datos");
@@ -122,11 +114,7 @@ export function PlanningGeneralStep({
 
       <div>
         <Label htmlFor="presidentName">Presidente</Label>
-        <Input
-          id="presidentName"
-          value={presidentName}
-          onChange={(e) => setPresidentName(e.target.value)}
-        />
+        <Input id="presidentName" value={presidentName} onChange={(e) => setPresidentName(e.target.value)} />
       </div>
 
       <div>

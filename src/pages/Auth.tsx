@@ -97,7 +97,7 @@ function ParticleBackground({ count = 60 }: { count?: number }) {
           const d = Math.sqrt(dx * dx + dy * dy);
           if (d < 70) {
             ctx.beginPath();
-            const alpha = (0.06 * (1 - d / 70));
+            const alpha = 0.06 * (1 - d / 70);
             ctx.strokeStyle = `rgba(160,200,255,${alpha})`;
             ctx.lineWidth = 0.6;
             ctx.moveTo(a.x, a.y);
@@ -116,8 +116,8 @@ function ParticleBackground({ count = 60 }: { count?: number }) {
 
     function onMove(e: MouseEvent) {
       const rect = canvas.getBoundingClientRect();
-      mouseRef.current.x = (e.clientX - rect.left);
-      mouseRef.current.y = (e.clientY - rect.top);
+      mouseRef.current.x = e.clientX - rect.left;
+      mouseRef.current.y = e.clientY - rect.top;
     }
     function onLeave() {
       mouseRef.current.x = -9999;
@@ -177,12 +177,7 @@ export default function Auth() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await signUp(
-      registerData.email,
-      registerData.password,
-      registerData.phoneNumber,
-      registerData.researcherCode
-    );
+    await signUp(registerData.email, registerData.password, registerData.phoneNumber, registerData.researcherCode);
     setLoading(false);
   };
 
@@ -257,9 +252,7 @@ export default function Auth() {
                 <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   GISICF - UNESUM
                 </CardTitle>
-                <CardDescription>
-                  Acceso al Sistema de Gestión de Investigación
-                </CardDescription>
+                <CardDescription>Acceso al Sistema de Gestión de Investigación</CardDescription>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="login" className="w-full">
@@ -329,15 +322,6 @@ export default function Auth() {
                           </span>
                         </Button>
                       </motion.div>
-                      <div className="flex items-center justify-center mt-2">
-                        <button
-                          type="button"
-                          onClick={signInWithGoogle}
-                          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          Iniciar sesión con Google
-                        </button>
-                      </div>
                     </form>
                   </TabsContent>
 
