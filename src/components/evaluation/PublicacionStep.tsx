@@ -1,14 +1,18 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, X, ExternalLink } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ExternalLink, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDOIMetadata } from "@/hooks/useDOIMetadata";
 import { useISBNMetadata } from "@/hooks/useISBNMetadata";
+import EvidenceUploader, { Evidence } from "./EvidenceUploader";
+import ProjectSelector from "./ProjectSelector";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 interface EvaluationItem {
   id?: string;
@@ -18,12 +22,12 @@ interface EvaluationItem {
   score_obtained: number;
   evidence_url?: string;
   quantity: number;
-  evidence_urls?: string[]; // Multiple evidence URLs
-}
-
-interface Evidence {
-  url: string;
-  index: number;
+  related_project_id?: string;
+  proposal_type?: string;
+  team_members?: string[];
+  project_roles?: { director?: string; principal?: string };
+  article_metadata?: { quartile?: string; issn?: string; repo?: string };
+  evidence_details?: Evidence[];
 }
 
 interface PublicacionStepProps {
@@ -44,27 +48,45 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
   const [uploading, setUploading] = useState<string | null>(null);
   const [doiSearch, setDoiSearch] = useState<Record<string, string>>({});
   const [isbnSearch, setIsbnSearch] = useState<Record<string, string>>({});
+  const [articleMetadata, setArticleMetadata] = useState<Record<string, any>>({});
   const queryClient = useQueryClient();
   const { fetchMetadata: fetchDOI, isLoading: loadingDOI } = useDOIMetadata();
   const { fetchMetadata: fetchISBN, isLoading: loadingISBN } = useISBNMetadata();
+
+  // Fetch all profiles for team selection
+  const { data: profiles } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .order("full_name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const saveItemMutation = useMutation({
     mutationFn: async (item: EvaluationItem) => {
       const existingItem = items.find((i) => i.indicator_name === item.indicator_name);
 
-      // Store evidence_urls as JSON in evidence_url field
-      const evidenceUrlToStore = item.evidence_urls && item.evidence_urls.length > 0 
-        ? JSON.stringify(item.evidence_urls) 
-        : item.evidence_url || "";
+      const payload: any = {
+        quantity: item.quantity,
+        score_obtained: item.score_obtained,
+        related_project_id: item.related_project_id,
+        evidence_details: item.evidence_details || [],
+      };
+
+      // Include specific metadata based on indicator type
+      if (item.proposal_type) payload.proposal_type = item.proposal_type;
+      if (item.team_members) payload.team_members = item.team_members;
+      if (item.project_roles) payload.project_roles = item.project_roles;
+      if (item.article_metadata) payload.article_metadata = item.article_metadata;
 
       if (existingItem?.id) {
         const { error } = await supabase
           .from("evaluation_items")
-          .update({
-            quantity: item.quantity,
-            score_obtained: item.score_obtained,
-            evidence_url: evidenceUrlToStore,
-          })
+          .update(payload)
           .eq("id", existingItem.id);
 
         if (error) throw error;
@@ -73,8 +95,10 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
         const { data, error } = await supabase
           .from("evaluation_items")
           .insert({
-            ...item,
-            evidence_url: evidenceUrlToStore,
+            report_id: item.report_id,
+            category: item.category,
+            indicator_name: item.indicator_name,
+            ...payload,
           })
           .select()
           .single();
@@ -88,19 +112,24 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     },
   });
 
-  const handleQuantityChange = async (indicatorName: string, quantity: number, unitScore: number) => {
+  const handleFieldUpdate = async (indicatorName: string, updates: Partial<EvaluationItem>) => {
     if (!reportId) return;
 
-    const score = Math.min(quantity * unitScore, INDICATORS.find((i) => i.name === indicatorName)?.points || 0);
     const existingItem = items.find((i) => i.indicator_name === indicatorName);
-
+    
     const item: EvaluationItem = {
       report_id: reportId,
       category: "A",
       indicator_name: indicatorName,
-      score_obtained: score,
-      quantity: quantity,
-      evidence_url: existingItem?.evidence_url || "",
+      quantity: existingItem?.quantity || 0,
+      score_obtained: existingItem?.score_obtained || 0,
+      related_project_id: existingItem?.related_project_id,
+      proposal_type: existingItem?.proposal_type,
+      team_members: existingItem?.team_members,
+      project_roles: existingItem?.project_roles,
+      article_metadata: existingItem?.article_metadata,
+      evidence_details: existingItem?.evidence_details || [],
+      ...updates,
     };
 
     await saveItemMutation.mutateAsync(item);
@@ -109,24 +138,24 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     onItemsChange([...updatedItems, item]);
   };
 
-  const handleFileUpload = async (indicatorName: string, file: File, evidenceIndex: number) => {
+  const handleQuantityChange = async (indicatorName: string, quantity: number, unitScore: number) => {
+    const score = Math.min(quantity * unitScore, INDICATORS.find((i) => i.name === indicatorName)?.points || 0);
+    await handleFieldUpdate(indicatorName, { quantity, score_obtained: score });
+  };
+
+  const handleEvidenceUpload = async (indicatorName: string, file: File, description: string) => {
     if (!reportId) {
       toast.error("Error", { description: "No hay informe activo" });
       return;
     }
 
-    if (!file.type.includes("pdf")) {
-      toast.error("Error", { description: "Solo se permiten archivos PDF" });
-      return;
-    }
-
-    setUploading(`${indicatorName}-${evidenceIndex}`);
+    setUploading(indicatorName);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated");
 
-      const fileName = `${user.id}/${reportId}/${indicatorName.replace(/\s+/g, "_")}_${evidenceIndex}_${Date.now()}.pdf`;
+      const fileName = `${user.id}/${reportId}/${indicatorName.replace(/\s+/g, "_")}_${Date.now()}.pdf`;
       
       const { error: uploadError } = await supabase.storage
         .from("evaluation-evidence")
@@ -139,26 +168,12 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
         .getPublicUrl(fileName);
 
       const existingItem = items.find((i) => i.indicator_name === indicatorName);
-      const currentUrls = existingItem?.evidence_urls || [];
-      const newUrls = [...currentUrls];
-      newUrls[evidenceIndex] = publicUrl;
-      
-      const item: EvaluationItem = {
-        report_id: reportId,
-        category: "A",
-        indicator_name: indicatorName,
-        score_obtained: existingItem?.score_obtained || 0,
-        quantity: existingItem?.quantity || 0,
-        evidence_url: newUrls[0] || "", // Keep first URL in evidence_url for compatibility
-        evidence_urls: newUrls,
-      };
+      const currentEvidences = existingItem?.evidence_details || [];
+      const newEvidences = [...currentEvidences, { url: publicUrl, description }];
 
-      await saveItemMutation.mutateAsync(item);
+      await handleFieldUpdate(indicatorName, { evidence_details: newEvidences });
 
-      const updatedItems = items.filter((i) => i.indicator_name !== indicatorName);
-      onItemsChange([...updatedItems, item]);
-
-      toast.success("Evidencia cargada", { description: "El archivo se ha subido correctamente" });
+      toast.success("Evidencia cargada correctamente");
     } catch (error: any) {
       toast.error("Error al subir archivo", { description: error.message });
     } finally {
@@ -166,53 +181,71 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     }
   };
 
-  const handleSearchMetadata = async (indicatorName: string) => {
-    const isArticle = indicatorName.includes("Artículos");
-    const isBook = indicatorName.includes("Libros");
+  const handleEvidenceDelete = async (indicatorName: string, index: number) => {
+    const existingItem = items.find((i) => i.indicator_name === indicatorName);
+    const currentEvidences = existingItem?.evidence_details || [];
+    const newEvidences = currentEvidences.filter((_, i) => i !== index);
+    await handleFieldUpdate(indicatorName, { evidence_details: newEvidences });
+  };
+
+  const handleEvidenceDescriptionChange = async (indicatorName: string, index: number, description: string) => {
+    const existingItem = items.find((i) => i.indicator_name === indicatorName);
+    const currentEvidences = existingItem?.evidence_details || [];
+    const newEvidences = [...currentEvidences];
+    newEvidences[index] = { ...newEvidences[index], description };
+    await handleFieldUpdate(indicatorName, { evidence_details: newEvidences });
+  };
+
+  const handleSearchDOI = async (indicatorName: string) => {
+    const doi = doiSearch[indicatorName];
+    if (!doi) {
+      toast.error("Error", { description: "Ingrese un DOI" });
+      return;
+    }
     
-    if (isArticle) {
-      const doi = doiSearch[indicatorName];
-      if (!doi) {
-        toast.error("Error", { description: "Ingrese un DOI" });
-        return;
-      }
-      const metadata = await fetchDOI(doi);
-      if (metadata) {
-        toast.success("Metadata encontrada", { 
-          description: `${metadata.title} - ${metadata.authors}` 
+    const metadata = await fetchDOI(doi);
+    if (metadata) {
+      setArticleMetadata({
+        ...articleMetadata,
+        [indicatorName]: {
+          title: metadata.title,
+          authors: metadata.authors,
+          journal: metadata.journal,
+          issn: metadata.issue, // ISSN typically comes in issue field
+        },
+      });
+      
+      toast.success("Metadata obtenida", { 
+        description: `${metadata.title} - ${metadata.journal}` 
         });
-      }
-    } else if (isBook) {
-      const isbn = isbnSearch[indicatorName];
-      if (!isbn) {
-        toast.error("Error", { description: "Ingrese un ISBN" });
-        return;
-      }
-      const metadata = await fetchISBN(isbn);
-      if (metadata) {
-        toast.success("Metadata encontrada", { 
-          description: `${metadata.title} - ${metadata.authors}` 
-        });
-      }
+    }
+  };
+
+  const handleSearchISBN = async (indicatorName: string) => {
+    const isbn = isbnSearch[indicatorName];
+    if (!isbn) {
+      toast.error("Error", { description: "Ingrese un ISBN" });
+      return;
+    }
+    const metadata = await fetchISBN(isbn);
+    if (metadata) {
+      toast.success("Metadata encontrada", { 
+        description: `${metadata.title} - ${metadata.authors}` 
+      });
     }
   };
 
   const getItemData = (indicatorName: string) => {
-    const item = items.find((i) => i.indicator_name === indicatorName);
-    if (item) {
-      // Parse evidence_urls if stored as JSON string
-      if (item.evidence_url && item.evidence_url.startsWith('[')) {
-        try {
-          item.evidence_urls = JSON.parse(item.evidence_url);
-        } catch {
-          item.evidence_urls = [item.evidence_url];
-        }
-      } else if (item.evidence_url) {
-        item.evidence_urls = [item.evidence_url];
-      }
-      return item;
-    }
-    return { quantity: 0, score_obtained: 0, evidence_url: "", evidence_urls: [] };
+    return items.find((i) => i.indicator_name === indicatorName) || {
+      quantity: 0,
+      score_obtained: 0,
+      evidence_details: [],
+      related_project_id: "",
+      proposal_type: "",
+      team_members: [],
+      project_roles: { director: "", principal: "" },
+      article_metadata: { quartile: "", issn: "", repo: "" },
+    };
   };
 
   const totalScore = items.reduce((sum, item) => sum + (item.score_obtained || 0), 0);
@@ -237,9 +270,10 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
       <div className="space-y-4">
         {INDICATORS.map((indicator) => {
           const itemData = getItemData(indicator.name);
-          const evidenceUrls = itemData.evidence_urls || (itemData.evidence_url ? [itemData.evidence_url] : []);
-          const isArticle = indicator.name.includes("Artículos");
+          const isProject = indicator.name === "Proyectos I+D+i";
+          const isArticle = indicator.name.includes("Artículos JCR/Scopus");
           const isBook = indicator.name.includes("Libros");
+          const profileOptions = profiles?.map(p => ({ value: p.id, label: p.full_name })) || [];
           
           return (
             <Card key={indicator.name} className="border-l-4 border-l-primary">
@@ -251,143 +285,245 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                   </span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <Label htmlFor={`quantity-${indicator.name}`}>Cantidad *</Label>
-                    <Input
-                      id={`quantity-${indicator.name}`}
-                      type="number"
-                      min="0"
-                      required
-                      value={itemData.quantity}
-                      onChange={(e) =>
-                        handleQuantityChange(
-                          indicator.name,
-                          parseInt(e.target.value) || 0,
-                          indicator.unitScore
-                        )
-                      }
-                      className="mt-1"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {indicator.unitScore} punto{indicator.unitScore > 1 ? "s" : ""} por unidad
-                    </p>
-                  </div>
+              <CardContent className="space-y-6">
+                {/* Related Project - Universal */}
+                <ProjectSelector
+                  value={itemData.related_project_id}
+                  onChange={(value) => handleFieldUpdate(indicator.name, { related_project_id: value })}
+                  required
+                />
 
-                  {/* DOI/ISBN Search for Articles and Books */}
-                  {(isArticle || isBook) && (
+                {/* Project-Specific Fields */}
+                {isProject && (
+                  <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
+                    <h4 className="font-semibold text-sm">Detalles del Proyecto</h4>
+                    
+                    <div>
+                      <Label>Tipo de Propuesta *</Label>
+                      <Select
+                        value={itemData.proposal_type}
+                        onValueChange={(value) => handleFieldUpdate(indicator.name, { proposal_type: value })}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Seleccione tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Investigación Científica">Investigación Científica</SelectItem>
+                          <SelectItem value="Desarrollo Tecnológico">Desarrollo Tecnológico</SelectItem>
+                          <SelectItem value="Innovación">Innovación</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Equipo Investigador *</Label>
+                      <MultiSelect
+                        options={profileOptions}
+                        selected={itemData.team_members || []}
+                        onChange={(values) => handleFieldUpdate(indicator.name, { team_members: values })}
+                        placeholder="Seleccione miembros del equipo"
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Director del Proyecto *</Label>
+                        <Select
+                          value={itemData.project_roles?.director}
+                          onValueChange={(value) => 
+                            handleFieldUpdate(indicator.name, {
+                              project_roles: { ...itemData.project_roles, director: value }
+                            })
+                          }
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Seleccione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {profiles?.map(p => (
+                              <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label>Investigador Principal *</Label>
+                        <Select
+                          value={itemData.project_roles?.principal}
+                          onValueChange={(value) => 
+                            handleFieldUpdate(indicator.name, {
+                              project_roles: { ...itemData.project_roles, principal: value }
+                            })
+                          }
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Seleccione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {profiles?.map(p => (
+                              <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Article-Specific Fields */}
+                {isArticle && (
+                  <div className="space-y-4">
                     <div className="border border-primary/20 rounded-lg p-4 bg-primary/5">
                       <Label className="text-sm font-medium mb-2 block">
-                        Búsqueda Inteligente {isArticle ? "DOI" : "ISBN"}
+                        Búsqueda Inteligente DOI
                       </Label>
                       <div className="flex gap-2">
                         <Input
-                          placeholder={isArticle ? "10.1234/example.2024" : "978-84-1234-567-8"}
-                          value={isArticle ? (doiSearch[indicator.name] || "") : (isbnSearch[indicator.name] || "")}
-                          onChange={(e) => {
-                            if (isArticle) {
-                              setDoiSearch({ ...doiSearch, [indicator.name]: e.target.value });
-                            } else {
-                              setIsbnSearch({ ...isbnSearch, [indicator.name]: e.target.value });
-                            }
-                          }}
+                          placeholder="10.1234/example.2024"
+                          value={doiSearch[indicator.name] || ""}
+                          onChange={(e) => setDoiSearch({ ...doiSearch, [indicator.name]: e.target.value })}
                           className="flex-1"
                         />
                         <Button
                           variant="secondary"
-                          onClick={() => handleSearchMetadata(indicator.name)}
-                          disabled={loadingDOI || loadingISBN}
+                          onClick={() => handleSearchDOI(indicator.name)}
+                          disabled={loadingDOI}
                           size="sm"
                         >
-                          {(loadingDOI || loadingISBN) ? "Buscando..." : "Buscar"}
+                          <Search className="w-4 h-4 mr-2" />
+                          {loadingDOI ? "Buscando..." : "Buscar"}
                         </Button>
                       </div>
-                      {isArticle && (
+                      {articleMetadata[indicator.name] && (
+                        <div className="mt-3 p-3 bg-background rounded text-xs space-y-1">
+                          <p><strong>Título:</strong> {articleMetadata[indicator.name].title}</p>
+                          <p><strong>Autores:</strong> {articleMetadata[indicator.name].authors}</p>
+                          <p><strong>Revista:</strong> {articleMetadata[indicator.name].journal}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Cuartil Scimago *</Label>
+                        <Select
+                          value={itemData.article_metadata?.quartile}
+                          onValueChange={(value) =>
+                            handleFieldUpdate(indicator.name, {
+                              article_metadata: { ...itemData.article_metadata, quartile: value }
+                            })
+                          }
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Seleccione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Q1">Q1</SelectItem>
+                            <SelectItem value="Q2">Q2</SelectItem>
+                            <SelectItem value="Q3">Q3</SelectItem>
+                            <SelectItem value="Q4">Q4</SelectItem>
+                            <SelectItem value="No aplica">No aplica</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <Button
                           variant="link"
                           size="sm"
-                          className="mt-2 p-0 h-auto text-xs"
-                          onClick={() => window.open("https://miar.ub.edu/idioma/es", "_blank")}
+                          className="mt-1 p-0 h-auto text-xs"
+                          onClick={() => {
+                            const issn = articleMetadata[indicator.name]?.issn || itemData.article_metadata?.issn;
+                            window.open(`https://www.scimagojr.com/journalsearch.php?q=${issn || ""}`, "_blank");
+                          }}
                         >
                           <ExternalLink className="w-3 h-3 mr-1" />
-                          Verificar en MIAR
+                          Verificar Cuartil
                         </Button>
-                      )}
-                    </div>
-                  )}
+                      </div>
 
-                  {/* Dynamic Evidence Upload Fields */}
-                  <div>
-                    <Label className="mb-2 block">Evidencias (PDF) *</Label>
-                    <div className="space-y-2">
-                      {Array.from({ length: Math.max(itemData.quantity, 1) }).map((_, index) => {
-                        const hasEvidence = evidenceUrls[index];
-                        const isUploading = uploading === `${indicator.name}-${index}`;
-                        
-                        return (
-                          <div key={index} className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground w-8">
-                              {index + 1}.
-                            </span>
-                            {hasEvidence ? (
-                              <div className="flex items-center gap-2 flex-1">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="flex-1"
-                                  onClick={() => window.open(evidenceUrls[index], "_blank")}
-                                >
-                                  <FileText className="w-4 h-4 mr-2" />
-                                  Ver evidencia {index + 1}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    const input = document.createElement("input");
-                                    input.type = "file";
-                                    input.accept = ".pdf";
-                                    input.onchange = (e) => {
-                                      const file = (e.target as HTMLInputElement).files?.[0];
-                                      if (file) handleFileUpload(indicator.name, file, index);
-                                    };
-                                    input.click();
-                                  }}
-                                >
-                                  Cambiar
-                                </Button>
-                              </div>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex-1"
-                                disabled={isUploading}
-                                onClick={() => {
-                                  const input = document.createElement("input");
-                                  input.type = "file";
-                                  input.accept = ".pdf";
-                                  input.onchange = (e) => {
-                                    const file = (e.target as HTMLInputElement).files?.[0];
-                                    if (file) handleFileUpload(indicator.name, file, index);
-                                  };
-                                  input.click();
-                                }}
-                              >
-                                <Upload className="w-4 h-4 mr-2" />
-                                {isUploading ? "Subiendo..." : `Subir evidencia ${index + 1}`}
-                              </Button>
-                            )}
-                          </div>
-                        );
-                      })}
+                      <div>
+                        <Label>Indizado en: *</Label>
+                        <Select
+                          value={itemData.article_metadata?.repo}
+                          onValueChange={(value) =>
+                            handleFieldUpdate(indicator.name, {
+                              article_metadata: { ...itemData.article_metadata, repo: value }
+                            })
+                          }
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Seleccione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Scopus">Scopus</SelectItem>
+                            <SelectItem value="WOS">Web of Science</SelectItem>
+                            <SelectItem value="Latindex">Latindex</SelectItem>
+                            <SelectItem value="Otro">Otro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      * Se requiere evidencia para cada ítem declarado
-                    </p>
                   </div>
+                )}
+
+                {/* ISBN Search for Books */}
+                {isBook && (
+                  <div className="border border-primary/20 rounded-lg p-4 bg-primary/5">
+                    <Label className="text-sm font-medium mb-2 block">
+                      Búsqueda Inteligente ISBN
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="978-84-1234-567-8"
+                        value={isbnSearch[indicator.name] || ""}
+                        onChange={(e) => setIsbnSearch({ ...isbnSearch, [indicator.name]: e.target.value })}
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="secondary"
+                        onClick={() => handleSearchISBN(indicator.name)}
+                        disabled={loadingISBN}
+                        size="sm"
+                      >
+                        <Search className="w-4 h-4 mr-2" />
+                        {loadingISBN ? "Buscando..." : "Buscar"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <Label htmlFor={`quantity-${indicator.name}`}>Cantidad *</Label>
+                  <Input
+                    id={`quantity-${indicator.name}`}
+                    type="number"
+                    min="0"
+                    required
+                    value={itemData.quantity}
+                    onChange={(e) =>
+                      handleQuantityChange(
+                        indicator.name,
+                        parseInt(e.target.value) || 0,
+                        indicator.unitScore
+                      )
+                    }
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {indicator.unitScore} punto{indicator.unitScore > 1 ? "s" : ""} por unidad
+                  </p>
                 </div>
+
+                <EvidenceUploader
+                  evidences={itemData.evidence_details || []}
+                  onUpload={(file, description) => handleEvidenceUpload(indicator.name, file, description)}
+                  onDelete={(index) => handleEvidenceDelete(indicator.name, index)}
+                  onDescriptionChange={(index, description) => 
+                    handleEvidenceDescriptionChange(indicator.name, index, description)
+                  }
+                  uploading={uploading === indicator.name}
+                  maxFiles={itemData.quantity || 1}
+                />
               </CardContent>
             </Card>
           );

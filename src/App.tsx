@@ -19,6 +19,7 @@ import Tasks from "./pages/Tasks";
 import Planning from "./pages/admin/Planning";
 import PlanningBuilder from "./pages/admin/PlanningBuilder";
 import Settings from "./pages/admin/Settings";
+import OfficialProjectsList from "./pages/admin/OfficialProjectsList";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,11 @@ const App = () => (
             <Route path="/admin/settings" element={
               <ProtectedRoute>
                 <MainLayout><Settings /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/projects-list" element={
+              <ProtectedRoute>
+                <MainLayout><OfficialProjectsList /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
