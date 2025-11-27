@@ -7,104 +7,169 @@ import { drawPDFHeader } from "./pdfHeaderUtils";
 export async function generatePlanningPDF(planData: any) {
   const { plan, activities, members } = planData;
   const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
 
   // Draw institutional header
   let y = await drawPDFHeader(doc);
-  y += 5;
+  y += 8;
 
-  // Document title
+  // Title Block (matching reference image)
+  // Main Title - PLANIFICACIÓN GENERAL
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.setFillColor(218, 238, 243); // Light blue background
+  doc.rect(14, y - 4, pageWidth - 28, 10, "F");
+  doc.text("PLANIFICACIÓN GENERAL", pageWidth / 2, y + 2, { align: "center" });
+
+  y += 12;
+
+  // Subtitle - Research Group Name
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.setFillColor(200, 220, 240);
-  doc.rect(14, y - 4, doc.internal.pageSize.getWidth() - 28, 8, "F");
-  doc.text("PLANIFICACIÓN GENERAL", doc.internal.pageSize.getWidth() / 2, y, {
+  doc.text("Grupo de Investigación en Sistemas Inteligentes y Ciberfísicos", pageWidth / 2, y, {
     align: "center",
   });
 
-  y += 10;
+  y += 7;
+
+  // Period
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text(plan.period_name, doc.internal.pageSize.getWidth() / 2, y, {
+  doc.text(`Período Académico ${plan.period_name}`, pageWidth / 2, y, {
     align: "center",
   });
 
-  // Datos Generales
-  y += 8;
+  y += 6;
+
+  // Meeting frequency footer
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
+  const meetingText = `Acompañamiento y seguimiento de tareas asignadas: ${plan.meeting_schedule}`;
+  doc.text(meetingText, pageWidth / 2, y, { align: "center" });
 
-  doc.text(`Presidente: ${plan.president_name}`, 14, y);
-  y += 6;
-  doc.text(`Horario de Reuniones: ${plan.meeting_schedule}`, 14, y);
-  y += 6;
+  y += 10;
 
-  if (plan.drive_link) {
-    doc.text(`Enlace Drive: ${plan.drive_link}`, 14, y);
-    y += 6;
-  }
-
-  // Team Members
-  y += 4;
-  doc.setFont("helvetica", "bold");
-  doc.text("CONFORMACIÓN DEL EQUIPO", 14, y);
-  y += 6;
-
-  doc.setFont("helvetica", "normal");
+  // Table 1: Team Structure (matching reference image layout)
   const docentes = members?.filter((m: any) => m.member_type === "docente") || [];
   const estudiantes = members?.filter((m: any) => m.member_type === "estudiante") || [];
+  
+  // Combine all members for MIEMBROS row
+  const allMembersList = [
+    ...docentes.map((m: any) => m.profiles.full_name),
+    ...estudiantes.map((m: any) => m.profiles.full_name),
+  ].join("\n");
 
-  doc.text("Miembros Docentes:", 14, y);
-  y += 5;
-  docentes.forEach((m: any) => {
-    doc.text(`• ${m.profiles.full_name}`, 18, y);
-    y += 5;
-  });
+  // Get responsible/coordinator name (first docente or use president as fallback)
+  const responsableName = docentes.length > 0 
+    ? docentes[0].profiles.full_name 
+    : plan.president_name;
 
-  y += 2;
-  doc.text("Estudiantes:", 14, y);
-  y += 5;
-  estudiantes.forEach((m: any) => {
-    doc.text(`• ${m.profiles.full_name}`, 18, y);
-    y += 5;
-  });
-
-  // Activities Table
-  y += 8;
-  doc.setFont("helvetica", "bold");
-  doc.text("CRONOGRAMA DE ACTIVIDADES", 14, y);
-  y += 6;
-
-  const tableData = activities.map((activity: any, index: number) => [
-    (index + 1).toString(),
-    activity.activity,
-    activity.objective,
-    `${format(new Date(activity.start_date), "dd/MM/yyyy", { locale: es })} - ${format(
-      new Date(activity.end_date),
-      "dd/MM/yyyy",
-      { locale: es }
-    )}`,
-    activity.responsibles.join(", "),
-    activity.verification_means,
-  ]);
+  const teamTableData = [
+    ["PRESIDENTE", plan.president_name],
+    ["RESPONSABLE", responsableName],
+    ["MIEMBROS", allMembersList],
+  ];
 
   autoTable(doc, {
     startY: y,
-    head: [["N°", "Actividad", "Objetivo", "Fecha", "Responsable", "Medios de Verificación"]],
-    body: tableData,
+    body: teamTableData,
     theme: "grid",
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1,
+      valign: "top",
+    },
     columnStyles: {
-      0: { cellWidth: 10 },
-      1: { cellWidth: 40 },
-      2: { cellWidth: 40 },
-      3: { cellWidth: 30 },
-      4: { cellWidth: 35 },
-      5: { cellWidth: 35 },
+      0: {
+        cellWidth: 40,
+        fontStyle: "bold",
+        halign: "left",
+      },
+      1: {
+        cellWidth: pageWidth - 68,
+        fontStyle: "normal",
+        halign: "left",
+      },
     },
   });
 
-  // Footer
+  // Add space before activities table
+  y = (doc as any).lastAutoTable.finalY + 10;
+
+  // Table 2: Activities Matrix (matching reference image styling)
+  const activitiesTableData = activities.map((activity: any, index: number) => {
+    // Format dates with line breaks
+    const startDate = format(new Date(activity.start_date), "dd/MM/yyyy", { locale: es });
+    const endDate = format(new Date(activity.end_date), "dd/MM/yyyy", { locale: es });
+    const dateText = `Inicio:\n${startDate}\nHasta\n${endDate}\n\nReuniones\ncada mes`;
+
+    // Format responsibles with line breaks
+    const responsiblesText = activity.responsibles.join("\n\n");
+
+    return [
+      (index + 1).toString(),
+      activity.activity,
+      activity.objective,
+      dateText,
+      responsiblesText,
+      activity.verification_means,
+    ];
+  });
+
+  autoTable(doc, {
+    startY: y,
+    head: [["N°", "ACTIVIDADES", "OBJETIVOS", "FECHA", "RESPONSABLE", "MEDIOS DE\nVERIFICACIÓN"]],
+    body: activitiesTableData,
+    theme: "grid",
+    headStyles: {
+      fillColor: [218, 238, 243], // Light blue (#daeef3)
+      textColor: [0, 0, 0], // Black text
+      fontStyle: "bold",
+      halign: "center",
+      valign: "middle",
+      fontSize: 9,
+    },
+    styles: {
+      fontSize: 8,
+      cellPadding: 3,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1,
+      valign: "middle",
+      overflow: "linebreak",
+    },
+    columnStyles: {
+      0: {
+        cellWidth: 10,
+        halign: "center",
+      },
+      1: {
+        cellWidth: 42,
+        halign: "left",
+      },
+      2: {
+        cellWidth: 42,
+        halign: "left",
+      },
+      3: {
+        cellWidth: 28,
+        halign: "center",
+        fontSize: 7,
+      },
+      4: {
+        cellWidth: 38,
+        halign: "center",
+        fontSize: 8,
+      },
+      5: {
+        cellWidth: 30,
+        halign: "left",
+      },
+    },
+  });
+
+  // Footer observations
   const finalY = (doc as any).lastAutoTable.finalY + 10;
   doc.setFontSize(8);
   doc.setFont("helvetica", "italic");
@@ -114,14 +179,22 @@ export async function generatePlanningPDF(planData: any) {
     finalY
   );
 
-  // Signatures
+  // Signature lines
   const sigY = finalY + 15;
   doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  
+  // Left signature
   doc.text("_______________________", 30, sigY);
+  doc.setFont("helvetica", "bold");
+  doc.text("Presidente", 50, sigY + 5);
+  
+  // Right signature
+  doc.setFont("helvetica", "normal");
   doc.text("_______________________", 120, sigY);
-  doc.text("Presidente", 45, sigY + 5);
-  doc.text("Coordinador", 135, sigY + 5);
+  doc.setFont("helvetica", "bold");
+  doc.text("Coordinador", 137, sigY + 5);
 
-  // Save
+  // Save with proper filename
   doc.save(`Planificacion_${plan.period_name.replace(/\s+/g, "_")}.pdf`);
 }
