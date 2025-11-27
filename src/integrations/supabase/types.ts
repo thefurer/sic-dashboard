@@ -94,8 +94,10 @@ export type Database = {
       }
       evaluation_items: {
         Row: {
+          article_metadata: Json | null
           category: string
           created_at: string | null
+          evidence_details: Json | null
           evidence_url: string | null
           fase: string | null
           id: string
@@ -103,14 +105,20 @@ export type Database = {
           justification: string | null
           monto: number | null
           porcentaje_ejecucion: number | null
+          project_roles: Json | null
+          proposal_type: string | null
           quantity: number | null
+          related_project_id: string | null
           report_id: string
           score_obtained: number | null
+          team_members: Json | null
           updated_at: string | null
         }
         Insert: {
+          article_metadata?: Json | null
           category: string
           created_at?: string | null
+          evidence_details?: Json | null
           evidence_url?: string | null
           fase?: string | null
           id?: string
@@ -118,14 +126,20 @@ export type Database = {
           justification?: string | null
           monto?: number | null
           porcentaje_ejecucion?: number | null
+          project_roles?: Json | null
+          proposal_type?: string | null
           quantity?: number | null
+          related_project_id?: string | null
           report_id: string
           score_obtained?: number | null
+          team_members?: Json | null
           updated_at?: string | null
         }
         Update: {
+          article_metadata?: Json | null
           category?: string
           created_at?: string | null
+          evidence_details?: Json | null
           evidence_url?: string | null
           fase?: string | null
           id?: string
@@ -133,12 +147,23 @@ export type Database = {
           justification?: string | null
           monto?: number | null
           porcentaje_ejecucion?: number | null
+          project_roles?: Json | null
+          proposal_type?: string | null
           quantity?: number | null
+          related_project_id?: string | null
           report_id?: string
           score_obtained?: number | null
+          team_members?: Json | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "evaluation_items_related_project_id_fkey"
+            columns: ["related_project_id"]
+            isOneToOne: false
+            referencedRelation: "official_projects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "evaluation_items_report_id_fkey"
             columns: ["report_id"]
@@ -180,6 +205,30 @@ export type Database = {
           total_score?: number | null
           updated_at?: string | null
           user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      official_projects: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
           year?: number
         }
         Relationships: []

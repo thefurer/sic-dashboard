@@ -10,6 +10,7 @@ import {
   CalendarClock,
   Settings,
   Landmark,
+  FolderOpen,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -128,6 +129,18 @@ export function AppSidebar() {
                       >
                         <CalendarClock className="h-5 w-5" />
                         {state === "expanded" && <span>Planificación Estratégica</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/admin/projects-list"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <FolderOpen className="h-5 w-5" />
+                        {state === "expanded" && <span>Proyectos Oficiales</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
