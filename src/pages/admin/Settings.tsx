@@ -21,6 +21,8 @@ export default function Settings() {
   const [logoLeft, setLogoLeft] = useState<string | null>(null);
   const [logoRight, setLogoRight] = useState<string | null>(null);
   const [uploading, setUploading] = useState<"left" | "right" | null>(null);
+  const [signaturePresidentName, setSignaturePresidentName] = useState("");
+  const [signatureCoordinatorName, setSignatureCoordinatorName] = useState("");
 
   useEffect(() => {
     loadSettings();
@@ -43,6 +45,8 @@ export default function Settings() {
         setCareerName(data.career_name || "");
         setLogoLeft(data.header_logo_left);
         setLogoRight(data.header_logo_right);
+        setSignaturePresidentName(data.signature_president_name || "");
+        setSignatureCoordinatorName(data.signature_coordinator_name || "");
       }
     } catch (error: any) {
       console.error("Error loading settings:", error);
@@ -98,6 +102,8 @@ export default function Settings() {
         career_name: careerName,
         header_logo_left: logoLeft,
         header_logo_right: logoRight,
+        signature_president_name: signaturePresidentName,
+        signature_coordinator_name: signatureCoordinatorName,
       };
 
       const { error } = await supabase
@@ -292,6 +298,45 @@ export default function Settings() {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="flex justify-end">
+              <Button onClick={handleSave} disabled={loading}>
+                <Save className="mr-2 h-4 w-4" />
+                {loading ? "Guardando..." : "Guardar Configuración"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Signature Configuration */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Configuración de Firmas</CardTitle>
+            <CardDescription>
+              Define los nombres que aparecerán en las firmas al pie de los documentos PDF
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="president-signature">Nombre del Presidente</Label>
+              <Input
+                id="president-signature"
+                value={signaturePresidentName}
+                onChange={(e) => setSignaturePresidentName(e.target.value)}
+                placeholder="Ing. Christian Caicedo Plúa, PhD"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="coordinator-signature">Nombre del Coordinador</Label>
+              <Input
+                id="coordinator-signature"
+                value={signatureCoordinatorName}
+                onChange={(e) => setSignatureCoordinatorName(e.target.value)}
+                placeholder="Ing. Javier Marcillo Merino, Mg"
+              />
             </div>
 
             {/* Save Button */}
