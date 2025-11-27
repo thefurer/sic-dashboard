@@ -17,7 +17,7 @@ interface PlanningGeneralStepProps {
 
 export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGeneralStepProps) {
   const [periodName, setPeriodName] = useState("");
-  const [presidentName, setPresidentName] = useState("Ing. Christian Caicedo Plúa, PhD.");
+  const [presidentName, setPresidentName] = useState("Ing. Mario Marcillo Merino, Mg.");
   const [meetingSchedule, setMeetingSchedule] = useState("Cada semana día miércoles");
   const [driveLink, setDriveLink] = useState("");
   const [loading, setLoading] = useState(false);
