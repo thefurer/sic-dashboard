@@ -231,12 +231,34 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
           authors: metadata.authors,
           journal: metadata.journal,
           issn: metadata.issn,
+          publisher: metadata.publisher,
+          url: metadata.url,
         },
       });
       
+      // Auto-detect repository based on metadata heuristics
+      let autoRepo = "";
+      const publisher = metadata.publisher?.toLowerCase() || "";
+      const url = metadata.url?.toLowerCase() || "";
+      const doiLower = doi.toLowerCase();
+      
+      if (publisher.includes("elsevier") || url.includes("scopus")) {
+        autoRepo = "Scopus";
+      } else if (publisher.includes("clarivate") || publisher.includes("wos") || url.includes("webofscience")) {
+        autoRepo = "ISI Web of Knowledge (WOS)";
+      } else if (url.includes("scielo") || doiLower.includes("scielo")) {
+        autoRepo = "Scielo";
+      } else if (url.includes("redalyc") || doiLower.includes("redalyc")) {
+        autoRepo = "Redalyc";
+      } else if (url.includes("ebsco")) {
+        autoRepo = "Ebsco";
+      } else if (metadata.issn) {
+        // If we have an ISSN but no specific match, default to "Otras contempladas por el CACES"
+        autoRepo = "Otras contempladas por el CACES";
+      }
+      
       // Auto-populate article metadata fields
       const autoQuartile = "Verificar en Web";
-      const autoRepo = metadata.issn ? "Scopus/Indexado" : "Verificar en Web";
       
       await handleFieldUpdate(indicatorName, {
         article_metadata: {
@@ -464,13 +486,33 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                       </div>
 
                       <div>
-                        <Label>Indizado en: (Auto-detectado)</Label>
-                        <Input
+                        <Label>Indizado en / Base de Datos *</Label>
+                        <Select
                           value={itemData.article_metadata?.repo || ""}
-                          readOnly
-                          className="mt-1 bg-muted/50 cursor-not-allowed"
-                          placeholder="Buscar DOI primero"
-                        />
+                          onValueChange={(value) => 
+                            handleFieldUpdate(indicator.name, {
+                              article_metadata: { 
+                                ...itemData.article_metadata, 
+                                repo: value 
+                              }
+                            })
+                          }
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Seleccione o busque DOI primero" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Scopus">Scopus</SelectItem>
+                            <SelectItem value="ISI Web of Knowledge (WOS)">ISI Web of Knowledge (WOS)</SelectItem>
+                            <SelectItem value="Latindex (Catálogo)">Latindex (Catálogo)</SelectItem>
+                            <SelectItem value="Scielo">Scielo</SelectItem>
+                            <SelectItem value="Lilacs">Lilacs</SelectItem>
+                            <SelectItem value="Redalyc">Redalyc</SelectItem>
+                            <SelectItem value="Ebsco">Ebsco</SelectItem>
+                            <SelectItem value="OAJI">OAJI</SelectItem>
+                            <SelectItem value="Otras contempladas por el CACES">Otras contempladas por el CACES</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>
