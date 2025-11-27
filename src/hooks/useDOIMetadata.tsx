@@ -10,6 +10,8 @@ export interface ArticleMetadata {
   issue?: string;
   issn?: string;
   doi: string;
+  publisher?: string;
+  url?: string;
 }
 
 export function useDOIMetadata() {
@@ -58,6 +60,8 @@ export function useDOIMetadata() {
         issue,
         issn,
         doi: cleanDOI,
+        publisher: work.publisher || "",
+        url: work.URL || "",
       };
       
       toast({
