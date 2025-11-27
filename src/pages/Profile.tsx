@@ -113,6 +113,9 @@ export default function Profile() {
         toast.success('Perfil actualizado correctamente');
         setCvFile(null);
         setAvatarFile(null);
+        // Actualizar la vista previa con la nueva URL
+        setAvatarPreview(avatarUrl);
+        setCvUrl(newCvUrl);
       }
     } catch (err: any) {
       toast.error(err?.message || 'Error al guardar los archivos');
