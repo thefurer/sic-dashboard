@@ -24,9 +24,12 @@ export type Database = {
           header_subtext: string | null
           id: string
           institution_name: string
+          mission_text: string | null
+          planning_pdf_url: string | null
           signature_coordinator_name: string | null
           signature_president_name: string | null
           updated_at: string | null
+          vision_text: string | null
         }
         Insert: {
           career_name?: string | null
@@ -37,9 +40,12 @@ export type Database = {
           header_subtext?: string | null
           id?: string
           institution_name?: string
+          mission_text?: string | null
+          planning_pdf_url?: string | null
           signature_coordinator_name?: string | null
           signature_president_name?: string | null
           updated_at?: string | null
+          vision_text?: string | null
         }
         Update: {
           career_name?: string | null
@@ -50,9 +56,12 @@ export type Database = {
           header_subtext?: string | null
           id?: string
           institution_name?: string
+          mission_text?: string | null
+          planning_pdf_url?: string | null
           signature_coordinator_name?: string | null
           signature_president_name?: string | null
           updated_at?: string | null
+          vision_text?: string | null
         }
         Relationships: []
       }

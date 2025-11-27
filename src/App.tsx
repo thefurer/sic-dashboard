@@ -14,7 +14,7 @@ import Profile from "./pages/Profile";
 import Evaluation from "./pages/Evaluation";
 import PendingApprovals from "./pages/admin/PendingApprovals";
 import UserDirectory from "./pages/admin/UserDirectory";
-import InstitutionalDocs from "./pages/admin/InstitutionalDocs";
+import Institutional from "./pages/Institutional";
 import Tasks from "./pages/Tasks";
 import Planning from "./pages/admin/Planning";
 import PlanningBuilder from "./pages/admin/PlanningBuilder";
@@ -62,9 +62,9 @@ const App = () => (
                 <MainLayout><Tasks /></MainLayout>
               </ProtectedRoute>
             } />
-            <Route path="/admin/institutional" element={
+            <Route path="/institutional" element={
               <ProtectedRoute>
-                <MainLayout><InstitutionalDocs /></MainLayout>
+                <MainLayout><Institutional /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/admin/planning" element={
