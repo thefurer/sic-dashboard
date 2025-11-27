@@ -8,6 +8,7 @@ import {
   FileText,
   CheckSquare,
   CalendarClock,
+  Settings,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -137,6 +138,18 @@ export function AppSidebar() {
                       >
                         <CalendarClock className="h-5 w-5" />
                         {state === "expanded" && <span>Planificación Estratégica</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/admin/settings"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <Settings className="h-5 w-5" />
+                        {state === "expanded" && <span>Configuración</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
