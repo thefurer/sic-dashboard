@@ -24,6 +24,8 @@ export type Database = {
           header_subtext: string | null
           id: string
           institution_name: string
+          signature_coordinator_name: string | null
+          signature_president_name: string | null
           updated_at: string | null
         }
         Insert: {
@@ -35,6 +37,8 @@ export type Database = {
           header_subtext?: string | null
           id?: string
           institution_name?: string
+          signature_coordinator_name?: string | null
+          signature_president_name?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -46,6 +50,8 @@ export type Database = {
           header_subtext?: string | null
           id?: string
           institution_name?: string
+          signature_coordinator_name?: string | null
+          signature_president_name?: string | null
           updated_at?: string | null
         }
         Relationships: []

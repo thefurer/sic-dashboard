@@ -8,6 +8,8 @@ interface HeaderSettings {
   career_name: string;
   header_logo_left: string | null;
   header_logo_right: string | null;
+  signature_president_name: string;
+  signature_coordinator_name: string;
 }
 
 export async function fetchHeaderSettings(): Promise<HeaderSettings | null> {

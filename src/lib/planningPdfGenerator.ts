@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { drawPDFHeader } from "./pdfHeaderUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 export async function generatePlanningPDF(planData: any) {
   const { plan, activities, members } = planData;
@@ -170,7 +171,7 @@ export async function generatePlanningPDF(planData: any) {
   });
 
   // Footer observations
-  const finalY = (doc as any).lastAutoTable.finalY + 10;
+  let finalY = (doc as any).lastAutoTable.finalY + 10;
   doc.setFontSize(8);
   doc.setFont("helvetica", "italic");
   doc.text(
@@ -179,21 +180,46 @@ export async function generatePlanningPDF(planData: any) {
     finalY
   );
 
+  // Check if there's enough space for signatures (need at least 40mm)
+  const pageHeight = doc.internal.pageSize.getHeight();
+  if (pageHeight - finalY < 40) {
+    doc.addPage();
+    finalY = 40;
+  } else {
+    finalY += 30;
+  }
+
+  // Fetch signature names from settings
+  const { data: settings } = await supabase
+    .from("app_settings")
+    .select("signature_president_name, signature_coordinator_name")
+    .single();
+
+  const presidentName = settings?.signature_president_name || "Ing. Christian Caicedo Plúa, PhD";
+  const coordinatorName = settings?.signature_coordinator_name || "Ing. Javier Marcillo Merino, Mg";
+
   // Signature lines
-  const sigY = finalY + 15;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   
-  // Left signature
-  doc.text("_______________________", 30, sigY);
+  // Left signature (Presidente)
+  doc.line(30, finalY, 90, finalY);
   doc.setFont("helvetica", "bold");
-  doc.text("Presidente", 50, sigY + 5);
-  
-  // Right signature
+  doc.setFontSize(11);
+  doc.text("Presidente", 60, finalY + 6, { align: "center" });
   doc.setFont("helvetica", "normal");
-  doc.text("_______________________", 120, sigY);
+  doc.setFontSize(10);
+  doc.text(presidentName, 60, finalY + 12, { align: "center" });
+  
+  // Right signature (Coordinador)
+  doc.setFont("helvetica", "normal");
+  doc.line(120, finalY, 180, finalY);
   doc.setFont("helvetica", "bold");
-  doc.text("Coordinador", 137, sigY + 5);
+  doc.setFontSize(11);
+  doc.text("Coordinador", 150, finalY + 6, { align: "center" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text(coordinatorName, 150, finalY + 12, { align: "center" });
 
   // Save with proper filename
   doc.save(`Planificacion_${plan.period_name.replace(/\s+/g, "_")}.pdf`);
