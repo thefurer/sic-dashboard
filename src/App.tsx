@@ -18,6 +18,7 @@ import InstitutionalDocs from "./pages/admin/InstitutionalDocs";
 import Tasks from "./pages/Tasks";
 import Planning from "./pages/admin/Planning";
 import PlanningBuilder from "./pages/admin/PlanningBuilder";
+import Settings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,11 @@ const App = () => (
             <Route path="/admin/planning/:id" element={
               <ProtectedRoute>
                 <MainLayout><PlanningBuilder /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/settings" element={
+              <ProtectedRoute>
+                <MainLayout><Settings /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

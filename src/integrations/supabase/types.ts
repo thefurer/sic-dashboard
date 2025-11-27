@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          career_name: string | null
+          created_at: string | null
+          faculty_name: string | null
+          header_logo_left: string | null
+          header_logo_right: string | null
+          header_subtext: string | null
+          id: string
+          institution_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          career_name?: string | null
+          created_at?: string | null
+          faculty_name?: string | null
+          header_logo_left?: string | null
+          header_logo_right?: string | null
+          header_subtext?: string | null
+          id?: string
+          institution_name?: string
+          updated_at?: string | null
+        }
+        Update: {
+          career_name?: string | null
+          created_at?: string | null
+          faculty_name?: string | null
+          header_logo_left?: string | null
+          header_logo_right?: string | null
+          header_subtext?: string | null
+          id?: string
+          institution_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           category: string

@@ -2,27 +2,36 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { drawPDFHeader } from "./pdfHeaderUtils";
 
 export async function generatePlanningPDF(planData: any) {
   const { plan, activities, members } = planData;
   const doc = new jsPDF();
 
-  // Header
-  doc.setFontSize(16);
+  // Draw institutional header
+  let y = await drawPDFHeader(doc);
+  y += 5;
+
+  // Document title
+  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("PLANIFICACIÓN GENERAL", doc.internal.pageSize.getWidth() / 2, 20, {
+  doc.setFillColor(200, 220, 240);
+  doc.rect(14, y - 4, doc.internal.pageSize.getWidth() - 28, 8, "F");
+  doc.text("PLANIFICACIÓN GENERAL", doc.internal.pageSize.getWidth() / 2, y, {
     align: "center",
   });
 
+  y += 10;
   doc.setFontSize(12);
-  doc.text(plan.period_name, doc.internal.pageSize.getWidth() / 2, 28, {
+  doc.setFont("helvetica", "bold");
+  doc.text(plan.period_name, doc.internal.pageSize.getWidth() / 2, y, {
     align: "center",
   });
 
   // Datos Generales
+  y += 8;
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  let y = 40;
 
   doc.text(`Presidente: ${plan.president_name}`, 14, y);
   y += 6;
