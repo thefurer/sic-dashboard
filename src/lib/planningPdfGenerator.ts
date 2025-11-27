@@ -5,6 +5,29 @@ import { es } from "date-fns/locale";
 import { drawPDFHeader } from "./pdfHeaderUtils";
 import { supabase } from "@/integrations/supabase/client";
 
+function drawPageFooter(doc: jsPDF) {
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const footerY = pageHeight - 20;
+
+  // Draw separator line (Navy Blue)
+  doc.setDrawColor(31, 78, 121); // Navy Blue #1F4E79
+  doc.setLineWidth(0.8);
+  doc.line(14, footerY - 5, pageWidth - 14, footerY - 5);
+
+  // Email line (Navy Blue, Bold)
+  doc.setTextColor(31, 78, 121);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.text("E-mail: ingenieria.ti@unesum.edu.ec", pageWidth / 2, footerY, { align: "center" });
+
+  // Address line (Black, Regular)
+  doc.setTextColor(0, 0, 0);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("Complejo Deportivo – UNESUM – Km. 1 vía Noboa", pageWidth / 2, footerY + 4, { align: "center" });
+}
+
 export async function generatePlanningPDF(planData: any) {
   const { plan, activities, members } = planData;
   const doc = new jsPDF();
@@ -168,10 +191,15 @@ export async function generatePlanningPDF(planData: any) {
         halign: "left",
       },
     },
+    didDrawPage: (data: any) => {
+      // Draw footer on every page
+      drawPageFooter(doc);
+    },
   });
 
   // Footer observations
   let finalY = (doc as any).lastAutoTable.finalY + 10;
+  doc.setTextColor(0, 0, 0);
   doc.setFontSize(8);
   doc.setFont("helvetica", "italic");
   doc.text(
@@ -180,10 +208,11 @@ export async function generatePlanningPDF(planData: any) {
     finalY
   );
 
-  // Check if there's enough space for signatures (need at least 40mm)
+  // Check if there's enough space for signatures (need at least 60mm for wrapped text)
   const pageHeight = doc.internal.pageSize.getHeight();
-  if (pageHeight - finalY < 40) {
+  if (pageHeight - finalY < 60) {
     doc.addPage();
+    drawPageFooter(doc);
     finalY = 40;
   } else {
     finalY += 30;
@@ -198,28 +227,40 @@ export async function generatePlanningPDF(planData: any) {
   const presidentName = settings?.signature_president_name || "Ing. Christian Caicedo Plúa, PhD";
   const coordinatorName = settings?.signature_coordinator_name || "Ing. Javier Marcillo Merino, Mg";
 
-  // Signature lines
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  // Reset text color to black for signatures
+  doc.setTextColor(0, 0, 0);
   
-  // Left signature (Presidente)
+  // Left signature line
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(0, 0, 0);
   doc.line(30, finalY, 90, finalY);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("Presidente", 60, finalY + 6, { align: "center" });
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.text(presidentName, 60, finalY + 12, { align: "center" });
   
-  // Right signature (Coordinador)
-  doc.setFont("helvetica", "normal");
-  doc.line(120, finalY, 180, finalY);
+  // Left signature - Name (Bold)
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("Coordinador", 150, finalY + 6, { align: "center" });
-  doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(coordinatorName, 150, finalY + 12, { align: "center" });
+  doc.text(presidentName, 60, finalY + 6, { align: "center" });
+  
+  // Left signature - Title (Regular, wrapped)
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  const titleLeft = "Coordinador de la Carrera de Tecnologías de la Información";
+  const splitTitleLeft = doc.splitTextToSize(titleLeft, 70);
+  doc.text(splitTitleLeft, 60, finalY + 12, { align: "center" });
+  
+  // Right signature line
+  doc.line(120, finalY, 180, finalY);
+  
+  // Right signature - Name (Bold)
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.text(coordinatorName, 150, finalY + 6, { align: "center" });
+  
+  // Right signature - Title (Regular, wrapped)
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  const titleRight = "Coordinador del Grupo de investigación GISICF Carrera de Tecnologías de la Información";
+  const splitTitleRight = doc.splitTextToSize(titleRight, 70);
+  doc.text(splitTitleRight, 150, finalY + 12, { align: "center" });
 
   // Save with proper filename
   doc.save(`Planificacion_${plan.period_name.replace(/\s+/g, "_")}.pdf`);
