@@ -133,6 +133,128 @@ export type Database = {
         }
         Relationships: []
       }
+      planning_activities: {
+        Row: {
+          activity: string
+          created_at: string
+          end_date: string
+          id: string
+          objective: string
+          order_index: number
+          plan_id: string
+          responsibles: Json
+          start_date: string
+          verification_means: string
+        }
+        Insert: {
+          activity: string
+          created_at?: string
+          end_date: string
+          id?: string
+          objective: string
+          order_index?: number
+          plan_id: string
+          responsibles?: Json
+          start_date: string
+          verification_means: string
+        }
+        Update: {
+          activity?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          objective?: string
+          order_index?: number
+          plan_id?: string
+          responsibles?: Json
+          start_date?: string
+          verification_means?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_activities_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planning_sheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planning_members: {
+        Row: {
+          created_at: string
+          id: string
+          member_type: string
+          plan_id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_type: string
+          plan_id: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_type?: string
+          plan_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_members_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planning_sheets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planning_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planning_sheets: {
+        Row: {
+          created_at: string
+          created_by: string
+          drive_link: string | null
+          id: string
+          meeting_schedule: string
+          period_name: string
+          president_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          drive_link?: string | null
+          id?: string
+          meeting_schedule?: string
+          period_name: string
+          president_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          drive_link?: string | null
+          id?: string
+          meeting_schedule?: string
+          period_name?: string
+          president_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
