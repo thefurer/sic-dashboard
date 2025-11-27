@@ -243,7 +243,7 @@ export async function generatePlanningPDF(planData: any) {
   // Left signature - Title (Regular, wrapped)
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  const titleLeft = "Coordinador de la Carrera de Tecnologías de la Información";
+  const titleLeft = "Coordinador del Grupo de investigación GISICF Carrera de Tecnologías de la Información";
   const splitTitleLeft = doc.splitTextToSize(titleLeft, 70);
   doc.text(splitTitleLeft, 60, finalY + 12, { align: "center" });
   
@@ -258,7 +258,7 @@ export async function generatePlanningPDF(planData: any) {
   // Right signature - Title (Regular, wrapped)
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  const titleRight = "Coordinador del Grupo de investigación GISICF Carrera de Tecnologías de la Información";
+  const titleRight = "Coordinador de la Carrera de Tecnologías de la Información";
   const splitTitleRight = doc.splitTextToSize(titleRight, 70);
   doc.text(splitTitleRight, 150, finalY + 12, { align: "center" });
 
