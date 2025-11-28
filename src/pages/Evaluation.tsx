@@ -29,11 +29,50 @@ export default function Evaluation() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Force zero-base scoring on mount
-  const totalScore = evaluationItems.reduce(
-    (sum, item) => sum + (item.score_obtained || 0),
-    0
-  );
+  // Calculate score using saturation logic
+  const calculateSaturatedScore = () => {
+    if (!evaluationItems || evaluationItems.length === 0) return 0;
+    
+    // Section A: Publication (Max 45)
+    const projects = evaluationItems.filter(i => i.category === 'A' && i.indicator_name?.includes('Proyecto'));
+    const articlesJCR = evaluationItems.filter(i => i.category === 'A' && i.indicator_name?.includes('JCR'));
+    const books = evaluationItems.filter(i => i.category === 'A' && i.indicator_name?.includes('Libro'));
+    const regional = evaluationItems.filter(i => i.category === 'A' && i.indicator_name?.includes('Regional'));
+    const papers = evaluationItems.filter(i => i.category === 'A' && i.indicator_name?.includes('Ponencia'));
+    
+    const scoreA = Math.min(
+      (projects.length > 0 ? 15 : 0) +
+      (articlesJCR.length > 0 ? 10 : 0) +
+      (books.length > 0 ? 10 : 0) +
+      (regional.length > 0 ? 5 : 0) +
+      (papers.length > 0 ? 5 : 0),
+      45
+    );
+    
+    // Section B: Transfer (Max 10)
+    const vinculacion = evaluationItems.filter(i => i.category === 'B');
+    const scoreB = Math.min(vinculacion.length > 0 ? 10 : 0, 10);
+    
+    // Section C: Resources (Max 15)
+    const convocatorias = evaluationItems.filter(i => i.category === 'C');
+    const scoreC = Math.min(convocatorias.length > 0 ? 15 : 0, 15);
+    
+    // Section D: Impacts (Max 30)
+    const impactSocial = evaluationItems.filter(i => i.category === 'D' && i.indicator_name?.includes('Social'));
+    const impactEnv = evaluationItems.filter(i => i.category === 'D' && i.indicator_name?.includes('Ambiental'));
+    const impactEcon = evaluationItems.filter(i => i.category === 'D' && i.indicator_name?.includes('Económico'));
+    
+    const scoreD = Math.min(
+      (impactSocial.length > 0 ? 10 : 0) +
+      (impactEnv.length > 0 ? 10 : 0) +
+      (impactEcon.length > 0 ? 10 : 0),
+      30
+    );
+    
+    return Math.min(scoreA + scoreB + scoreC + scoreD, 100);
+  };
+
+  const totalScore = calculateSaturatedScore();
 
   // Fetch or create draft report (or load submitted report for editing)
   const { data: existingReport, isLoading } = useQuery({
@@ -190,11 +229,49 @@ export default function Evaluation() {
   };
 
   const getStepScore = (category: string) => {
-    // Ensure zero-based calculation
     if (!evaluationItems || evaluationItems.length === 0) return 0;
-    return evaluationItems
-      .filter((item) => item.category === category)
-      .reduce((sum, item) => sum + (item.score_obtained || 0), 0);
+    
+    if (category === 'A') {
+      const projects = evaluationItems.filter(i => i.category === 'A' && i.indicator_name?.includes('Proyecto'));
+      const articlesJCR = evaluationItems.filter(i => i.category === 'A' && i.indicator_name?.includes('JCR'));
+      const books = evaluationItems.filter(i => i.category === 'A' && i.indicator_name?.includes('Libro'));
+      const regional = evaluationItems.filter(i => i.category === 'A' && i.indicator_name?.includes('Regional'));
+      const papers = evaluationItems.filter(i => i.category === 'A' && i.indicator_name?.includes('Ponencia'));
+      
+      return Math.min(
+        (projects.length > 0 ? 15 : 0) +
+        (articlesJCR.length > 0 ? 10 : 0) +
+        (books.length > 0 ? 10 : 0) +
+        (regional.length > 0 ? 5 : 0) +
+        (papers.length > 0 ? 5 : 0),
+        45
+      );
+    }
+    
+    if (category === 'B') {
+      const vinculacion = evaluationItems.filter(i => i.category === 'B');
+      return Math.min(vinculacion.length > 0 ? 10 : 0, 10);
+    }
+    
+    if (category === 'C') {
+      const convocatorias = evaluationItems.filter(i => i.category === 'C');
+      return Math.min(convocatorias.length > 0 ? 15 : 0, 15);
+    }
+    
+    if (category === 'D') {
+      const impactSocial = evaluationItems.filter(i => i.category === 'D' && i.indicator_name?.includes('Social'));
+      const impactEnv = evaluationItems.filter(i => i.category === 'D' && i.indicator_name?.includes('Ambiental'));
+      const impactEcon = evaluationItems.filter(i => i.category === 'D' && i.indicator_name?.includes('Económico'));
+      
+      return Math.min(
+        (impactSocial.length > 0 ? 10 : 0) +
+        (impactEnv.length > 0 ? 10 : 0) +
+        (impactEcon.length > 0 ? 10 : 0),
+        30
+      );
+    }
+    
+    return 0;
   };
 
   if (isLoading) {
@@ -239,12 +316,12 @@ export default function Evaluation() {
                     className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center font-bold transition-all ${
                       currentStep === step.id
                         ? "bg-primary text-primary-foreground scale-110"
-                        : currentStep > step.id
+                        : currentStep > step.id || (step.maxScore > 0 && getStepScore(step.category) === step.maxScore)
                         ? "bg-green-500 text-white"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {currentStep > step.id ? (
+                    {currentStep > step.id || (step.maxScore > 0 && getStepScore(step.category) === step.maxScore) ? (
                       <CheckCircle2 className="w-6 h-6" />
                     ) : (
                       step.id

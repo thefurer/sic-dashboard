@@ -160,13 +160,90 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
   };
 
   const getCategoryScore = (category: string) => {
-    return items
-      .filter((item) => item.category === category)
-      .reduce((sum, item) => sum + item.score_obtained, 0);
+    if (!items || items.length === 0) return 0;
+    
+    if (category === 'A') {
+      const projects = items.filter(i => i.category === 'A' && i.indicator_name?.includes('Proyecto'));
+      const articlesJCR = items.filter(i => i.category === 'A' && i.indicator_name?.includes('JCR'));
+      const books = items.filter(i => i.category === 'A' && i.indicator_name?.includes('Libro'));
+      const regional = items.filter(i => i.category === 'A' && i.indicator_name?.includes('Regional'));
+      const papers = items.filter(i => i.category === 'A' && i.indicator_name?.includes('Ponencia'));
+      
+      return Math.min(
+        (projects.length > 0 ? 15 : 0) +
+        (articlesJCR.length > 0 ? 10 : 0) +
+        (books.length > 0 ? 10 : 0) +
+        (regional.length > 0 ? 5 : 0) +
+        (papers.length > 0 ? 5 : 0),
+        45
+      );
+    }
+    
+    if (category === 'B') {
+      const vinculacion = items.filter(i => i.category === 'B');
+      return Math.min(vinculacion.length > 0 ? 10 : 0, 10);
+    }
+    
+    if (category === 'C') {
+      const convocatorias = items.filter(i => i.category === 'C');
+      return Math.min(convocatorias.length > 0 ? 15 : 0, 15);
+    }
+    
+    if (category === 'D') {
+      const impactSocial = items.filter(i => i.category === 'D' && i.indicator_name?.includes('Social'));
+      const impactEnv = items.filter(i => i.category === 'D' && i.indicator_name?.includes('Ambiental'));
+      const impactEcon = items.filter(i => i.category === 'D' && i.indicator_name?.includes('Económico'));
+      
+      return Math.min(
+        (impactSocial.length > 0 ? 10 : 0) +
+        (impactEnv.length > 0 ? 10 : 0) +
+        (impactEcon.length > 0 ? 10 : 0),
+        30
+      );
+    }
+    
+    return 0;
   };
 
   const getCategoryItems = (category: string) => {
-    return items.filter((item) => item.category === category);
+    // Group items by indicator_name to prevent duplicates
+    const categoryItems = items.filter((item) => item.category === category);
+    
+    // For category D, deduplicate by indicator type
+    if (category === 'D') {
+      const grouped: Record<string, any> = {};
+      categoryItems.forEach(item => {
+        const indicatorType = item.indicator_name?.includes('Social') ? 'Social' 
+          : item.indicator_name?.includes('Ambiental') ? 'Ambiental'
+          : item.indicator_name?.includes('Económico') ? 'Económico'
+          : item.indicator_name;
+        
+        if (!grouped[indicatorType]) {
+          grouped[indicatorType] = {
+            ...item,
+            quantity: 1,
+            score_obtained: item.indicator_name?.includes('Social') ? 10
+              : item.indicator_name?.includes('Ambiental') ? 10
+              : item.indicator_name?.includes('Económico') ? 10
+              : item.score_obtained
+          };
+        }
+      });
+      return Object.values(grouped);
+    }
+    
+    // For other categories, group by indicator_name
+    const grouped: Record<string, any> = {};
+    categoryItems.forEach(item => {
+      if (!grouped[item.indicator_name]) {
+        grouped[item.indicator_name] = {
+          ...item,
+          quantity: 1
+        };
+      }
+    });
+    
+    return Object.values(grouped);
   };
 
   const canSubmit = totalScore === 100 && reportStatus === "draft";
@@ -253,11 +330,17 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
                     <span className="text-3xl font-bold text-foreground">{score}</span>
                     <span className="text-muted-foreground ml-1">/ {maxScore} pts</span>
                   </div>
-                  <Badge
-                    variant={percentage >= 80 ? "default" : percentage >= 50 ? "secondary" : "outline"}
-                  >
-                    {percentage.toFixed(0)}%
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {score === maxScore && (
+                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                    )}
+                    <Badge
+                      variant={percentage >= 80 ? "default" : percentage >= 50 ? "secondary" : "outline"}
+                      className={score === maxScore ? "bg-green-600" : ""}
+                    >
+                      {percentage.toFixed(0)}%
+                    </Badge>
+                  </div>
                 </div>
               </CardContent>
             </Card>
