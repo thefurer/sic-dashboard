@@ -16,9 +16,9 @@ import confetti from "canvas-confetti";
 
 const STEPS = [
   { id: 1, name: "Publicación", maxScore: 45, category: "A" },
-  { id: 2, name: "Transferencia", maxScore: 20, category: "B" },
+  { id: 2, name: "Transferencia", maxScore: 10, category: "B" },
   { id: 3, name: "Recursos", maxScore: 15, category: "C" },
-  { id: 4, name: "Impactos", maxScore: 20, category: "D" },
+  { id: 4, name: "Impactos", maxScore: 30, category: "D" },
   { id: 5, name: "Revisión y Envío", maxScore: 0, category: "Review" },
 ];
 

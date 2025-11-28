@@ -6,7 +6,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VinculacionDialog, { VinculacionEntry } from "./VinculacionDialog";
-import PatenteDialog, { PatenteEntry } from "./PatenteDialog";
 
 interface EvaluationItem {
   id?: string;
@@ -25,14 +24,11 @@ interface TransferenciaStepProps {
 
 const INDICATORS = [
   { name: "Proyectos de Vinculación", points: 10, unitScore: 5 },
-  { name: "Patentes", points: 10, unitScore: 10 },
 ];
 
 export default function TransferenciaStep({ reportId, items, onItemsChange }: TransferenciaStepProps) {
   const [vinculacionDialogOpen, setVinculacionDialogOpen] = useState(false);
-  const [patenteDialogOpen, setPatenteDialogOpen] = useState(false);
   const [editingVinculacion, setEditingVinculacion] = useState<VinculacionEntry | null>(null);
-  const [editingPatente, setEditingPatente] = useState<PatenteEntry | null>(null);
   const queryClient = useQueryClient();
 
   const saveItemMutation = useMutation({
@@ -123,63 +119,6 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
     toast.success("Entrada eliminada");
   };
 
-  const handleSavePatente = async (entry: PatenteEntry) => {
-    if (!reportId) return;
-
-    const existingItem = items.find((i) => i.indicator_name === "Patentes");
-    const existingEntries: PatenteEntry[] = existingItem?.evidence_details || [];
-
-    let updatedEntries: PatenteEntry[];
-    if (entry.id) {
-      updatedEntries = existingEntries.map((e) => (e.id === entry.id ? entry : e));
-    } else {
-      updatedEntries = [...existingEntries, { ...entry, id: crypto.randomUUID() }];
-    }
-
-    const score = Math.min(updatedEntries.length * 10, 10);
-
-    const item: EvaluationItem = {
-      report_id: reportId,
-      category: "B",
-      indicator_name: "Patentes",
-      score_obtained: score,
-      evidence_details: updatedEntries,
-    };
-
-    await saveItemMutation.mutateAsync(item);
-
-    const updatedItems = items.filter((i) => i.indicator_name !== "Patentes");
-    onItemsChange([...updatedItems, item]);
-
-    toast.success("Patente guardada");
-    setEditingPatente(null);
-  };
-
-  const handleDeletePatente = async (entryId: string) => {
-    if (!reportId) return;
-
-    const existingItem = items.find((i) => i.indicator_name === "Patentes");
-    const existingEntries: PatenteEntry[] = existingItem?.evidence_details || [];
-    const updatedEntries = existingEntries.filter((e) => e.id !== entryId);
-
-    const score = Math.min(updatedEntries.length * 10, 10);
-
-    const item: EvaluationItem = {
-      report_id: reportId,
-      category: "B",
-      indicator_name: "Patentes",
-      score_obtained: score,
-      evidence_details: updatedEntries,
-    };
-
-    await saveItemMutation.mutateAsync(item);
-
-    const updatedItems = items.filter((i) => i.indicator_name !== "Patentes");
-    onItemsChange([...updatedItems, item]);
-
-    toast.success("Entrada eliminada");
-  };
-
   const getItemData = (indicatorName: string) => {
     return items.find((i) => i.indicator_name === indicatorName) || {
       score_obtained: 0,
@@ -194,18 +133,15 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
   const vinculacionData = getItemData("Proyectos de Vinculación");
   const vinculacionEntries: VinculacionEntry[] = vinculacionData.evidence_details || [];
 
-  const patenteData = getItemData("Patentes");
-  const patenteEntries: PatenteEntry[] = patenteData.evidence_details || [];
-
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground mb-2">Transferencia de Tecnología</h2>
-        <p className="text-muted-foreground">Sección B - Máximo 20 puntos</p>
+        <p className="text-muted-foreground">Sección B - Máximo 10 puntos</p>
       </div>
 
       <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
-        <p className="text-lg font-semibold text-primary">Puntos Sección B: {totalScore}/20</p>
+        <p className="text-lg font-semibold text-primary">Puntos Sección B: {totalScore}/10</p>
       </div>
 
       <div className="space-y-4">
@@ -272,68 +208,6 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
           </CardContent>
         </Card>
 
-        {/* Patentes */}
-        <Card className="border-l-4 border-l-primary">
-          <CardHeader>
-            <CardTitle className="text-lg flex justify-between items-center">
-              <span>Patentes</span>
-              <span className="text-primary text-sm">
-                {patenteData.score_obtained}/10 pts
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button
-              onClick={() => {
-                setEditingPatente(null);
-                setPatenteDialogOpen(true);
-              }}
-              size="sm"
-              variant="outline"
-              className="w-full"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Agregar Patente
-            </Button>
-
-            {patenteEntries.length > 0 && (
-              <div className="space-y-2">
-                {patenteEntries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="flex items-center justify-between p-3 border rounded-lg bg-muted/30"
-                  >
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{entry.description.substring(0, 50)}...</p>
-                      <p className="text-xs text-muted-foreground">
-                        Fase: {entry.fase} | {entry.evidences.length} evidencia(s)
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setEditingPatente(entry);
-                          setPatenteDialogOpen(true);
-                        }}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeletePatente(entry.id!)}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       <VinculacionDialog
@@ -341,14 +215,6 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
         onOpenChange={setVinculacionDialogOpen}
         onSave={handleSaveVinculacion}
         editingEntry={editingVinculacion}
-        reportId={reportId || ""}
-      />
-
-      <PatenteDialog
-        open={patenteDialogOpen}
-        onOpenChange={setPatenteDialogOpen}
-        onSave={handleSavePatente}
-        editingEntry={editingPatente}
         reportId={reportId || ""}
       />
     </div>
