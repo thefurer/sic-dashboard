@@ -35,7 +35,7 @@ export default function Evaluation() {
     0
   );
 
-  // Fetch or create draft report
+  // Fetch or create draft report (or load submitted report for editing)
   const { data: existingReport, isLoading } = useQuery({
     queryKey: ["evaluation-report", new Date().getFullYear()],
     queryFn: async () => {
@@ -44,12 +44,14 @@ export default function Evaluation() {
 
       const currentYear = new Date().getFullYear();
       
+      // Try to find draft first, then submitted
       const { data, error } = await supabase
         .from("evaluation_reports")
         .select("*")
         .eq("user_id", user.id)
         .eq("year", currentYear)
-        .eq("status", "draft")
+        .in("status", ["draft", "submitted"])
+        .order("created_at", { ascending: false })
         .maybeSingle();
 
       if (error) throw error;
@@ -165,7 +167,10 @@ export default function Evaluation() {
   });
 
   const handleNext = async () => {
-    await saveDraftMutation.mutateAsync(evaluationItems);
+    // Don't save if already submitted (read-only mode)
+    if (existingReport?.status !== "submitted") {
+      await saveDraftMutation.mutateAsync(evaluationItems);
+    }
     
     if (currentStep < STEPS.length) {
       setCurrentStep(currentStep + 1);
@@ -320,6 +325,8 @@ export default function Evaluation() {
               totalScore={totalScore}
               onSubmit={handleSubmit}
               isSubmitting={submitMutation.isPending}
+              reportStatus={existingReport?.status || "draft"}
+              reportId={reportId}
             />
           )}
         </Card>
@@ -339,24 +346,30 @@ export default function Evaluation() {
             {currentStep < STEPS.length ? (
               <Button
                 onClick={handleNext}
-                disabled={saveDraftMutation.isPending}
+                disabled={saveDraftMutation.isPending || existingReport?.status === "submitted"}
               >
                 {saveDraftMutation.isPending ? "Guardando..." : "Siguiente"}
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={submitMutation.isPending || totalScore !== 100}
-                className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                {submitMutation.isPending 
-                  ? "Enviando..." 
-                  : totalScore !== 100 
-                  ? `Complete 100 puntos (${totalScore}/100)` 
-                  : "Enviar Evaluación Final"}
-              </Button>
+              existingReport?.status === "submitted" ? (
+                <div className="text-sm text-muted-foreground">
+                  Evaluación ya enviada
+                </div>
+              ) : (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={submitMutation.isPending || totalScore !== 100}
+                  className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  {submitMutation.isPending 
+                    ? "Enviando..." 
+                    : totalScore !== 100 
+                    ? `Complete 100 puntos (${totalScore}/100)` 
+                    : "Enviar Evaluación Final"}
+                </Button>
+              )
             )}
           </div>
         </div>

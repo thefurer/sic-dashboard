@@ -178,6 +178,8 @@ export type Database = {
           admin_observations: string | null
           correction_deadline: string | null
           created_at: string | null
+          edit_justification: string | null
+          edited_after_submission: boolean | null
           group_id: string
           id: string
           reviewed_at: string | null
@@ -193,6 +195,8 @@ export type Database = {
           admin_observations?: string | null
           correction_deadline?: string | null
           created_at?: string | null
+          edit_justification?: string | null
+          edited_after_submission?: boolean | null
           group_id: string
           id?: string
           reviewed_at?: string | null
@@ -208,6 +212,8 @@ export type Database = {
           admin_observations?: string | null
           correction_deadline?: string | null
           created_at?: string | null
+          edit_justification?: string | null
+          edited_after_submission?: boolean | null
           group_id?: string
           id?: string
           reviewed_at?: string | null

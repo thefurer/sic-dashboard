@@ -155,10 +155,8 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     }
 
     const indicator = INDICATORS.find(i => i.name === currentIndicator);
-    const newScore = Math.min(
-      updatedEntries.length * (indicator?.unitScore || 1),
-      indicator?.points || 0
-    );
+    // Award MAX points if at least 1 entry exists
+    const newScore = updatedEntries.length > 0 ? (indicator?.points || 0) : 0;
 
     await handleFieldUpdate(currentIndicator, {
       entries: updatedEntries,
@@ -176,10 +174,8 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     const updatedEntries = (existingItem?.entries || []).filter(e => e.id !== entryId);
 
     const indicator = INDICATORS.find(i => i.name === indicatorName);
-    const newScore = Math.min(
-      updatedEntries.length * (indicator?.unitScore || 1),
-      indicator?.points || 0
-    );
+    // Award MAX points if at least 1 entry exists
+    const newScore = updatedEntries.length > 0 ? (indicator?.points || 0) : 0;
 
     await handleFieldUpdate(indicatorName, {
       entries: updatedEntries,
@@ -205,10 +201,8 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     const updatedEntries = (existingItem?.project_entries || []).filter(e => e.id !== entryId);
 
     const indicator = INDICATORS.find(i => i.name === "Proyectos I+D+i");
-    const newScore = Math.min(
-      updatedEntries.length * (indicator?.unitScore || 1),
-      indicator?.points || 0
-    );
+    // Award MAX points if at least 1 entry exists
+    const newScore = updatedEntries.length > 0 ? (indicator?.points || 0) : 0;
 
     const item: EvaluationItem = {
       report_id: reportId!,
@@ -242,10 +236,8 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     }
 
     const indicator = INDICATORS.find(i => i.name === "Proyectos I+D+i");
-    const newScore = Math.min(
-      updatedEntries.length * (indicator?.unitScore || 1),
-      indicator?.points || 0
-    );
+    // Award MAX points if at least 1 entry exists
+    const newScore = updatedEntries.length > 0 ? (indicator?.points || 0) : 0;
 
     const item: EvaluationItem = {
       report_id: reportId,

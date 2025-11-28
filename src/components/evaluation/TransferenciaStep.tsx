@@ -75,7 +75,8 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
       updatedEntries = [...existingEntries, { ...entry, id: crypto.randomUUID() }];
     }
 
-    const score = Math.min(updatedEntries.length * 5, 10);
+    // Award MAX points if at least 1 entry exists
+    const score = updatedEntries.length > 0 ? 10 : 0;
 
     const item: EvaluationItem = {
       report_id: reportId,

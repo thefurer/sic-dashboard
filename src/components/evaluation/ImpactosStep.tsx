@@ -81,7 +81,8 @@ export default function ImpactosStep({ reportId, items, onItemsChange }: Impacto
     if (!reportId) return;
 
     const indicator = INDICATORS.find((i) => i.name === indicatorName);
-    const score = Math.min(quantity * unitScore, indicator?.points || 0);
+    // Award MAX points if at least 1 quantity exists
+    const score = quantity > 0 ? (indicator?.points || 0) : 0;
     const existingItem = items.find((i) => i.indicator_name === indicatorName);
 
     const item: EvaluationItem = {
@@ -132,9 +133,9 @@ export default function ImpactosStep({ reportId, items, onItemsChange }: Impacto
     const hasJustification = justification.trim().length > 0;
 
     const indicator = INDICATORS.find((i) => i.name === indicatorName);
-    // For non-patent indicators, score is assigned if both evidence and justification are provided
+    // For non-patent indicators, award MAX points if both evidence and justification are provided
     const score = !indicator?.requiresExtraFields && hasEvidence && hasJustification 
-      ? indicator?.points || 0 
+      ? (indicator?.points || 0)
       : existingItem?.score_obtained || 0;
 
     const item: EvaluationItem = {

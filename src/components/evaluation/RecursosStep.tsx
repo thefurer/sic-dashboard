@@ -82,7 +82,8 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
       updatedEntries = [...existingEntries, { ...entry, id: crypto.randomUUID() }];
     }
 
-    const score = Math.min(updatedEntries.length * unitScore, maxPoints);
+    // Award MAX points if at least 1 entry exists
+    const score = updatedEntries.length > 0 ? maxPoints : 0;
 
     const item: EvaluationItem = {
       report_id: reportId,
