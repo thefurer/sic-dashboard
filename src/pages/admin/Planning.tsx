@@ -1,16 +1,20 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, FileText, Calendar } from "lucide-react";
+import { Plus, FileText, Calendar, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { StatusBadge } from "@/components/StatusBadge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function Planning() {
   const navigate = useNavigate();
+  const [planToDelete, setPlanToDelete] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: plans, isLoading } = useQuery({
     queryKey: ["planning-sheets"],
@@ -22,6 +26,25 @@ export default function Planning() {
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (planId: string) => {
+      const { error } = await supabase
+        .from("planning_sheets")
+        .delete()
+        .eq("id", planId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["planning-sheets"] });
+      toast.success("Planificación eliminada");
+      setPlanToDelete(null);
+    },
+    onError: () => {
+      toast.error("Error al eliminar planificación");
     },
   });
 
@@ -59,20 +82,47 @@ export default function Planning() {
           {plans.map((plan) => (
             <Card
               key={plan.id}
-              className="hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate(`/admin/planning/${plan.id}`)}
+              className="hover:shadow-lg transition-shadow group relative"
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <FileText className="h-8 w-8 text-primary" />
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    plan.status === "draft" 
-                      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                      : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                  }`}>
-                    {plan.status === "draft" ? "Borrador" : "Finalizado"}
-                  </span>
-                </div>
+              <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/admin/planning/${plan.id}`);
+                  }}
+                  className="bg-background/80 backdrop-blur-sm"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPlanToDelete(plan.id);
+                  }}
+                  className="bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <div
+                className="cursor-pointer"
+                onClick={() => navigate(`/admin/planning/${plan.id}`)}
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <FileText className="h-8 w-8 text-primary" />
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      plan.status === "draft" 
+                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                        : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                    }`}>
+                      {plan.status === "draft" ? "Borrador" : "Finalizado"}
+                    </span>
+                  </div>
                 <CardTitle className="mt-4">{plan.period_name}</CardTitle>
                 <CardDescription className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
@@ -85,10 +135,16 @@ export default function Planning() {
                     <strong>Presidente:</strong> {plan.president_name}
                   </p>
                   <p>
-                    <strong>Reuniones:</strong> {plan.meeting_schedule}
+                    <strong>Reuniones:</strong>{" "}
+                    {Array.isArray(plan.meeting_schedule) && plan.meeting_schedule.length > 0
+                      ? plan.meeting_schedule.length === 1
+                        ? String(plan.meeting_schedule[0])
+                        : `${plan.meeting_schedule.length} fechas programadas`
+                      : "Sin fechas"}
                   </p>
                 </div>
               </CardContent>
+              </div>
             </Card>
           ))}
         </div>
@@ -107,6 +163,26 @@ export default function Planning() {
           </CardContent>
         </Card>
       )}
+
+      <AlertDialog open={!!planToDelete} onOpenChange={() => setPlanToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar planificación?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente la planificación y todos sus datos asociados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => planToDelete && deleteMutation.mutate(planToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

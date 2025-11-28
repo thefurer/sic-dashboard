@@ -283,6 +283,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          project_document_url: string | null
           updated_at: string
           year: number
         }
@@ -290,6 +291,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          project_document_url?: string | null
           updated_at?: string
           year: number
         }
@@ -297,6 +299,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          project_document_url?: string | null
           updated_at?: string
           year?: number
         }
@@ -394,7 +397,7 @@ export type Database = {
           created_by: string
           drive_link: string | null
           id: string
-          meeting_schedule: string
+          meeting_schedule: Json | null
           period_name: string
           president_name: string
           status: string
@@ -405,7 +408,7 @@ export type Database = {
           created_by: string
           drive_link?: string | null
           id?: string
-          meeting_schedule?: string
+          meeting_schedule?: Json | null
           period_name: string
           president_name?: string
           status?: string
@@ -416,7 +419,7 @@ export type Database = {
           created_by?: string
           drive_link?: string | null
           id?: string
-          meeting_schedule?: string
+          meeting_schedule?: Json | null
           period_name?: string
           president_name?: string
           status?: string
@@ -435,6 +438,7 @@ export type Database = {
           id: string
           is_approved: boolean
           phone: string | null
+          research_role: string | null
           researcher_code: string | null
           updated_at: string
         }
@@ -448,6 +452,7 @@ export type Database = {
           id: string
           is_approved?: boolean
           phone?: string | null
+          research_role?: string | null
           researcher_code?: string | null
           updated_at?: string
         }
@@ -461,6 +466,7 @@ export type Database = {
           id?: string
           is_approved?: boolean
           phone?: string | null
+          research_role?: string | null
           researcher_code?: string | null
           updated_at?: string
         }
