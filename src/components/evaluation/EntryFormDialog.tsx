@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +55,23 @@ export default function EntryFormDialog({
   const isPonencias = indicatorType === "Ponencias";
   const isArticle = indicatorType.includes("Artículos");
   const isBook = indicatorType === "Libros Científicos";
+
+  // Reset form when dialog opens with new entry or populate when editing
+  useEffect(() => {
+    if (open) {
+      if (existingEntry) {
+        setProjectType(existingEntry.project_type);
+        setMetadata(existingEntry.metadata);
+        setFiles(existingEntry.files);
+      } else {
+        setProjectType("");
+        setMetadata({});
+        setFiles({});
+        setSearchValue("");
+        setAutoDetected(false);
+      }
+    }
+  }, [open, existingEntry]);
 
   const sanitizeFilename = (filename: string): string => {
     return filename
@@ -164,6 +181,21 @@ export default function EntryFormDialog({
       return;
     }
 
+    // Validate required metadata fields
+    if (!metadata.title || !metadata.authors || !metadata.year) {
+      toast.error("Campos requeridos", {
+        description: "Complete Título, Autores y Año",
+      });
+      return;
+    }
+
+    if (isArticle && !metadata.journal) {
+      toast.error("Campo requerido", {
+        description: "Complete el nombre de la Revista",
+      });
+      return;
+    }
+
     // At least one evidence file must be uploaded
     if (!files.producto && !files.pares && !files.aceptacion && !files.publicacion) {
       toast.error("Evidencia requerida", {
@@ -178,6 +210,9 @@ export default function EntryFormDialog({
       metadata,
       files,
     });
+    
+    // Close dialog after successful save
+    onClose();
   };
 
   return (
@@ -190,38 +225,41 @@ export default function EntryFormDialog({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Smart Search */}
+          {/* Smart Search - Optional */}
           {(isArticle || isBook) && (
-            <div className="border border-primary/20 rounded-lg p-4 bg-primary/5">
-              <Label className="text-sm font-medium mb-2 block">
-                {isBook ? "Búsqueda Inteligente ISBN" : "Búsqueda Inteligente DOI"}
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder={isBook ? "978-84-1234-567-8" : "10.1234/example.2024"}
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  className="flex-1"
-                />
-                <Button
-                  variant="secondary"
-                  onClick={handleSmartSearch}
-                  disabled={loadingDOI || loadingISBN}
-                  size="sm"
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  Buscar
-                </Button>
-              </div>
-              {metadata.title && (
-                <div className="mt-3 p-3 bg-background rounded text-xs space-y-1">
-                  <p><strong>Título:</strong> {metadata.title}</p>
-                  <p><strong>Autores:</strong> {metadata.authors}</p>
-                  {metadata.journal && <p><strong>Revista:</strong> {metadata.journal}</p>}
-                  {metadata.editorial && <p><strong>Editorial:</strong> {metadata.editorial}</p>}
+            <>
+              <div className="border border-primary/20 rounded-lg p-4 bg-primary/5">
+                <Label className="text-sm font-medium mb-2 block">
+                  {isBook ? "Búsqueda Inteligente ISBN (Opcional)" : "Búsqueda Inteligente DOI (Opcional)"}
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder={isBook ? "978-84-1234-567-8" : "10.1234/example.2024"}
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="secondary"
+                    onClick={handleSmartSearch}
+                    disabled={loadingDOI || loadingISBN}
+                    size="sm"
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    Buscar
+                  </Button>
                 </div>
-              )}
-            </div>
+                {metadata.title && (
+                  <div className="mt-3 p-3 bg-background rounded text-xs space-y-1">
+                    <p><strong>Título:</strong> {metadata.title}</p>
+                    <p><strong>Autores:</strong> {metadata.authors}</p>
+                    {metadata.journal && <p><strong>Revista:</strong> {metadata.journal}</p>}
+                    {metadata.editorial && <p><strong>Editorial:</strong> {metadata.editorial}</p>}
+                  </div>
+                )}
+              </div>
+              <div className="border-t border-border" />
+            </>
           )}
 
           {/* Verification Links */}
@@ -281,68 +319,78 @@ export default function EntryFormDialog({
             </div>
           )}
 
-          {/* Editable Metadata Fields */}
-          {metadata.title && (
-            <div className="space-y-3">
+          {/* Metadata Fields - Always Visible */}
+          <div className="space-y-3">
+            <div>
+              <Label>Título *</Label>
+              <Input
+                value={metadata.title || ""}
+                onChange={(e) => setMetadata({ ...metadata, title: e.target.value })}
+                placeholder="Ingrese el título"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Autores *</Label>
+              <Input
+                value={metadata.authors || ""}
+                onChange={(e) => setMetadata({ ...metadata, authors: e.target.value })}
+                placeholder="Ingrese los autores"
+                className="mt-1"
+              />
+            </div>
+            {isArticle && (
               <div>
-                <Label>Título</Label>
+                <Label>Revista *</Label>
                 <Input
-                  value={metadata.title || ""}
-                  onChange={(e) => setMetadata({ ...metadata, title: e.target.value })}
+                  value={metadata.journal || ""}
+                  onChange={(e) => setMetadata({ ...metadata, journal: e.target.value })}
+                  placeholder="Nombre de la revista"
                   className="mt-1"
                 />
               </div>
-              <div>
-                <Label>Autores</Label>
-                <Input
-                  value={metadata.authors || ""}
-                  onChange={(e) => setMetadata({ ...metadata, authors: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              {metadata.journal && (
-                <div>
-                  <Label>Revista</Label>
-                  <Input
-                    value={metadata.journal || ""}
-                    onChange={(e) => setMetadata({ ...metadata, journal: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-              )}
-              {metadata.editorial && (
+            )}
+            {isBook && (
+              <>
                 <div>
                   <Label>Editorial</Label>
                   <Input
                     value={metadata.editorial || ""}
                     onChange={(e) => setMetadata({ ...metadata, editorial: e.target.value })}
+                    placeholder="Editorial"
                     className="mt-1"
                   />
                 </div>
-              )}
-              <div>
-                <Label>Año</Label>
-                <Input
-                  value={metadata.year || ""}
-                  onChange={(e) => setMetadata({ ...metadata, year: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Optional Link Field for Books */}
-          {isBook && (
+                <div>
+                  <Label>ISBN</Label>
+                  <Input
+                    value={metadata.isbn || ""}
+                    onChange={(e) => setMetadata({ ...metadata, isbn: e.target.value })}
+                    placeholder="ISBN"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>Enlace (Opcional)</Label>
+                  <Input
+                    value={metadata.link || ""}
+                    onChange={(e) => setMetadata({ ...metadata, link: e.target.value })}
+                    placeholder="https://..."
+                    className="mt-1"
+                  />
+                </div>
+              </>
+            )}
             <div>
-              <Label>Enlace (Opcional)</Label>
+              <Label>Año *</Label>
               <Input
-                value={metadata.link || ""}
-                onChange={(e) => setMetadata({ ...metadata, link: e.target.value })}
-                placeholder="https://..."
+                value={metadata.year || ""}
+                onChange={(e) => setMetadata({ ...metadata, year: e.target.value })}
+                placeholder="2024"
                 className="mt-1"
               />
             </div>
-          )}
+          </div>
 
           {/* Project Type */}
           <div>
