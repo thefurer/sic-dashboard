@@ -432,25 +432,24 @@ export default function Evaluation() {
         </Card>
 
         {/* Navigation Footer */}
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-lg">
-          <div className="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 1 || saveDraftMutation.isPending}
-            >
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              Anterior
-            </Button>
+        <div className="flex justify-between items-center w-full mt-8 pt-6 border-t">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 1 || saveDraftMutation.isPending}
+          >
+            <ChevronLeft className="w-4 h-4 mr-2" />
+            Anterior
+          </Button>
 
-            {currentStep < STEPS.length ? (
-              <Button
-                onClick={handleNext}
-                disabled={saveDraftMutation.isPending || existingReport?.status === "submitted" || existingReport?.status === "approved"}
-              >
-                {saveDraftMutation.isPending ? "Guardando..." : "Siguiente"}
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
+          {currentStep < STEPS.length ? (
+            <Button
+              onClick={handleNext}
+              disabled={existingReport?.status === "submitted" || existingReport?.status === "approved"}
+            >
+              {saveDraftMutation.isPending ? "Guardando..." : "Siguiente"}
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
             ) : (
               existingReport?.status === "submitted" || existingReport?.status === "approved" ? (
                 <div className="text-sm text-muted-foreground">
@@ -471,7 +470,6 @@ export default function Evaluation() {
                 </Button>
               )
             )}
-          </div>
         </div>
       </div>
     </div>
