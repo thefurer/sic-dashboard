@@ -1,16 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Plus, FileText, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import ProjectSelector from "./ProjectSelector";
-import { MultiSelect } from "@/components/ui/multi-select";
 import EntryFormDialog, { type EntryData, type IndicatorType } from "./EntryFormDialog";
+import ProjectEntryDialog, { type ProjectEntryData } from "./ProjectEntryDialog";
 
 interface EvaluationItem {
   id?: string;
@@ -23,6 +20,7 @@ interface EvaluationItem {
   team_members?: string[];
   project_roles?: { director?: string; principal?: string };
   entries?: EntryData[];
+  project_entries?: ProjectEntryData[];
 }
 
 interface PublicacionStepProps {
@@ -41,8 +39,10 @@ const INDICATORS = [
 
 export default function PublicacionStep({ reportId, items, onItemsChange }: PublicacionStepProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [currentIndicator, setCurrentIndicator] = useState<string | null>(null);
   const [editingEntry, setEditingEntry] = useState<{ indicator: string; entryId: string } | null>(null);
+  const [editingProjectEntry, setEditingProjectEntry] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // Fetch all profiles for team selection
@@ -61,12 +61,13 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
   const saveItemMutation = useMutation({
     mutationFn: async (item: EvaluationItem) => {
       const existingItem = items.find((i) => i.indicator_name === item.indicator_name);
+      const isProject = item.indicator_name === "Proyectos I+D+i";
 
       const payload: any = {
         score_obtained: item.score_obtained,
         related_project_id: item.related_project_id,
-        evidence_details: item.entries || [],
-        quantity: (item.entries || []).length,
+        evidence_details: isProject ? (item.project_entries || []) : (item.entries || []),
+        quantity: isProject ? (item.project_entries || []).length : (item.entries || []).length,
       };
 
       if (item.proposal_type) payload.proposal_type = item.proposal_type;
@@ -188,10 +189,92 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     toast.success("Entrada eliminada");
   };
 
+  // Project Entry Handlers
+  const handleAddProjectEntry = () => {
+    setProjectDialogOpen(true);
+    setEditingProjectEntry(null);
+  };
+
+  const handleEditProjectEntry = (entryId: string) => {
+    setEditingProjectEntry(entryId);
+    setProjectDialogOpen(true);
+  };
+
+  const handleDeleteProjectEntry = async (entryId: string) => {
+    const existingItem = items.find((i) => i.indicator_name === "Proyectos I+D+i");
+    const updatedEntries = (existingItem?.project_entries || []).filter(e => e.id !== entryId);
+
+    const indicator = INDICATORS.find(i => i.name === "Proyectos I+D+i");
+    const newScore = Math.min(
+      updatedEntries.length * (indicator?.unitScore || 1),
+      indicator?.points || 0
+    );
+
+    const item: EvaluationItem = {
+      report_id: reportId!,
+      category: "A",
+      indicator_name: "Proyectos I+D+i",
+      score_obtained: newScore,
+      project_entries: updatedEntries,
+    };
+
+    await saveItemMutation.mutateAsync(item);
+
+    const updatedItems = items.filter((i) => i.indicator_name !== "Proyectos I+D+i");
+    onItemsChange([...updatedItems, item]);
+
+    toast.success("Proyecto eliminado");
+  };
+
+  const handleSaveProjectEntry = async (entryData: ProjectEntryData) => {
+    if (!reportId) return;
+
+    const existingItem = items.find((i) => i.indicator_name === "Proyectos I+D+i");
+    const currentEntries = existingItem?.project_entries || [];
+
+    let updatedEntries: ProjectEntryData[];
+    if (editingProjectEntry) {
+      updatedEntries = currentEntries.map(e => 
+        e.id === editingProjectEntry ? { ...entryData, id: e.id } : e
+      );
+    } else {
+      updatedEntries = [...currentEntries, { ...entryData, id: crypto.randomUUID() }];
+    }
+
+    const indicator = INDICATORS.find(i => i.name === "Proyectos I+D+i");
+    const newScore = Math.min(
+      updatedEntries.length * (indicator?.unitScore || 1),
+      indicator?.points || 0
+    );
+
+    const item: EvaluationItem = {
+      report_id: reportId,
+      category: "A",
+      indicator_name: "Proyectos I+D+i",
+      score_obtained: newScore,
+      project_entries: updatedEntries,
+    };
+
+    await saveItemMutation.mutateAsync(item);
+
+    const updatedItems = items.filter((i) => i.indicator_name !== "Proyectos I+D+i");
+    onItemsChange([...updatedItems, item]);
+
+    setProjectDialogOpen(false);
+    setEditingProjectEntry(null);
+    toast.success("Proyecto guardado correctamente");
+  };
+
   const getItemData = (indicatorName: string) => {
-    return items.find((i) => i.indicator_name === indicatorName) || {
+    const isProject = indicatorName === "Proyectos I+D+i";
+    const existing = items.find((i) => i.indicator_name === indicatorName);
+    
+    if (existing) return existing;
+
+    return {
       score_obtained: 0,
-      entries: [],
+      entries: isProject ? undefined : [],
+      project_entries: isProject ? [] : undefined,
       related_project_id: "",
       proposal_type: "",
       team_members: [],
@@ -222,8 +305,6 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
         {INDICATORS.map((indicator) => {
           const itemData = getItemData(indicator.name);
           const isProject = indicator.name === "Proyectos I+D+i";
-          const isRepeatable = !isProject;
-          const profileOptions = profiles?.map(p => ({ value: p.id, label: p.full_name })) || [];
           
           return (
             <Card key={indicator.name} className="border-l-4 border-l-primary">
@@ -236,94 +317,78 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Related Project - Universal */}
-                <ProjectSelector
-                  value={itemData.related_project_id}
-                  onChange={(value) => handleFieldUpdate(indicator.name, { related_project_id: value })}
-                  required
-                />
-
-                {/* Project-Specific Fields */}
+                {/* Repeater Form for Projects */}
                 {isProject && (
-                  <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
-                    <h4 className="font-semibold text-sm">Detalles del Proyecto</h4>
-                    
-                    <div>
-                      <Label>Tipo de Propuesta *</Label>
-                      <Select
-                        value={itemData.proposal_type}
-                        onValueChange={(value) => handleFieldUpdate(indicator.name, { proposal_type: value })}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold">Proyectos Registrados</h4>
+                      <Button
+                        onClick={handleAddProjectEntry}
+                        size="sm"
+                        variant="outline"
+                        className="gap-2"
                       >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Seleccione tipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Investigación Científica">Investigación Científica</SelectItem>
-                          <SelectItem value="Desarrollo Tecnológico">Desarrollo Tecnológico</SelectItem>
-                          <SelectItem value="Innovación">Innovación</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <Plus className="w-4 h-4" />
+                        Agregar Proyecto
+                      </Button>
                     </div>
 
-                    <div>
-                      <Label>Equipo Investigador *</Label>
-                      <MultiSelect
-                        options={profileOptions}
-                        selected={itemData.team_members || []}
-                        onChange={(values) => handleFieldUpdate(indicator.name, { team_members: values })}
-                        placeholder="Seleccione miembros del equipo"
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Director del Proyecto *</Label>
-                        <Select
-                          value={itemData.project_roles?.director}
-                          onValueChange={(value) => 
-                            handleFieldUpdate(indicator.name, {
-                              project_roles: { ...itemData.project_roles, director: value }
-                            })
-                          }
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Seleccione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {profiles?.map(p => (
-                              <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    {(itemData.project_entries || []).length === 0 ? (
+                      <div className="text-center py-8 border-2 border-dashed rounded-lg bg-muted/30">
+                        <p className="text-sm text-muted-foreground">
+                          No hay proyectos registrados. Click en "Agregar Proyecto" para comenzar.
+                        </p>
                       </div>
-
-                      <div>
-                        <Label>Investigador Principal *</Label>
-                        <Select
-                          value={itemData.project_roles?.principal}
-                          onValueChange={(value) => 
-                            handleFieldUpdate(indicator.name, {
-                              project_roles: { ...itemData.project_roles, principal: value }
-                            })
-                          }
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Seleccione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {profiles?.map(p => (
-                              <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    ) : (
+                      <div className="space-y-2">
+                        {(itemData.project_entries || []).map((entry, index) => {
+                          const projectName = profiles?.find(p => p.id === entry.project_roles.principal)?.full_name || "Proyecto";
+                          return (
+                            <div
+                              key={entry.id}
+                              className="flex items-center justify-between p-3 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                            >
+                              <div className="flex items-center gap-3 flex-1">
+                                <FileText className="w-5 h-5 text-primary flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">
+                                    Proyecto {index + 1}: {projectName}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {entry.proposal_type} • {entry.evidences.length} evidencias
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditProjectEntry(entry.id!)}
+                                >
+                                  Editar
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteProjectEntry(entry.id!)}
+                                >
+                                  <Trash2 className="w-4 h-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
+                    )}
+
+                    <p className="text-xs text-muted-foreground">
+                      Total: {(itemData.project_entries || []).length} proyecto(s) × {indicator.unitScore} punto(s) = {itemData.score_obtained} puntos
+                    </p>
                   </div>
                 )}
 
                 {/* Repeater Form for Non-Projects */}
-                {isRepeatable && (
+                {!isProject && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-semibold">Entradas Registradas</Label>
@@ -394,7 +459,7 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
         })}
       </div>
 
-      {/* Entry Form Dialog */}
+      {/* Entry Form Dialog for Articles/Books */}
       {currentIndicator && (
         <EntryFormDialog
           open={dialogOpen}
@@ -415,6 +480,25 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
           }
         />
       )}
+
+      {/* Project Entry Dialog */}
+      <ProjectEntryDialog
+        open={projectDialogOpen}
+        onClose={() => {
+          setProjectDialogOpen(false);
+          setEditingProjectEntry(null);
+        }}
+        onSave={handleSaveProjectEntry}
+        reportId={reportId!}
+        profiles={profiles || []}
+        existingEntry={
+          editingProjectEntry
+            ? items
+                .find((i) => i.indicator_name === "Proyectos I+D+i")
+                ?.project_entries?.find((e) => e.id === editingProjectEntry)
+            : undefined
+        }
+      />
     </div>
   );
 }
