@@ -8,13 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, FileText } from "lucide-react";
 
 export default function OfficialProjectsList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
   const [projectName, setProjectName] = useState("");
   const [projectYear, setProjectYear] = useState(new Date().getFullYear());
+  const [projectFile, setProjectFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: projects, isLoading } = useQuery({
@@ -31,17 +33,30 @@ export default function OfficialProjectsList() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (data: { id?: string; name: string; year: number }) => {
+    mutationFn: async (data: { id?: string; name: string; year: number; documentUrl?: string }) => {
       if (data.id) {
+        const updateData: any = { 
+          name: data.name, 
+          year: data.year, 
+          updated_at: new Date().toISOString() 
+        };
+        if (data.documentUrl !== undefined) {
+          updateData.project_document_url = data.documentUrl;
+        }
+        
         const { error } = await supabase
           .from("official_projects")
-          .update({ name: data.name, year: data.year, updated_at: new Date().toISOString() })
+          .update(updateData)
           .eq("id", data.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("official_projects")
-          .insert({ name: data.name, year: data.year });
+          .insert({ 
+            name: data.name, 
+            year: data.year,
+            project_document_url: data.documentUrl 
+          });
         if (error) throw error;
       }
     },
@@ -76,6 +91,7 @@ export default function OfficialProjectsList() {
   const resetForm = () => {
     setProjectName("");
     setProjectYear(new Date().getFullYear());
+    setProjectFile(null);
     setEditingProject(null);
   };
 
@@ -86,16 +102,46 @@ export default function OfficialProjectsList() {
     setIsDialogOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!projectName.trim()) {
       toast.error("El nombre del proyecto es requerido");
       return;
+    }
+
+    let documentUrl = editingProject?.project_document_url;
+
+    // Upload file if provided
+    if (projectFile) {
+      setUploading(true);
+      try {
+        const fileExt = projectFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `project-docs/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('institutional-docs')
+          .upload(filePath, projectFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('institutional-docs')
+          .getPublicUrl(filePath);
+
+        documentUrl = publicUrl;
+      } catch (error: any) {
+        toast.error("Error al subir el archivo", { description: error.message });
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
     }
 
     saveMutation.mutate({
       id: editingProject?.id,
       name: projectName,
       year: projectYear,
+      documentUrl,
     });
   };
 
@@ -149,8 +195,34 @@ export default function OfficialProjectsList() {
                   className="mt-1"
                 />
               </div>
-              <Button onClick={handleSave} className="w-full">
-                {saveMutation.isPending ? "Guardando..." : "Guardar"}
+              <div>
+                <Label htmlFor="document">Documento del Proyecto (PDF)</Label>
+                <div className="mt-1">
+                  <Input
+                    id="document"
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => setProjectFile(e.target.files?.[0] || null)}
+                    className="cursor-pointer"
+                  />
+                  {editingProject?.project_document_url && !projectFile && (
+                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                      <FileText className="h-4 w-4" />
+                      <span>Documento actual disponible</span>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0"
+                        onClick={() => window.open(editingProject.project_document_url, '_blank')}
+                      >
+                        Ver
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <Button onClick={handleSave} className="w-full" disabled={uploading || saveMutation.isPending}>
+                {uploading ? "Subiendo archivo..." : saveMutation.isPending ? "Guardando..." : "Guardar"}
               </Button>
             </div>
           </DialogContent>
