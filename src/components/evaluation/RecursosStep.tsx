@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText } from "lucide-react";
+import { Plus, Edit, Trash2 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import ConvocatoriaDialog, { ConvocatoriaEntry } from "./ConvocatoriaDialog";
 
 interface EvaluationItem {
   id?: string;
@@ -14,8 +13,7 @@ interface EvaluationItem {
   category: string;
   indicator_name: string;
   score_obtained: number;
-  evidence_url?: string;
-  quantity: number;
+  evidence_details?: any;
 }
 
 interface RecursosStepProps {
@@ -30,7 +28,10 @@ const INDICATORS = [
 ];
 
 export default function RecursosStep({ reportId, items, onItemsChange }: RecursosStepProps) {
-  const [uploading, setUploading] = useState<string | null>(null);
+  const [internacionalDialogOpen, setInternacionalDialogOpen] = useState(false);
+  const [nacionalDialogOpen, setNacionalDialogOpen] = useState(false);
+  const [editingInternacional, setEditingInternacional] = useState<ConvocatoriaEntry | null>(null);
+  const [editingNacional, setEditingNacional] = useState<ConvocatoriaEntry | null>(null);
   const queryClient = useQueryClient();
 
   const saveItemMutation = useMutation({
@@ -41,9 +42,8 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
         const { error } = await supabase
           .from("evaluation_items")
           .update({
-            quantity: item.quantity,
             score_obtained: item.score_obtained,
-            evidence_url: item.evidence_url,
+            evidence_details: item.evidence_details,
           })
           .eq("id", existingItem.id);
 
@@ -65,97 +65,91 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
     },
   });
 
-  const handleQuantityChange = async (indicatorName: string, quantity: number, unitScore: number) => {
+  const handleSaveConvocatoria = async (entry: ConvocatoriaEntry, type: "internacional" | "nacional") => {
     if (!reportId) return;
 
-    const maxPoints = INDICATORS.find((i) => i.name === indicatorName)?.points || 0;
-    const score = Math.min(quantity * unitScore, maxPoints);
+    const indicatorName = type === "internacional" ? "Convocatorias Internacionales" : "Convocatorias Nacionales";
+    const unitScore = type === "internacional" ? 10 : 5;
+    const maxPoints = type === "internacional" ? 10 : 5;
+
     const existingItem = items.find((i) => i.indicator_name === indicatorName);
+    const existingEntries: ConvocatoriaEntry[] = existingItem?.evidence_details || [];
+
+    let updatedEntries: ConvocatoriaEntry[];
+    if (entry.id) {
+      updatedEntries = existingEntries.map((e) => (e.id === entry.id ? entry : e));
+    } else {
+      updatedEntries = [...existingEntries, { ...entry, id: crypto.randomUUID() }];
+    }
+
+    const score = Math.min(updatedEntries.length * unitScore, maxPoints);
 
     const item: EvaluationItem = {
       report_id: reportId,
       category: "C",
       indicator_name: indicatorName,
       score_obtained: score,
-      quantity: quantity,
-      evidence_url: existingItem?.evidence_url || "",
+      evidence_details: updatedEntries,
     };
 
     await saveItemMutation.mutateAsync(item);
 
     const updatedItems = items.filter((i) => i.indicator_name !== indicatorName);
     onItemsChange([...updatedItems, item]);
+
+    toast.success("Convocatoria guardada");
+    if (type === "internacional") {
+      setEditingInternacional(null);
+    } else {
+      setEditingNacional(null);
+    }
   };
 
-  const handleFileUpload = async (indicatorName: string, file: File, index: number) => {
-    if (!reportId) {
-      toast.error("Error", { description: "No hay informe activo" });
-      return;
-    }
+  const handleDeleteConvocatoria = async (entryId: string, type: "internacional" | "nacional") => {
+    if (!reportId) return;
 
-    if (!file.type.includes("pdf")) {
-      toast.error("Error", { description: "Solo se permiten archivos PDF" });
-      return;
-    }
+    const indicatorName = type === "internacional" ? "Convocatorias Internacionales" : "Convocatorias Nacionales";
+    const unitScore = type === "internacional" ? 10 : 5;
+    const maxPoints = type === "internacional" ? 10 : 5;
 
-    setUploading(`${indicatorName}-${index}`);
+    const existingItem = items.find((i) => i.indicator_name === indicatorName);
+    const existingEntries: ConvocatoriaEntry[] = existingItem?.evidence_details || [];
+    const updatedEntries = existingEntries.filter((e) => e.id !== entryId);
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated");
+    const score = Math.min(updatedEntries.length * unitScore, maxPoints);
 
-      const fileName = `${user.id}/${reportId}/${indicatorName.replace(/\s+/g, "_")}_${index + 1}_${Date.now()}.pdf`;
+    const item: EvaluationItem = {
+      report_id: reportId,
+      category: "C",
+      indicator_name: indicatorName,
+      score_obtained: score,
+      evidence_details: updatedEntries,
+    };
 
-      const { error: uploadError } = await supabase.storage
-        .from("evaluation-evidence")
-        .upload(fileName, file);
+    await saveItemMutation.mutateAsync(item);
 
-      if (uploadError) throw uploadError;
+    const updatedItems = items.filter((i) => i.indicator_name !== indicatorName);
+    onItemsChange([...updatedItems, item]);
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("evaluation-evidence")
-        .getPublicUrl(fileName);
-
-      const existingItem = items.find((i) => i.indicator_name === indicatorName);
-      const existingUrls = existingItem?.evidence_url
-        ? JSON.parse(existingItem.evidence_url)
-        : [];
-
-      // Update the URL at the specific index
-      const updatedUrls = [...existingUrls];
-      updatedUrls[index] = publicUrl;
-
-      const item: EvaluationItem = {
-        report_id: reportId,
-        category: "C",
-        indicator_name: indicatorName,
-        score_obtained: existingItem?.score_obtained || 0,
-        quantity: existingItem?.quantity || 0,
-        evidence_url: JSON.stringify(updatedUrls),
-      };
-
-      await saveItemMutation.mutateAsync(item);
-
-      const updatedItems = items.filter((i) => i.indicator_name !== indicatorName);
-      onItemsChange([...updatedItems, item]);
-
-      toast.success("Evidencia cargada", { description: "El archivo se ha subido correctamente" });
-    } catch (error: any) {
-      toast.error("Error al subir archivo", { description: error.message });
-    } finally {
-      setUploading(null);
-    }
+    toast.success("Entrada eliminada");
   };
 
   const getItemData = (indicatorName: string) => {
     return items.find((i) => i.indicator_name === indicatorName) || {
-      quantity: 0,
       score_obtained: 0,
-      evidence_url: "",
+      evidence_details: [],
     };
   };
 
-  const totalScore = items.reduce((sum, item) => sum + (item.score_obtained || 0), 0);
+  const totalScore = items
+    .filter((item) => item.category === "C")
+    .reduce((sum, item) => sum + (item.score_obtained || 0), 0);
+
+  const internacionalData = getItemData("Convocatorias Internacionales");
+  const internacionalEntries: ConvocatoriaEntry[] = internacionalData.evidence_details || [];
+
+  const nacionalData = getItemData("Convocatorias Nacionales");
+  const nacionalEntries: ConvocatoriaEntry[] = nacionalData.evidence_details || [];
 
   return (
     <div className="space-y-6">
@@ -169,102 +163,150 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
       </div>
 
       <div className="space-y-4">
-        {INDICATORS.map((indicator) => {
-          const itemData = getItemData(indicator.name);
+        {/* Convocatorias Internacionales */}
+        <Card className="border-l-4 border-l-primary">
+          <CardHeader>
+            <CardTitle className="text-lg flex justify-between items-center">
+              <span>Convocatorias Internacionales</span>
+              <span className="text-primary text-sm">
+                {internacionalData.score_obtained}/10 pts
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={() => {
+                setEditingInternacional(null);
+                setInternacionalDialogOpen(true);
+              }}
+              size="sm"
+              variant="outline"
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Agregar Convocatoria Internacional
+            </Button>
 
-          return (
-            <Card key={indicator.name} className="border-l-4 border-l-primary">
-              <CardHeader>
-                <CardTitle className="text-lg flex justify-between items-center">
-                  <span>{indicator.name}</span>
-                  <span className="text-primary text-sm">
-                    {itemData.score_obtained}/{indicator.points} pts
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor={`quantity-${indicator.name}`}>Cantidad</Label>
-                    <Input
-                      id={`quantity-${indicator.name}`}
-                      type="number"
-                      min="0"
-                      value={itemData.quantity}
-                      onChange={(e) =>
-                        handleQuantityChange(
-                          indicator.name,
-                          parseInt(e.target.value) || 0,
-                          indicator.unitScore
-                        )
-                      }
-                      className="mt-1"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {indicator.unitScore} punto{indicator.unitScore > 1 ? "s" : ""} por unidad
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Evidencias (PDF)</Label>
-                  <div className="space-y-2 mt-1">
-                    {Array.from({ length: itemData.quantity || 0 }).map((_, idx) => {
-                      const evidenceUrls = itemData.evidence_url
-                        ? JSON.parse(itemData.evidence_url)
-                        : [];
-                      const url = evidenceUrls[idx];
-                      return (
-                        <div key={idx} className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground min-w-[80px]">
-                            Evidencia {idx + 1}:
-                          </span>
-                          {url ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1"
-                              onClick={() => window.open(url, "_blank")}
-                            >
-                              <FileText className="w-4 h-4 mr-2" />
-                              Ver PDF
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1"
-                              disabled={uploading === `${indicator.name}-${idx}`}
-                              onClick={() => {
-                                const input = document.createElement("input");
-                                input.type = "file";
-                                input.accept = ".pdf";
-                                input.onchange = (e) => {
-                                  const file = (e.target as HTMLInputElement).files?.[0];
-                                  if (file) handleFileUpload(indicator.name, file, idx);
-                                };
-                                input.click();
-                              }}
-                            >
-                              <Upload className="w-4 h-4 mr-2" />
-                              {uploading === `${indicator.name}-${idx}` ? "Subiendo..." : "Subir PDF"}
-                            </Button>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {(itemData.quantity || 0) === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        Ingrese una cantidad para habilitar la carga de evidencias
+            {internacionalEntries.length > 0 && (
+              <div className="space-y-2">
+                {internacionalEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="flex items-center justify-between p-3 border rounded-lg bg-muted/30"
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{entry.entity_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        ${entry.amount.toLocaleString()} USD | {entry.evidences.length} evidencia(s)
                       </p>
-                    )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingInternacional(entry);
+                          setInternacionalDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteConvocatoria(entry.id!, "internacional")}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Convocatorias Nacionales */}
+        <Card className="border-l-4 border-l-primary">
+          <CardHeader>
+            <CardTitle className="text-lg flex justify-between items-center">
+              <span>Convocatorias Nacionales</span>
+              <span className="text-primary text-sm">
+                {nacionalData.score_obtained}/5 pts
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={() => {
+                setEditingNacional(null);
+                setNacionalDialogOpen(true);
+              }}
+              size="sm"
+              variant="outline"
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Agregar Convocatoria Nacional
+            </Button>
+
+            {nacionalEntries.length > 0 && (
+              <div className="space-y-2">
+                {nacionalEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="flex items-center justify-between p-3 border rounded-lg bg-muted/30"
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{entry.entity_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        ${entry.amount.toLocaleString()} USD | {entry.evidences.length} evidencia(s)
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingNacional(entry);
+                          setNacionalDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteConvocatoria(entry.id!, "nacional")}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      <ConvocatoriaDialog
+        open={internacionalDialogOpen}
+        onOpenChange={setInternacionalDialogOpen}
+        onSave={(entry) => handleSaveConvocatoria(entry, "internacional")}
+        editingEntry={editingInternacional}
+        reportId={reportId || ""}
+        type="internacional"
+      />
+
+      <ConvocatoriaDialog
+        open={nacionalDialogOpen}
+        onOpenChange={setNacionalDialogOpen}
+        onSave={(entry) => handleSaveConvocatoria(entry, "nacional")}
+        editingEntry={editingNacional}
+        reportId={reportId || ""}
+        type="nacional"
+      />
     </div>
   );
 }
