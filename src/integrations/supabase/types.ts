@@ -24,12 +24,17 @@ export type Database = {
           header_subtext: string | null
           id: string
           institution_name: string
+          instructions_pdf_url: string | null
           mission_text: string | null
+          objectives_text: string | null
           planning_pdf_url: string | null
+          registry_pdf_url: string | null
+          research_lines: Json | null
           signature_coordinator_name: string | null
           signature_president_name: string | null
           updated_at: string | null
           vision_text: string | null
+          work_plan_pdf_url: string | null
         }
         Insert: {
           career_name?: string | null
@@ -40,12 +45,17 @@ export type Database = {
           header_subtext?: string | null
           id?: string
           institution_name?: string
+          instructions_pdf_url?: string | null
           mission_text?: string | null
+          objectives_text?: string | null
           planning_pdf_url?: string | null
+          registry_pdf_url?: string | null
+          research_lines?: Json | null
           signature_coordinator_name?: string | null
           signature_president_name?: string | null
           updated_at?: string | null
           vision_text?: string | null
+          work_plan_pdf_url?: string | null
         }
         Update: {
           career_name?: string | null
@@ -56,12 +66,17 @@ export type Database = {
           header_subtext?: string | null
           id?: string
           institution_name?: string
+          instructions_pdf_url?: string | null
           mission_text?: string | null
+          objectives_text?: string | null
           planning_pdf_url?: string | null
+          registry_pdf_url?: string | null
+          research_lines?: Json | null
           signature_coordinator_name?: string | null
           signature_president_name?: string | null
           updated_at?: string | null
           vision_text?: string | null
+          work_plan_pdf_url?: string | null
         }
         Relationships: []
       }
