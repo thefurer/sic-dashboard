@@ -8,15 +8,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FileText, Send, AlertCircle, Download } from "lucide-react";
+import { FileText, Send, AlertCircle, Download, Edit, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { generateEvaluationPDF } from "@/lib/evaluationPdfGenerator";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useState } from "react";
+import { toast } from "sonner";
+import EditJustificationDialog from "./EditJustificationDialog";
 
 interface EvaluationItem {
   category: string;
@@ -35,6 +38,8 @@ interface ReviewStepProps {
   totalScore: number;
   onSubmit: () => void;
   isSubmitting: boolean;
+  reportStatus?: string;
+  reportId: string | null;
 }
 
 const CATEGORY_NAMES = {
@@ -51,7 +56,51 @@ const CATEGORY_MAX_SCORES = {
   D: 30,
 };
 
-export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting }: ReviewStepProps) {
+export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, reportStatus = "draft", reportId }: ReviewStepProps) {
+  const [justificationDialogOpen, setJustificationDialogOpen] = useState(false);
+  const [pendingEditAction, setPendingEditAction] = useState<(() => void) | null>(null);
+  const queryClient = useQueryClient();
+
+  const enableEditMutation = useMutation({
+    mutationFn: async (justification: string) => {
+      if (!reportId) throw new Error("No report ID");
+
+      const { error } = await supabase
+        .from("evaluation_reports")
+        .update({
+          status: "draft",
+          edit_justification: justification,
+          edited_after_submission: true,
+        })
+        .eq("id", reportId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["evaluation-report"] });
+      toast.success("Modo de edición activado", {
+        description: "Puede modificar su evaluación. Los cambios serán notificados al administrador.",
+      });
+      if (pendingEditAction) {
+        pendingEditAction();
+        setPendingEditAction(null);
+      }
+    },
+    onError: (error) => {
+      toast.error("Error al activar edición", {
+        description: error.message,
+      });
+    },
+  });
+
+  const handleEnableEdit = () => {
+    setJustificationDialogOpen(true);
+  };
+
+  const handleJustificationConfirm = (justification: string) => {
+    enableEditMutation.mutate(justification);
+    setJustificationDialogOpen(false);
+  };
   const { data: report } = useQuery({
     queryKey: ["evaluation-report", new Date().getFullYear()],
     queryFn: async () => {
@@ -120,7 +169,8 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting }
     return items.filter((item) => item.category === category);
   };
 
-  const canSubmit = totalScore === 100;
+  const canSubmit = totalScore === 100 && reportStatus === "draft";
+  const isSubmitted = reportStatus === "submitted";
   const categories = ["A", "B", "C", "D"];
 
   return (
@@ -131,6 +181,31 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting }
           Revise su evaluación antes de enviar el informe final
         </p>
       </div>
+
+      {/* Submitted Status Alert */}
+      {isSubmitted && (
+        <Alert className="border-green-500 bg-green-50 dark:bg-green-950/20">
+          <CheckCircle2 className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-900 dark:text-green-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold mb-1">Evaluación Enviada</p>
+                <p className="text-sm">Su evaluación ha sido enviada y está en revisión. Si necesita realizar cambios, puede activar el modo de edición.</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleEnableEdit}
+                disabled={enableEditMutation.isPending}
+                className="ml-4 border-green-600 text-green-700 hover:bg-green-100"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                {enableEditMutation.isPending ? "Activando..." : "Editar Envío"}
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Admin Observations Alert */}
       {observationAlert && observationAlert.admin_observations && (
@@ -266,48 +341,50 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting }
                   </TableHeader>
                   <TableBody>
                     {categoryItems.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{item.indicator_name}</TableCell>
-                        <TableCell className="text-center">
-                          {category === "D" ? "-" : item.quantity || 0}
-                        </TableCell>
-                        {category === "C" && (
-                          <>
-                            <TableCell className="text-center">
-                              ${item.monto?.toLocaleString() || 0}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {item.fase || "-"}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {item.porcentaje_ejecucion || 0}%
-                            </TableCell>
-                          </>
-                        )}
-                        <TableCell className="text-center font-semibold text-primary">
-                          {item.score_obtained}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item.evidence_url ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => window.open(item.evidence_url, "_blank")}
-                            >
-                              <FileText className="w-4 h-4" />
-                            </Button>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">Sin evidencia</span>
+                      <>
+                        <TableRow key={`${item.indicator_name}-${index}`}>
+                          <TableCell className="font-medium">{item.indicator_name}</TableCell>
+                          <TableCell className="text-center">
+                            {category === "D" ? "-" : item.quantity || 0}
+                          </TableCell>
+                          {category === "C" && (
+                            <>
+                              <TableCell className="text-center">
+                                ${item.monto?.toLocaleString() || 0}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {item.fase || "-"}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {item.porcentaje_ejecucion || 0}%
+                              </TableCell>
+                            </>
                           )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {category === "D" && categoryItems.map((item) => item.justification && (
-                      <TableRow key={`${item.indicator_name}-justification`}>
-                        <TableCell colSpan={4} className="text-sm">
-                          <span className="font-medium">Justificación:</span> {item.justification}
-                        </TableCell>
-                      </TableRow>
+                          <TableCell className="text-center font-semibold text-primary">
+                            {item.score_obtained}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item.evidence_url || (item as any).evidence_details ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => item.evidence_url && window.open(item.evidence_url, "_blank")}
+                              >
+                                <FileText className="w-4 h-4" />
+                              </Button>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">Sin evidencia</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                        {category === "D" && item.justification && (
+                          <TableRow key={`${item.indicator_name}-${index}-justification`}>
+                            <TableCell colSpan={4} className="text-sm">
+                              <span className="font-medium">Justificación:</span> {item.justification}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
                     ))}
                   </TableBody>
                 </Table>
@@ -348,6 +425,14 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting }
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Justification Dialog */}
+      <EditJustificationDialog
+        open={justificationDialogOpen}
+        onOpenChange={setJustificationDialogOpen}
+        onConfirm={handleJustificationConfirm}
+        isLoading={enableEditMutation.isPending}
+      />
     </div>
   );
 }
