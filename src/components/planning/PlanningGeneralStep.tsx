@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowRight, Calendar as CalendarIcon, Plus, X } from "lucide-react";
+import { ArrowRight, Calendar as CalendarIcon, Plus, X, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -29,11 +29,13 @@ interface PlanningGeneralStepProps {
 export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGeneralStepProps) {
   const [periodName, setPeriodName] = useState("");
   const [presidentName, setPresidentName] = useState("Ing. Mario Marcillo Merino, Mg.");
-  const [meetingDates, setMeetingDates] = useState<Date[]>([]);
+  const [meetingDates, setMeetingDates] = useState<Array<{ date: Date; time: string }>>([]);
   const [driveLink, setDriveLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [isCustomPeriodOpen, setIsCustomPeriodOpen] = useState(false);
   const [customPeriod, setCustomPeriod] = useState("");
+  const [tempDate, setTempDate] = useState<Date>();
+  const [tempTime, setTempTime] = useState("14:00");
 
   useEffect(() => {
     if (planId) {
@@ -55,12 +57,23 @@ export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGener
       setPeriodName(data.period_name);
       setPresidentName(data.president_name);
       
-      // Parse meeting_schedule from JSONB array
+      // Parse meeting_schedule from JSONB array (now with times)
       if (data.meeting_schedule && Array.isArray(data.meeting_schedule)) {
-        const dates = data.meeting_schedule
-          .map((dateStr: string) => new Date(dateStr))
-          .filter(date => !isNaN(date.getTime())); // Filter out invalid dates
-        setMeetingDates(dates);
+        const meetings = data.meeting_schedule
+          .map((item: any) => {
+            if (typeof item === 'string') {
+              // Legacy format: just date string
+              const date = new Date(item);
+              return !isNaN(date.getTime()) ? { date, time: "14:00" } : null;
+            } else if (item.date) {
+              // New format: {date, time}
+              const date = new Date(item.date);
+              return !isNaN(date.getTime()) ? { date, time: item.time || "14:00" } : null;
+            }
+            return null;
+          })
+          .filter((item): item is { date: Date; time: string } => item !== null);
+        setMeetingDates(meetings);
       }
       
       setDriveLink(data.drive_link || "");
@@ -79,8 +92,11 @@ export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGener
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Usuario no autenticado");
 
-      // Convert dates to ISO strings
-      const meetingScheduleData = meetingDates.map(date => date.toISOString());
+      // Convert meeting dates to new format
+      const meetingScheduleData = meetingDates.map(m => ({ 
+        date: m.date.toISOString(), 
+        time: m.time 
+      }));
 
       if (planId) {
         const { error } = await supabase
@@ -170,45 +186,71 @@ export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGener
       </div>
 
       <div>
-        <Label>Fechas de Reuniones</Label>
+        <Label>Fechas y Horarios de Reuniones</Label>
         <div className="space-y-2">
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !meetingDates.length && "text-muted-foreground")}>
+              <Button variant="outline" className="w-full justify-start text-left font-normal">
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {meetingDates.length > 0 ? `${meetingDates.length} fecha(s) seleccionada(s)` : "Seleccionar fechas"}
+                Agregar reunión
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={meetingDates[meetingDates.length - 1]}
-                onSelect={(date) => {
-                  if (date && !meetingDates.some(d => d.toDateString() === date.toDateString())) {
-                    setMeetingDates([...meetingDates, date]);
-                  }
-                }}
-                initialFocus
-                className="pointer-events-auto"
-              />
+              <div className="p-4 space-y-3">
+                <Calendar
+                  mode="single"
+                  selected={tempDate}
+                  onSelect={setTempDate}
+                  initialFocus
+                  className={cn("pointer-events-auto")}
+                  locale={es}
+                />
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="time"
+                    value={tempTime}
+                    onChange={(e) => setTempTime(e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
+                <Button
+                  className="w-full"
+                  disabled={!tempDate}
+                  onClick={() => {
+                    if (tempDate) {
+                      setMeetingDates([...meetingDates, { date: tempDate, time: tempTime }]);
+                      setTempDate(undefined);
+                      setTempTime("14:00");
+                    }
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Agregar
+                </Button>
+              </div>
             </PopoverContent>
           </Popover>
-
+          
           {meetingDates.length > 0 && (
-            <div className="border rounded-md p-3 space-y-2">
-              {meetingDates.sort((a, b) => a.getTime() - b.getTime()).map((date, index) => (
-                <div key={index} className="flex items-center justify-between text-sm">
-                  <span>{format(date, "PPP", { locale: es })}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => setMeetingDates(meetingDates.filter((_, i) => i !== index))}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+            <div className="mt-2 p-3 bg-muted rounded-md">
+              <p className="text-sm font-medium mb-2">Reuniones programadas:</p>
+              <div className="space-y-2">
+                {meetingDates.map((meeting, index) => (
+                  <div key={index} className="flex items-center justify-between text-sm bg-background p-2 rounded">
+                    <span>
+                      {format(meeting.date, "dd/MM/yyyy", { locale: es })} - {meeting.time}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setMeetingDates(meetingDates.filter((_, i) => i !== index))}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

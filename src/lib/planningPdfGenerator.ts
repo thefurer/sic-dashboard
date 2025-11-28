@@ -65,10 +65,27 @@ export async function generatePlanningPDF(planData: any) {
 
   y += 6;
 
-  // Meeting frequency footer
+  // Meeting schedule with dates and times
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  const meetingText = `Acompañamiento y seguimiento de tareas asignadas: ${plan.meeting_schedule}`;
+  
+  // Format meeting schedule
+  let meetingText = "Acompañamiento y seguimiento de tareas asignadas";
+  if (plan.meeting_schedule && Array.isArray(plan.meeting_schedule) && plan.meeting_schedule.length > 0) {
+    const formattedDates = plan.meeting_schedule.map((item: any) => {
+      if (typeof item === 'string') {
+        // Legacy format
+        return format(new Date(item), "dd/MM/yyyy", { locale: es });
+      } else if (item.date && item.time) {
+        // New format with time
+        return format(new Date(item.date), "dd/MM/yyyy", { locale: es }) + ` - ${item.time}`;
+      }
+      return "";
+    }).filter(Boolean).join(", ");
+    
+    meetingText = `Reuniones programadas: ${formattedDates}`;
+  }
+  
   doc.text(meetingText, pageWidth / 2, y, { align: "center" });
 
   y += 10;
@@ -221,46 +238,68 @@ export async function generatePlanningPDF(planData: any) {
   // Fetch signature names from settings
   const { data: settings } = await supabase
     .from("app_settings")
-    .select("signature_president_name, signature_coordinator_name")
+    .select("signature_president_name, signature_coordinator_name, signature_responsible_name")
     .single();
 
   const presidentName = settings?.signature_president_name || "Ing. Christian Caicedo Plúa, PhD";
   const coordinatorName = settings?.signature_coordinator_name || "Ing. Javier Marcillo Merino, Mg";
+  const responsibleName = settings?.signature_responsible_name || "Ing. María González, MSc";
 
   // Reset text color to black for signatures
   doc.setTextColor(0, 0, 0);
   
-  // Left signature line
+  // Three-column signature layout
+  const colWidth = (pageWidth - 28) / 3; // 3 equal columns with margins
+  const leftX = 14 + colWidth / 2;
+  const centerX = pageWidth / 2;
+  const rightX = pageWidth - 14 - colWidth / 2;
+  
+  // Left signature line (President)
   doc.setLineWidth(0.5);
   doc.setDrawColor(0, 0, 0);
-  doc.line(30, finalY, 90, finalY);
+  doc.line(leftX - 25, finalY, leftX + 25, finalY);
   
   // Left signature - Name (Bold)
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.text(presidentName, 60, finalY + 6, { align: "center" });
+  doc.setFontSize(9);
+  doc.text(presidentName, leftX, finalY + 5, { align: "center" });
   
   // Left signature - Title (Regular, wrapped)
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  const titleLeft = "Coordinador del Grupo de investigación GISICF Carrera de Tecnologías de la Información";
-  const splitTitleLeft = doc.splitTextToSize(titleLeft, 70);
-  doc.text(splitTitleLeft, 60, finalY + 12, { align: "center" });
+  doc.setFontSize(8);
+  const titleLeft = "Coordinador del Grupo de investigación GISICF";
+  const splitTitleLeft = doc.splitTextToSize(titleLeft, 50);
+  doc.text(splitTitleLeft, leftX, finalY + 10, { align: "center" });
   
-  // Right signature line
-  doc.line(120, finalY, 180, finalY);
+  // Center signature line (Responsible)
+  doc.line(centerX - 25, finalY, centerX + 25, finalY);
+  
+  // Center signature - Name (Bold)
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.text(responsibleName, centerX, finalY + 5, { align: "center" });
+  
+  // Center signature - Title (Regular, wrapped)
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  const titleCenter = "Responsable Comisión de Investigación";
+  const splitTitleCenter = doc.splitTextToSize(titleCenter, 50);
+  doc.text(splitTitleCenter, centerX, finalY + 10, { align: "center" });
+  
+  // Right signature line (Coordinator)
+  doc.line(rightX - 25, finalY, rightX + 25, finalY);
   
   // Right signature - Name (Bold)
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.text(coordinatorName, 150, finalY + 6, { align: "center" });
+  doc.setFontSize(9);
+  doc.text(coordinatorName, rightX, finalY + 5, { align: "center" });
   
   // Right signature - Title (Regular, wrapped)
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  const titleRight = "Coordinador de la Carrera de Tecnologías de la Información";
-  const splitTitleRight = doc.splitTextToSize(titleRight, 70);
-  doc.text(splitTitleRight, 150, finalY + 12, { align: "center" });
+  doc.setFontSize(8);
+  const titleRight = "Coordinador de la Carrera de TI";
+  const splitTitleRight = doc.splitTextToSize(titleRight, 50);
+  doc.text(splitTitleRight, rightX, finalY + 10, { align: "center" });
 
   // Save with proper filename
   doc.save(`Planificacion_${plan.period_name.replace(/\s+/g, "_")}.pdf`);

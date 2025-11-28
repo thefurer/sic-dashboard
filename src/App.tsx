@@ -21,6 +21,8 @@ import PlanningBuilder from "./pages/admin/PlanningBuilder";
 import Settings from "./pages/admin/Settings";
 import OfficialProjectsList from "./pages/admin/OfficialProjectsList";
 import EvaluationReviews from "./pages/admin/EvaluationReviews";
+import TaskReviews from "./pages/admin/TaskReviews";
+import MyTasks from "./pages/MyTasks";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +99,16 @@ const App = () => (
             <Route path="/admin/evaluations" element={
               <ProtectedRoute>
                 <MainLayout><EvaluationReviews /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/task-reviews" element={
+              <ProtectedRoute>
+                <MainLayout><TaskReviews /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/my-tasks" element={
+              <ProtectedRoute>
+                <MainLayout><MyTasks /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

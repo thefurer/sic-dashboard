@@ -32,6 +32,7 @@ export type Database = {
           research_lines: Json | null
           signature_coordinator_name: string | null
           signature_president_name: string | null
+          signature_responsible_name: string | null
           updated_at: string | null
           vision_text: string | null
           work_plan_pdf_url: string | null
@@ -53,6 +54,7 @@ export type Database = {
           research_lines?: Json | null
           signature_coordinator_name?: string | null
           signature_president_name?: string | null
+          signature_responsible_name?: string | null
           updated_at?: string | null
           vision_text?: string | null
           work_plan_pdf_url?: string | null
@@ -74,11 +76,78 @@ export type Database = {
           research_lines?: Json | null
           signature_coordinator_name?: string | null
           signature_president_name?: string | null
+          signature_responsible_name?: string | null
           updated_at?: string | null
           vision_text?: string | null
           work_plan_pdf_url?: string | null
         }
         Relationships: []
+      }
+      assigned_tasks: {
+        Row: {
+          activity_id: string
+          admin_observations: string | null
+          created_at: string | null
+          evidence_description: string | null
+          evidence_link: string | null
+          evidence_url: string | null
+          id: string
+          plan_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          admin_observations?: string | null
+          created_at?: string | null
+          evidence_description?: string | null
+          evidence_link?: string | null
+          evidence_url?: string | null
+          id?: string
+          plan_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          admin_observations?: string | null
+          created_at?: string | null
+          evidence_description?: string | null
+          evidence_link?: string | null
+          evidence_url?: string | null
+          id?: string
+          plan_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assigned_tasks_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "planning_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_tasks_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planning_sheets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       documents: {
         Row: {
