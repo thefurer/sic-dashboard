@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, X, FileText, AlertTriangle, Search } from "lucide-react";
+import { Upload, X, FileText, AlertTriangle, Search, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDOIMetadata } from "@/hooks/useDOIMetadata";
@@ -47,6 +47,7 @@ export default function EntryFormDialog({
   const [files, setFiles] = useState<EntryData["files"]>(existingEntry?.files || {});
   const [uploading, setUploading] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState("");
+  const [autoDetected, setAutoDetected] = useState(false);
 
   const { fetchMetadata: fetchDOI, isLoading: loadingDOI } = useDOIMetadata();
   const { fetchMetadata: fetchISBN, isLoading: loadingISBN } = useISBNMetadata();
@@ -108,18 +109,33 @@ export default function EntryFormDialog({
           year: result.year,
           isbn: result.isbn,
         });
+        setAutoDetected(true);
       }
     } else if (isArticle) {
       const result = await fetchDOI(searchValue);
       if (result) {
-        setMetadata({
+        const newMetadata: Record<string, any> = {
           title: result.title,
           authors: result.authors,
           journal: result.journal,
           year: result.year,
           issn: result.issn,
           doi: searchValue,
-        });
+        };
+        
+        // Auto-detect repository based on journal/publisher
+        if (indicatorType === "Artículos JCR/Scopus") {
+          const journalLower = result.journal?.toLowerCase() || "";
+          if (journalLower.includes("elsevier") || journalLower.includes("springer") || 
+              journalLower.includes("ieee") || journalLower.includes("wiley")) {
+            newMetadata.repository = "Scopus";
+          } else if (journalLower.includes("clarivate")) {
+            newMetadata.repository = "ISI Web of Knowledge";
+          }
+        }
+        
+        setMetadata(newMetadata);
+        setAutoDetected(true);
       }
     }
   };
@@ -133,28 +149,25 @@ export default function EntryFormDialog({
     window.open(`https://miar.ub.edu/buscar/${issn}`, "_blank");
   };
 
+  const handleVerifyScimago = () => {
+    const issn = metadata.issn;
+    if (!issn) {
+      toast.error("ISSN no disponible", { description: "Realice la búsqueda DOI primero" });
+      return;
+    }
+    window.open(`https://www.scimagojr.com/journalsearch.php?q=${issn}`, "_blank");
+  };
+
   const handleSave = () => {
     if (!projectType) {
       toast.error("Error", { description: "Seleccione el tipo de proyecto" });
       return;
     }
 
-    const requiredFiles: (keyof EntryData["files"])[] = isPonencias
-      ? ["producto", "aceptacion", "publicacion"]
-      : ["producto", "pares", "aceptacion", "publicacion"];
-
-    const missingFiles = requiredFiles.filter(f => !files[f]);
-    if (missingFiles.length > 0) {
-      toast.error("Faltan evidencias", {
-        description: `Debe subir: ${missingFiles.map(f => {
-          switch(f) {
-            case "producto": return "Producto publicado";
-            case "pares": return "Evaluación por pares";
-            case "aceptacion": return "Certificado de aceptación";
-            case "publicacion": return "Certificado de publicación";
-            default: return f;
-          }
-        }).join(", ")}`,
+    // At least one evidence file must be uploaded
+    if (!files.producto && !files.pares && !files.aceptacion && !files.publicacion) {
+      toast.error("Evidencia requerida", {
+        description: "Debe subir al menos un archivo de evidencia",
       });
       return;
     }
@@ -211,7 +224,17 @@ export default function EntryFormDialog({
             </div>
           )}
 
-          {/* MIAR Verification for Regional Articles */}
+          {/* Verification Links */}
+          {indicatorType === "Artículos JCR/Scopus" && metadata.issn && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleVerifyScimago}
+              className="w-full"
+            >
+              Verificar en Scimago
+            </Button>
+          )}
           {indicatorType === "Artículos Regionales" && metadata.issn && (
             <Button
               variant="outline"
@@ -221,6 +244,91 @@ export default function EntryFormDialog({
             >
               Verificar en MIAR
             </Button>
+          )}
+
+          {/* Repository Selection for JCR Articles */}
+          {indicatorType === "Artículos JCR/Scopus" && (
+            <div>
+              <Label>Indizado en *</Label>
+              <Select 
+                value={metadata.repository || ""} 
+                onValueChange={(value) => {
+                  setMetadata({ ...metadata, repository: value });
+                  setAutoDetected(false);
+                }}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Seleccione base de datos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Scopus">Scopus</SelectItem>
+                  <SelectItem value="ISI Web of Knowledge">ISI Web of Knowledge</SelectItem>
+                  <SelectItem value="Latindex">Latindex (Catálogo)</SelectItem>
+                  <SelectItem value="Scielo">Scielo</SelectItem>
+                  <SelectItem value="Lilacs">Lilacs</SelectItem>
+                  <SelectItem value="Redalyc">Redalyc</SelectItem>
+                  <SelectItem value="Ebsco">Ebsco</SelectItem>
+                  <SelectItem value="OAJI">OAJI</SelectItem>
+                  <SelectItem value="Otras">Otras (CACES)</SelectItem>
+                </SelectContent>
+              </Select>
+              {autoDetected && metadata.repository && (
+                <p className="text-xs text-primary mt-1 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  Auto-detectado
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Editable Metadata Fields */}
+          {metadata.title && (
+            <div className="space-y-3">
+              <div>
+                <Label>Título</Label>
+                <Input
+                  value={metadata.title || ""}
+                  onChange={(e) => setMetadata({ ...metadata, title: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Autores</Label>
+                <Input
+                  value={metadata.authors || ""}
+                  onChange={(e) => setMetadata({ ...metadata, authors: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              {metadata.journal && (
+                <div>
+                  <Label>Revista</Label>
+                  <Input
+                    value={metadata.journal || ""}
+                    onChange={(e) => setMetadata({ ...metadata, journal: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+              )}
+              {metadata.editorial && (
+                <div>
+                  <Label>Editorial</Label>
+                  <Input
+                    value={metadata.editorial || ""}
+                    onChange={(e) => setMetadata({ ...metadata, editorial: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+              )}
+              <div>
+                <Label>Año</Label>
+                <Input
+                  value={metadata.year || ""}
+                  onChange={(e) => setMetadata({ ...metadata, year: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+            </div>
           )}
 
           {/* Optional Link Field for Books */}
@@ -273,17 +381,19 @@ export default function EntryFormDialog({
             />
 
             {/* Evaluación por Pares */}
-            <FileUploadBox
-              label={`Evaluación por pares ${isPonencias ? "(Opcional)" : "*"}`}
-              file={files.pares}
-              onUpload={(file) => handleFileUpload("pares", file)}
-              onRemove={() => setFiles({ ...files, pares: undefined })}
-              uploading={uploading === "pares"}
-            />
+            {!isPonencias && (
+              <FileUploadBox
+                label="Evaluación por pares"
+                file={files.pares}
+                onUpload={(file) => handleFileUpload("pares", file)}
+                onRemove={() => setFiles({ ...files, pares: undefined })}
+                uploading={uploading === "pares"}
+              />
+            )}
 
             {/* Certificado Aceptación */}
             <FileUploadBox
-              label="Certificado de aceptación *"
+              label="Certificado de aceptación"
               file={files.aceptacion}
               onUpload={(file) => handleFileUpload("aceptacion", file)}
               onRemove={() => setFiles({ ...files, aceptacion: undefined })}
@@ -292,7 +402,7 @@ export default function EntryFormDialog({
 
             {/* Certificado Publicación */}
             <FileUploadBox
-              label="Certificado de publicación *"
+              label="Certificado de publicación"
               file={files.publicacion}
               onUpload={(file) => handleFileUpload("publicacion", file)}
               onRemove={() => setFiles({ ...files, publicacion: undefined })}

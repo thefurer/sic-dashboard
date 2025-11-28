@@ -381,9 +381,6 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                       </div>
                     )}
 
-                    <p className="text-xs text-muted-foreground">
-                      Total: {(itemData.project_entries || []).length} proyecto(s) × {indicator.unitScore} punto(s) = {itemData.score_obtained} puntos
-                    </p>
                   </div>
                 )}
 
@@ -448,9 +445,6 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                        </div>
                     )}
 
-                    <p className="text-xs text-muted-foreground">
-                      Total: {(itemData.entries || []).length} entrada(s) × {indicator.unitScore} punto(s) = {itemData.score_obtained} puntos
-                    </p>
                   </div>
                 )}
               </CardContent>
