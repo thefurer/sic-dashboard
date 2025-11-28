@@ -261,8 +261,7 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
       {isReadOnly && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
           <p className="text-sm text-amber-900 dark:text-amber-100">
-            <strong>Modo solo lectura:</strong> Esta evaluación ya fue enviada y no puede ser modificada. 
-            Si necesitas realizar cambios, contacta al administrador.
+            <strong>Modo solo lectura:</strong> Esta evaluación ha sido aprobada y no puede ser modificada.
           </p>
         </div>
       )}
@@ -304,6 +303,7 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
                             )
                           }
                           className="mt-1"
+                          disabled={isReadOnly}
                         />
                         <p className="text-xs text-muted-foreground mt-1">
                           {indicator.unitScore} punto{indicator.unitScore && indicator.unitScore > 1 ? "s" : ""} por unidad
@@ -322,6 +322,7 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
                             handleFieldChange(indicator.name, "monto", parseFloat(e.target.value) || 0)
                           }
                           className="mt-1"
+                          disabled={isReadOnly}
                         />
                       </div>
 
@@ -330,6 +331,7 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
                         <Select
                           value={itemData.fase || ""}
                           onValueChange={(value) => handleFieldChange(indicator.name, "fase", value)}
+                          disabled={isReadOnly}
                         >
                           <SelectTrigger id={`fase-${indicator.name}`} className="mt-1">
                             <SelectValue placeholder="Seleccione fase" />
@@ -358,6 +360,7 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
                             )
                           }
                           className="mt-1"
+                          disabled={isReadOnly}
                         />
                       </div>
                     </div>
@@ -390,7 +393,7 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
                                   variant="outline"
                                   size="sm"
                                   className="flex-1"
-                                  disabled={uploading === `${indicator.name}-${idx}`}
+                                  disabled={uploading === `${indicator.name}-${idx}` || isReadOnly}
                                   onClick={() => {
                                     const input = document.createElement("input");
                                     input.type = "file";
@@ -429,6 +432,7 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
                         onChange={(e) => handleJustificationChange(indicator.name, e.target.value)}
                         placeholder="Describa el impacto generado, incluyendo evidencia cualitativa y cuantitativa..."
                         className="mt-1 min-h-[120px]"
+                        disabled={isReadOnly}
                       />
                       <p className="text-xs text-muted-foreground mt-1">
                         Mínimo 100 caracteres para recibir puntuación

@@ -6,13 +6,24 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Send, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Send, CheckCircle2, RefreshCcw } from "lucide-react";
 import PublicacionStep from "@/components/evaluation/PublicacionStep";
 import TransferenciaStep from "@/components/evaluation/TransferenciaStep";
 import RecursosStep from "@/components/evaluation/RecursosStep";
 import ImpactosStep from "@/components/evaluation/ImpactosStep";
 import ReviewStep from "@/components/evaluation/ReviewStep";
 import confetti from "canvas-confetti";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const STEPS = [
   { id: 1, name: "Publicación", maxScore: 45, category: "A" },
@@ -208,9 +219,39 @@ export default function Evaluation() {
     },
   });
 
+  // Global reset mutation
+  const resetMutation = useMutation({
+    mutationFn: async () => {
+      if (!reportId) throw new Error("No report ID");
+
+      // Delete the report (cascade will delete all evaluation_items)
+      const { error } = await supabase
+        .from("evaluation_reports")
+        .delete()
+        .eq("id", reportId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["evaluation-report"] });
+      queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
+      setReportId(null);
+      setEvaluationItems([]);
+      setCurrentStep(1);
+      toast.success("Evaluación reiniciada", {
+        description: "Se ha eliminado la evaluación y todos los datos asociados.",
+      });
+    },
+    onError: (error) => {
+      toast.error("Error al reiniciar evaluación", {
+        description: error.message,
+      });
+    },
+  });
+
   const handleNext = async () => {
-    // Don't save if already submitted or approved (read-only mode)
-    const isReadOnly = existingReport?.status === "submitted" || existingReport?.status === "approved";
+    // Only block save if status is 'approved'
+    const isReadOnly = existingReport?.status === "approved";
     if (!isReadOnly) {
       await saveDraftMutation.mutateAsync(evaluationItems);
     }
@@ -219,6 +260,10 @@ export default function Evaluation() {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  };
+
+  const handleReset = async () => {
+    await resetMutation.mutateAsync();
   };
 
   const handlePrevious = () => {
@@ -297,12 +342,68 @@ export default function Evaluation() {
       <div className="max-w-5xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Evaluación Anual {new Date().getFullYear()}
-          </h1>
-          <p className="text-muted-foreground">
-            Complete todos los pasos para enviar su informe de evaluación
-          </p>
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                Evaluación Anual {new Date().getFullYear()}
+              </h1>
+              <p className="text-muted-foreground">
+                Complete todos los pasos para enviar su informe de evaluación
+              </p>
+            </div>
+            
+            {/* Global Reset Button */}
+            {reportId && existingReport?.status !== "approved" && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <RefreshCcw className="w-4 h-4" />
+                    Reiniciar Evaluación
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Reiniciar evaluación completa?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta acción eliminará permanentemente toda la evaluación y sus datos asociados. 
+                      Tendrás que empezar desde cero. Esta acción no se puede deshacer.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleReset}
+                      disabled={resetMutation.isPending}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {resetMutation.isPending ? "Reiniciando..." : "Sí, reiniciar"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
+
+          {/* Submitted Info Banner */}
+          {existingReport?.status === "submitted" && (
+            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">ℹ</div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                    Evaluación Enviada - Edición Permitida
+                  </h3>
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    Esta evaluación ha sido enviada. Puedes seguir editando y los cambios se actualizarán automáticamente para el administrador.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Correction Alert Banner */}
           {existingReport?.status === "observado" && (
@@ -399,7 +500,7 @@ export default function Evaluation() {
               reportId={reportId}
               items={evaluationItems.filter((item) => item.category === "A")}
               onItemsChange={setEvaluationItems}
-              isReadOnly={existingReport?.status === "submitted" || existingReport?.status === "approved"}
+              isReadOnly={existingReport?.status === "approved"}
             />
           )}
           {currentStep === 2 && (
@@ -407,7 +508,7 @@ export default function Evaluation() {
               reportId={reportId}
               items={evaluationItems.filter((item) => item.category === "B")}
               onItemsChange={setEvaluationItems}
-              isReadOnly={existingReport?.status === "submitted" || existingReport?.status === "approved"}
+              isReadOnly={existingReport?.status === "approved"}
             />
           )}
           {currentStep === 3 && (
@@ -415,7 +516,7 @@ export default function Evaluation() {
               reportId={reportId}
               items={evaluationItems.filter((item) => item.category === "C")}
               onItemsChange={setEvaluationItems}
-              isReadOnly={existingReport?.status === "submitted" || existingReport?.status === "approved"}
+              isReadOnly={existingReport?.status === "approved"}
             />
           )}
           {currentStep === 4 && (
@@ -423,7 +524,7 @@ export default function Evaluation() {
               reportId={reportId}
               items={evaluationItems.filter((item) => item.category === "D")}
               onItemsChange={setEvaluationItems}
-              isReadOnly={existingReport?.status === "submitted" || existingReport?.status === "approved"}
+              isReadOnly={existingReport?.status === "approved"}
             />
           )}
           {currentStep === 5 && (
@@ -452,15 +553,15 @@ export default function Evaluation() {
           {currentStep < STEPS.length ? (
             <Button
               onClick={handleNext}
-              disabled={existingReport?.status === "submitted" || existingReport?.status === "approved" || saveDraftMutation.isPending}
+              disabled={existingReport?.status === "approved" || saveDraftMutation.isPending}
             >
               {saveDraftMutation.isPending ? "Guardando..." : "Siguiente"}
               <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
-              existingReport?.status === "submitted" || existingReport?.status === "approved" ? (
+              existingReport?.status === "approved" ? (
                 <div className="text-sm text-muted-foreground">
-                  {existingReport?.status === "approved" ? "Evaluación aprobada" : "Evaluación ya enviada"}
+                  Evaluación aprobada
                 </div>
               ) : (
                 <Button
