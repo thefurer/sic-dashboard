@@ -28,6 +28,7 @@ interface ImpactosStepProps {
   reportId: string | null;
   items: EvaluationItem[];
   onItemsChange: (items: any[]) => void;
+  isReadOnly?: boolean;
 }
 
 const INDICATORS = [
@@ -37,7 +38,7 @@ const INDICATORS = [
   { name: "Impacto Económico", points: 5, requiresExtraFields: false },
 ];
 
-export default function ImpactosStep({ reportId, items, onItemsChange }: ImpactosStepProps) {
+export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnly = false }: ImpactosStepProps) {
   const [uploading, setUploading] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -256,6 +257,15 @@ export default function ImpactosStep({ reportId, items, onItemsChange }: Impacto
           Sección D - Máximo 25 puntos (Patentes requieren campos adicionales; Impactos requieren evidencia + justificación)
         </p>
       </div>
+
+      {isReadOnly && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+          <p className="text-sm text-amber-900 dark:text-amber-100">
+            <strong>Modo solo lectura:</strong> Esta evaluación ya fue enviada y no puede ser modificada. 
+            Si necesitas realizar cambios, contacta al administrador.
+          </p>
+        </div>
+      )}
 
       <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
         <p className="text-lg font-semibold text-primary">Puntos Sección D: {totalScore}/25</p>

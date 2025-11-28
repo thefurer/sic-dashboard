@@ -20,13 +20,14 @@ interface TransferenciaStepProps {
   reportId: string | null;
   items: EvaluationItem[];
   onItemsChange: (items: any[]) => void;
+  isReadOnly?: boolean;
 }
 
 const INDICATORS = [
   { name: "Proyectos de Vinculación", points: 10, unitScore: 5 },
 ];
 
-export default function TransferenciaStep({ reportId, items, onItemsChange }: TransferenciaStepProps) {
+export default function TransferenciaStep({ reportId, items, onItemsChange, isReadOnly = false }: TransferenciaStepProps) {
   const [vinculacionDialogOpen, setVinculacionDialogOpen] = useState(false);
   const [editingVinculacion, setEditingVinculacion] = useState<VinculacionEntry | null>(null);
   const queryClient = useQueryClient();
@@ -167,6 +168,15 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
         <h2 className="text-2xl font-bold text-foreground mb-2">Transferencia de Tecnología</h2>
         <p className="text-muted-foreground">Sección B - Máximo 10 puntos</p>
       </div>
+
+      {isReadOnly && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+          <p className="text-sm text-amber-900 dark:text-amber-100">
+            <strong>Modo solo lectura:</strong> Esta evaluación ya fue enviada y no puede ser modificada. 
+            Si necesitas realizar cambios, contacta al administrador.
+          </p>
+        </div>
+      )}
 
       <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
         <p className="text-lg font-semibold text-primary">Puntos Sección B: {totalScore}/10</p>
