@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ExternalLink, Search } from "lucide-react";
+import { ExternalLink, Search, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useDOIMetadata } from "@/hooks/useDOIMetadata";
@@ -49,6 +49,7 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
   const [doiSearch, setDoiSearch] = useState<Record<string, string>>({});
   const [isbnSearch, setIsbnSearch] = useState<Record<string, string>>({});
   const [articleMetadata, setArticleMetadata] = useState<Record<string, any>>({});
+  const [autoDetectedRepos, setAutoDetectedRepos] = useState<Record<string, boolean>>({});
   const queryClient = useQueryClient();
   const { fetchMetadata: fetchDOI, isLoading: loadingDOI } = useDOIMetadata();
   const { fetchMetadata: fetchISBN, isLoading: loadingISBN } = useISBNMetadata();
@@ -236,25 +237,51 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
         },
       });
       
-      // Auto-detect repository based on metadata heuristics
+      // Smart Repository Detection with Priority Rules
       let autoRepo = "";
       const publisher = metadata.publisher?.toLowerCase() || "";
       const url = metadata.url?.toLowerCase() || "";
       const doiLower = doi.toLowerCase();
       
-      if (publisher.includes("elsevier") || url.includes("scopus")) {
-        autoRepo = "Scopus";
-      } else if (publisher.includes("clarivate") || publisher.includes("wos") || url.includes("webofscience")) {
-        autoRepo = "ISI Web of Knowledge (WOS)";
-      } else if (url.includes("scielo") || doiLower.includes("scielo")) {
+      // Priority 1: Detect Scielo
+      if (url.includes("scielo") || doiLower.includes("scielo") || publisher.includes("scielo")) {
         autoRepo = "Scielo";
-      } else if (url.includes("redalyc") || doiLower.includes("redalyc")) {
+      } 
+      // Priority 2: Detect Redalyc
+      else if (url.includes("redalyc") || doiLower.includes("redalyc")) {
         autoRepo = "Redalyc";
-      } else if (url.includes("ebsco")) {
+      } 
+      // Priority 3: Detect Scopus (Major Publishers)
+      else if (
+        publisher.includes("elsevier") ||
+        publisher.includes("springer") ||
+        publisher.includes("ieee") ||
+        publisher.includes("wiley") ||
+        publisher.includes("taylor & francis") ||
+        publisher.includes("taylor&francis") ||
+        publisher.includes("sage") ||
+        publisher.includes("acm") ||
+        publisher.includes("mdpi") ||
+        url.includes("scopus")
+      ) {
+        autoRepo = "Scopus";
+      } 
+      // Priority 4: Detect WOS (Web of Science)
+      else if (publisher.includes("clarivate") || publisher.includes("wos") || url.includes("webofscience")) {
+        autoRepo = "ISI Web of Knowledge (WOS)";
+      } 
+      // Priority 5: Detect Ebsco
+      else if (url.includes("ebsco")) {
         autoRepo = "Ebsco";
-      } else if (metadata.issn) {
-        // If we have an ISSN but no specific match, default to "Otras contempladas por el CACES"
-        autoRepo = "Otras contempladas por el CACES";
+      }
+      // Fallback: Leave empty if no match found
+      
+      // Track if this was auto-detected
+      if (autoRepo) {
+        setAutoDetectedRepos({
+          ...autoDetectedRepos,
+          [indicatorName]: true,
+        });
       }
       
       // Auto-populate article metadata fields
@@ -486,17 +513,30 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                       </div>
 
                       <div>
-                        <Label>Indizado en / Base de Datos *</Label>
+                        <Label className="flex items-center gap-2">
+                          Indizado en / Base de Datos *
+                          {autoDetectedRepos[indicator.name] && (
+                            <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-normal">
+                              <Sparkles className="w-3 h-3" />
+                              Auto-detectado
+                            </span>
+                          )}
+                        </Label>
                         <Select
                           value={itemData.article_metadata?.repo || ""}
-                          onValueChange={(value) => 
+                          onValueChange={(value) => {
+                            // Clear auto-detected flag when user manually changes
+                            setAutoDetectedRepos({
+                              ...autoDetectedRepos,
+                              [indicator.name]: false,
+                            });
                             handleFieldUpdate(indicator.name, {
                               article_metadata: { 
                                 ...itemData.article_metadata, 
                                 repo: value 
                               }
-                            })
-                          }
+                            });
+                          }}
                         >
                           <SelectTrigger className="mt-1">
                             <SelectValue placeholder="Seleccione o busque DOI primero" />
