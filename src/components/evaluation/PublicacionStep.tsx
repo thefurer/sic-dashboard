@@ -174,13 +174,29 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     const updatedEntries = (existingItem?.entries || []).filter(e => e.id !== entryId);
 
     const indicator = INDICATORS.find(i => i.name === indicatorName);
-    // Award MAX points if at least 1 entry exists
     const newScore = updatedEntries.length > 0 ? (indicator?.points || 0) : 0;
 
-    await handleFieldUpdate(indicatorName, {
-      entries: updatedEntries,
-      score_obtained: newScore,
-    });
+    if (updatedEntries.length === 0 && existingItem?.id) {
+      // Delete the entire evaluation_item row if no entries remain
+      const { error } = await supabase
+        .from("evaluation_items")
+        .delete()
+        .eq("id", existingItem.id);
+
+      if (error) {
+        toast.error("Error al eliminar", { description: error.message });
+        return;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
+      const updatedItems = items.filter((i) => i.id !== existingItem.id);
+      onItemsChange(updatedItems);
+    } else {
+      await handleFieldUpdate(indicatorName, {
+        entries: updatedEntries,
+        score_obtained: newScore,
+      });
+    }
 
     toast.success("Entrada eliminada");
   };
@@ -201,21 +217,37 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     const updatedEntries = (existingItem?.project_entries || []).filter(e => e.id !== entryId);
 
     const indicator = INDICATORS.find(i => i.name === "Proyectos I+D+i");
-    // Award MAX points if at least 1 entry exists
     const newScore = updatedEntries.length > 0 ? (indicator?.points || 0) : 0;
 
-    const item: EvaluationItem = {
-      report_id: reportId!,
-      category: "A",
-      indicator_name: "Proyectos I+D+i",
-      score_obtained: newScore,
-      project_entries: updatedEntries,
-    };
+    if (updatedEntries.length === 0 && existingItem?.id) {
+      // Delete the entire evaluation_item row if no entries remain
+      const { error } = await supabase
+        .from("evaluation_items")
+        .delete()
+        .eq("id", existingItem.id);
 
-    await saveItemMutation.mutateAsync(item);
+      if (error) {
+        toast.error("Error al eliminar", { description: error.message });
+        return;
+      }
 
-    const updatedItems = items.filter((i) => i.indicator_name !== "Proyectos I+D+i");
-    onItemsChange([...updatedItems, item]);
+      queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
+      const updatedItems = items.filter((i) => i.id !== existingItem.id);
+      onItemsChange(updatedItems);
+    } else {
+      const item: EvaluationItem = {
+        report_id: reportId!,
+        category: "A",
+        indicator_name: "Proyectos I+D+i",
+        score_obtained: newScore,
+        project_entries: updatedEntries,
+      };
+
+      await saveItemMutation.mutateAsync(item);
+
+      const updatedItems = items.filter((i) => i.indicator_name !== "Proyectos I+D+i");
+      onItemsChange([...updatedItems, item]);
+    }
 
     toast.success("Proyecto eliminado");
   };
@@ -262,13 +294,26 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
       return;
     }
 
-    await handleFieldUpdate(indicatorName, {
-      entries: [],
-      project_entries: [],
-      score_obtained: 0,
-    });
+    const existingItem = items.find((i) => i.indicator_name === indicatorName);
+    
+    if (existingItem?.id) {
+      // Delete the entire evaluation_item row from database
+      const { error } = await supabase
+        .from("evaluation_items")
+        .delete()
+        .eq("id", existingItem.id);
 
-    toast.success("Sección limpiada correctamente");
+      if (error) {
+        toast.error("Error al limpiar", { description: error.message });
+        return;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
+      const updatedItems = items.filter((i) => i.id !== existingItem.id);
+      onItemsChange(updatedItems);
+      
+      toast.success("Sección limpiada correctamente");
+    }
   };
 
   const getItemData = (indicatorName: string) => {

@@ -102,20 +102,37 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
     const existingEntries: VinculacionEntry[] = existingItem?.evidence_details || [];
     const updatedEntries = existingEntries.filter((e) => e.id !== entryId);
 
-    const score = Math.min(updatedEntries.length * 5, 10);
+    if (updatedEntries.length === 0 && existingItem?.id) {
+      // Delete the entire evaluation_item row if no entries remain
+      const { error } = await supabase
+        .from("evaluation_items")
+        .delete()
+        .eq("id", existingItem.id);
 
-    const item: EvaluationItem = {
-      report_id: reportId,
-      category: "B",
-      indicator_name: "Proyectos de Vinculación",
-      score_obtained: score,
-      evidence_details: updatedEntries,
-    };
+      if (error) {
+        toast.error("Error al eliminar", { description: error.message });
+        return;
+      }
 
-    await saveItemMutation.mutateAsync(item);
+      queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
+      const updatedItems = items.filter((i) => i.id !== existingItem.id);
+      onItemsChange(updatedItems);
+    } else {
+      const score = updatedEntries.length > 0 ? 10 : 0;
 
-    const updatedItems = items.filter((i) => i.indicator_name !== "Proyectos de Vinculación");
-    onItemsChange([...updatedItems, item]);
+      const item: EvaluationItem = {
+        report_id: reportId,
+        category: "B",
+        indicator_name: "Proyectos de Vinculación",
+        score_obtained: score,
+        evidence_details: updatedEntries,
+      };
+
+      await saveItemMutation.mutateAsync(item);
+
+      const updatedItems = items.filter((i) => i.indicator_name !== "Proyectos de Vinculación");
+      onItemsChange([...updatedItems, item]);
+    }
 
     toast.success("Entrada eliminada");
   };
