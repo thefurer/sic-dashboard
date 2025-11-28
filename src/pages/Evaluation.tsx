@@ -74,7 +74,7 @@ export default function Evaluation() {
 
   const totalScore = calculateSaturatedScore();
 
-  // Fetch or create draft report (or load submitted report for editing)
+  // Fetch or create draft report (or load submitted/observado report for editing)
   const { data: existingReport, isLoading } = useQuery({
     queryKey: ["evaluation-report", new Date().getFullYear()],
     queryFn: async () => {
@@ -83,13 +83,13 @@ export default function Evaluation() {
 
       const currentYear = new Date().getFullYear();
       
-      // Try to find draft first, then submitted
+      // Try to find draft, observado, or submitted (read-only)
       const { data, error } = await supabase
         .from("evaluation_reports")
         .select("*")
         .eq("user_id", user.id)
         .eq("year", currentYear)
-        .in("status", ["draft", "submitted"])
+        .in("status", ["draft", "submitted", "observado", "approved"])
         .order("created_at", { ascending: false })
         .maybeSingle();
 
@@ -206,8 +206,9 @@ export default function Evaluation() {
   });
 
   const handleNext = async () => {
-    // Don't save if already submitted (read-only mode)
-    if (existingReport?.status !== "submitted") {
+    // Don't save if already submitted or approved (read-only mode)
+    const isReadOnly = existingReport?.status === "submitted" || existingReport?.status === "approved";
+    if (!isReadOnly) {
       await saveDraftMutation.mutateAsync(evaluationItems);
     }
     
@@ -299,6 +300,28 @@ export default function Evaluation() {
           <p className="text-muted-foreground">
             Complete todos los pasos para enviar su informe de evaluación
           </p>
+
+          {/* Correction Alert Banner */}
+          {existingReport?.status === "observado" && (
+            <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-white font-bold">!</div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                    Correcciones Solicitadas
+                  </h3>
+                  <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+                    {existingReport.admin_observations || "El administrador ha solicitado correcciones en su evaluación."}
+                  </p>
+                  {existingReport.correction_deadline && (
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                      Fecha límite: {new Date(existingReport.correction_deadline).toLocaleDateString("es-ES")}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Progress Stepper */}
@@ -423,15 +446,15 @@ export default function Evaluation() {
             {currentStep < STEPS.length ? (
               <Button
                 onClick={handleNext}
-                disabled={saveDraftMutation.isPending || existingReport?.status === "submitted"}
+                disabled={saveDraftMutation.isPending || existingReport?.status === "submitted" || existingReport?.status === "approved"}
               >
                 {saveDraftMutation.isPending ? "Guardando..." : "Siguiente"}
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
-              existingReport?.status === "submitted" ? (
+              existingReport?.status === "submitted" || existingReport?.status === "approved" ? (
                 <div className="text-sm text-muted-foreground">
-                  Evaluación ya enviada
+                  {existingReport?.status === "approved" ? "Evaluación aprobada" : "Evaluación ya enviada"}
                 </div>
               ) : (
                 <Button

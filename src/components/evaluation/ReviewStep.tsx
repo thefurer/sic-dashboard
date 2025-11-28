@@ -499,7 +499,7 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
             <Button
               size="lg"
               onClick={onSubmit}
-              disabled={isSubmitting || !canSubmit}
+              disabled={isSubmitting || !canSubmit || (reportStatus !== "draft" && reportStatus !== "observado")}
               className={canSubmit ? "bg-green-600 hover:bg-green-700" : ""}
             >
               <Send className="w-5 h-5 mr-2" />

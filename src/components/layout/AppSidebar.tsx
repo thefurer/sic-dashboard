@@ -26,9 +26,14 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const menuItems = [
+// Base menu items visible to all users
+const baseMenuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Institucional", url: "/institutional", icon: Landmark },
+];
+
+// Menu items only for regular users (not admin)
+const userOnlyItems = [
   { title: "Evaluación", url: "/evaluation", icon: ClipboardCheck },
 ];
 
@@ -67,7 +72,24 @@ export function AppSidebar() {
           <SidebarGroupLabel className="text-slate-500 dark:text-slate-400 text-xs font-medium px-3">Navegación</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {/* Base menu items for all users */}
+              {baseMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                      activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {state === "expanded" && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+
+              {/* User-only menu items (hidden from admin) */}
+              {!isAdmin && userOnlyItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -82,6 +104,7 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               
+              {/* Admin-only menu items */}
               {isAdmin && (
                 <>
                   <SidebarMenuItem>
@@ -105,18 +128,6 @@ export function AppSidebar() {
                       >
                         <Users className="h-5 w-5" />
                         {state === "expanded" && <span>Directorio de Usuarios</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to="/tasks"
-                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
-                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
-                      >
-                        <CheckSquare className="h-5 w-5" />
-                        {state === "expanded" && <span>Tareas</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
