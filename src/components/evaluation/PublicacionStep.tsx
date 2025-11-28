@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Plus, FileText, Trash2, RefreshCcw } from "lucide-react";
+import { Plus, FileText, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import EntryFormDialog, { type EntryData, type IndicatorType } from "./EntryFormDialog";
@@ -388,8 +388,7 @@ export default function PublicacionStep({ reportId, items, onItemsChange, isRead
       {isReadOnly && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
           <p className="text-sm text-amber-900 dark:text-amber-100">
-            <strong>Modo solo lectura:</strong> Esta evaluación ya fue enviada y no puede ser modificada. 
-            Si necesitas realizar cambios, contacta al administrador.
+            <strong>Modo solo lectura:</strong> Esta evaluación ha sido aprobada y no puede ser modificada.
           </p>
         </div>
       )}
@@ -422,28 +421,15 @@ export default function PublicacionStep({ reportId, items, onItemsChange, isRead
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-semibold">Proyectos Registrados</h4>
                       {!isReadOnly && (
-                        <div className="flex gap-2">
-                          {(itemData.project_entries || []).length > 0 && (
-                            <Button
-                              onClick={() => handleClearAll(indicator.name)}
-                              size="sm"
-                              variant="ghost"
-                              className="gap-2 text-destructive hover:text-destructive"
-                            >
-                              <RefreshCcw className="w-4 h-4" />
-                              Limpiar Todo
-                            </Button>
-                          )}
-                          <Button
-                            onClick={handleAddProjectEntry}
-                            size="sm"
-                            variant="outline"
-                            className="gap-2"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Agregar Proyecto
-                          </Button>
-                        </div>
+                        <Button
+                          onClick={handleAddProjectEntry}
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Agregar Proyecto
+                        </Button>
                       )}
                     </div>
 
@@ -506,28 +492,15 @@ export default function PublicacionStep({ reportId, items, onItemsChange, isRead
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-semibold">Entradas Registradas</Label>
                       {!isReadOnly && (
-                        <div className="flex gap-2">
-                          {(itemData.entries || []).length > 0 && (
-                            <Button
-                              onClick={() => handleClearAll(indicator.name)}
-                              size="sm"
-                              variant="ghost"
-                              className="gap-2 text-destructive hover:text-destructive"
-                            >
-                              <RefreshCcw className="w-4 h-4" />
-                              Limpiar Todo
-                            </Button>
-                          )}
-                          <Button
-                            onClick={() => handleAddEntry(indicator.name)}
-                            size="sm"
-                            variant="outline"
-                            className="gap-2"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Agregar {indicator.name}
-                          </Button>
-                        </div>
+                        <Button
+                          onClick={() => handleAddEntry(indicator.name)}
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Agregar {indicator.name}
+                        </Button>
                       )}
                     </div>
 
