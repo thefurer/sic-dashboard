@@ -116,7 +116,7 @@ export default function Evaluation() {
     },
   });
 
-  // Fetch evaluation items
+  // Fetch evaluation items - Force fresh data on every mount
   const { data: items } = useQuery({
     queryKey: ["evaluation-items", reportId],
     queryFn: async () => {
@@ -131,6 +131,9 @@ export default function Evaluation() {
       return data;
     },
     enabled: !!reportId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   useEffect(() => {
@@ -445,12 +448,12 @@ export default function Evaluation() {
           {currentStep < STEPS.length ? (
             <Button
               onClick={handleNext}
-              disabled={existingReport?.status === "submitted" || existingReport?.status === "approved"}
+              disabled={existingReport?.status === "submitted" || existingReport?.status === "approved" || saveDraftMutation.isPending}
             >
               {saveDraftMutation.isPending ? "Guardando..." : "Siguiente"}
               <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
-            ) : (
+          ) : (
               existingReport?.status === "submitted" || existingReport?.status === "approved" ? (
                 <div className="text-sm text-muted-foreground">
                   {existingReport?.status === "approved" ? "Evaluación aprobada" : "Evaluación ya enviada"}

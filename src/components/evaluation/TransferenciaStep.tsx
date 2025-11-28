@@ -102,39 +102,49 @@ export default function TransferenciaStep({ reportId, items, onItemsChange }: Tr
     const existingEntries: VinculacionEntry[] = existingItem?.evidence_details || [];
     const updatedEntries = existingEntries.filter((e) => e.id !== entryId);
 
-    if (updatedEntries.length === 0 && existingItem?.id) {
-      // Delete the entire evaluation_item row if no entries remain
-      const { error } = await supabase
-        .from("evaluation_items")
-        .delete()
-        .eq("id", existingItem.id);
+    try {
+      if (updatedEntries.length === 0 && existingItem?.id) {
+        // Delete the entire evaluation_item row if no entries remain
+        const { error } = await supabase
+          .from("evaluation_items")
+          .delete()
+          .eq("id", existingItem.id)
+          .eq("report_id", reportId);
 
-      if (error) {
-        toast.error("Error al eliminar", { description: error.message });
-        return;
+        if (error) {
+          console.error("Delete vinculacion error:", error);
+          toast.error("Error al eliminar", { description: error.message });
+          return;
+        }
+
+        // Force immediate refetch
+        await queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
+        await queryClient.refetchQueries({ queryKey: ["evaluation-items"] });
+        
+        const updatedItems = items.filter((i) => i.id !== existingItem.id);
+        onItemsChange(updatedItems);
+      } else {
+        const score = updatedEntries.length > 0 ? 10 : 0;
+
+        const item: EvaluationItem = {
+          report_id: reportId,
+          category: "B",
+          indicator_name: "Proyectos de Vinculación",
+          score_obtained: score,
+          evidence_details: updatedEntries,
+        };
+
+        await saveItemMutation.mutateAsync(item);
+
+        const updatedItems = items.filter((i) => i.indicator_name !== "Proyectos de Vinculación");
+        onItemsChange([...updatedItems, item]);
       }
 
-      queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
-      const updatedItems = items.filter((i) => i.id !== existingItem.id);
-      onItemsChange(updatedItems);
-    } else {
-      const score = updatedEntries.length > 0 ? 10 : 0;
-
-      const item: EvaluationItem = {
-        report_id: reportId,
-        category: "B",
-        indicator_name: "Proyectos de Vinculación",
-        score_obtained: score,
-        evidence_details: updatedEntries,
-      };
-
-      await saveItemMutation.mutateAsync(item);
-
-      const updatedItems = items.filter((i) => i.indicator_name !== "Proyectos de Vinculación");
-      onItemsChange([...updatedItems, item]);
+      toast.success("Entrada eliminada");
+    } catch (err: any) {
+      console.error("Delete vinculacion error:", err);
+      toast.error("Error al eliminar", { description: err.message });
     }
-
-    toast.success("Entrada eliminada");
   };
 
   const getItemData = (indicatorName: string) => {

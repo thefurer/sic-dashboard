@@ -176,29 +176,39 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     const indicator = INDICATORS.find(i => i.name === indicatorName);
     const newScore = updatedEntries.length > 0 ? (indicator?.points || 0) : 0;
 
-    if (updatedEntries.length === 0 && existingItem?.id) {
-      // Delete the entire evaluation_item row if no entries remain
-      const { error } = await supabase
-        .from("evaluation_items")
-        .delete()
-        .eq("id", existingItem.id);
+    try {
+      if (updatedEntries.length === 0 && existingItem?.id) {
+        // Delete the entire evaluation_item row if no entries remain
+        const { error } = await supabase
+          .from("evaluation_items")
+          .delete()
+          .eq("id", existingItem.id)
+          .eq("report_id", reportId!);
 
-      if (error) {
-        toast.error("Error al eliminar", { description: error.message });
-        return;
+        if (error) {
+          console.error("Delete entry error:", error);
+          toast.error("Error al eliminar", { description: error.message });
+          return;
+        }
+
+        // Force immediate refetch
+        await queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
+        await queryClient.refetchQueries({ queryKey: ["evaluation-items"] });
+        
+        const updatedItems = items.filter((i) => i.id !== existingItem.id);
+        onItemsChange(updatedItems);
+      } else {
+        await handleFieldUpdate(indicatorName, {
+          entries: updatedEntries,
+          score_obtained: newScore,
+        });
       }
 
-      queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
-      const updatedItems = items.filter((i) => i.id !== existingItem.id);
-      onItemsChange(updatedItems);
-    } else {
-      await handleFieldUpdate(indicatorName, {
-        entries: updatedEntries,
-        score_obtained: newScore,
-      });
+      toast.success("Entrada eliminada");
+    } catch (err: any) {
+      console.error("Delete entry error:", err);
+      toast.error("Error al eliminar", { description: err.message });
     }
-
-    toast.success("Entrada eliminada");
   };
 
   // Project Entry Handlers
@@ -219,37 +229,47 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     const indicator = INDICATORS.find(i => i.name === "Proyectos I+D+i");
     const newScore = updatedEntries.length > 0 ? (indicator?.points || 0) : 0;
 
-    if (updatedEntries.length === 0 && existingItem?.id) {
-      // Delete the entire evaluation_item row if no entries remain
-      const { error } = await supabase
-        .from("evaluation_items")
-        .delete()
-        .eq("id", existingItem.id);
+    try {
+      if (updatedEntries.length === 0 && existingItem?.id) {
+        // Delete the entire evaluation_item row if no entries remain
+        const { error } = await supabase
+          .from("evaluation_items")
+          .delete()
+          .eq("id", existingItem.id)
+          .eq("report_id", reportId!);
 
-      if (error) {
-        toast.error("Error al eliminar", { description: error.message });
-        return;
+        if (error) {
+          console.error("Delete project entry error:", error);
+          toast.error("Error al eliminar", { description: error.message });
+          return;
+        }
+
+        // Force immediate refetch
+        await queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
+        await queryClient.refetchQueries({ queryKey: ["evaluation-items"] });
+        
+        const updatedItems = items.filter((i) => i.id !== existingItem.id);
+        onItemsChange(updatedItems);
+      } else {
+        const item: EvaluationItem = {
+          report_id: reportId!,
+          category: "A",
+          indicator_name: "Proyectos I+D+i",
+          score_obtained: newScore,
+          project_entries: updatedEntries,
+        };
+
+        await saveItemMutation.mutateAsync(item);
+
+        const updatedItems = items.filter((i) => i.indicator_name !== "Proyectos I+D+i");
+        onItemsChange([...updatedItems, item]);
       }
 
-      queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
-      const updatedItems = items.filter((i) => i.id !== existingItem.id);
-      onItemsChange(updatedItems);
-    } else {
-      const item: EvaluationItem = {
-        report_id: reportId!,
-        category: "A",
-        indicator_name: "Proyectos I+D+i",
-        score_obtained: newScore,
-        project_entries: updatedEntries,
-      };
-
-      await saveItemMutation.mutateAsync(item);
-
-      const updatedItems = items.filter((i) => i.indicator_name !== "Proyectos I+D+i");
-      onItemsChange([...updatedItems, item]);
+      toast.success("Proyecto eliminado");
+    } catch (err: any) {
+      console.error("Delete project entry error:", err);
+      toast.error("Error al eliminar", { description: err.message });
     }
-
-    toast.success("Proyecto eliminado");
   };
 
   const handleSaveProjectEntry = async (entryData: ProjectEntryData) => {
@@ -297,22 +317,32 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     const existingItem = items.find((i) => i.indicator_name === indicatorName);
     
     if (existingItem?.id) {
-      // Delete the entire evaluation_item row from database
-      const { error } = await supabase
-        .from("evaluation_items")
-        .delete()
-        .eq("id", existingItem.id);
+      try {
+        // Delete the entire evaluation_item row from database
+        const { error } = await supabase
+          .from("evaluation_items")
+          .delete()
+          .eq("id", existingItem.id)
+          .eq("report_id", reportId!);
 
-      if (error) {
-        toast.error("Error al limpiar", { description: error.message });
-        return;
+        if (error) {
+          console.error("Delete error:", error);
+          toast.error("Error al limpiar", { description: error.message });
+          return;
+        }
+
+        // Force immediate refetch and UI update
+        await queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
+        await queryClient.refetchQueries({ queryKey: ["evaluation-items"] });
+        
+        const updatedItems = items.filter((i) => i.id !== existingItem.id);
+        onItemsChange(updatedItems);
+        
+        toast.success("Sección limpiada correctamente");
+      } catch (err: any) {
+        console.error("Clear all error:", err);
+        toast.error("Error al eliminar", { description: err.message });
       }
-
-      queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
-      const updatedItems = items.filter((i) => i.id !== existingItem.id);
-      onItemsChange(updatedItems);
-      
-      toast.success("Sección limpiada correctamente");
     }
   };
 

@@ -116,39 +116,49 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
     const existingEntries: ConvocatoriaEntry[] = existingItem?.evidence_details || [];
     const updatedEntries = existingEntries.filter((e) => e.id !== entryId);
 
-    if (updatedEntries.length === 0 && existingItem?.id) {
-      // Delete the entire evaluation_item row if no entries remain
-      const { error } = await supabase
-        .from("evaluation_items")
-        .delete()
-        .eq("id", existingItem.id);
+    try {
+      if (updatedEntries.length === 0 && existingItem?.id) {
+        // Delete the entire evaluation_item row if no entries remain
+        const { error } = await supabase
+          .from("evaluation_items")
+          .delete()
+          .eq("id", existingItem.id)
+          .eq("report_id", reportId);
 
-      if (error) {
-        toast.error("Error al eliminar", { description: error.message });
-        return;
+        if (error) {
+          console.error("Delete convocatoria error:", error);
+          toast.error("Error al eliminar", { description: error.message });
+          return;
+        }
+
+        // Force immediate refetch
+        await queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
+        await queryClient.refetchQueries({ queryKey: ["evaluation-items"] });
+        
+        const updatedItems = items.filter((i) => i.id !== existingItem.id);
+        onItemsChange(updatedItems);
+      } else {
+        const score = updatedEntries.length > 0 ? maxPoints : 0;
+
+        const item: EvaluationItem = {
+          report_id: reportId,
+          category: "C",
+          indicator_name: indicatorName,
+          score_obtained: score,
+          evidence_details: updatedEntries,
+        };
+
+        await saveItemMutation.mutateAsync(item);
+
+        const updatedItems = items.filter((i) => i.indicator_name !== indicatorName);
+        onItemsChange([...updatedItems, item]);
       }
 
-      queryClient.invalidateQueries({ queryKey: ["evaluation-items"] });
-      const updatedItems = items.filter((i) => i.id !== existingItem.id);
-      onItemsChange(updatedItems);
-    } else {
-      const score = updatedEntries.length > 0 ? maxPoints : 0;
-
-      const item: EvaluationItem = {
-        report_id: reportId,
-        category: "C",
-        indicator_name: indicatorName,
-        score_obtained: score,
-        evidence_details: updatedEntries,
-      };
-
-      await saveItemMutation.mutateAsync(item);
-
-      const updatedItems = items.filter((i) => i.indicator_name !== indicatorName);
-      onItemsChange([...updatedItems, item]);
+      toast.success("Entrada eliminada");
+    } catch (err: any) {
+      console.error("Delete convocatoria error:", err);
+      toast.error("Error al eliminar", { description: err.message });
     }
-
-    toast.success("Entrada eliminada");
   };
 
   const getItemData = (indicatorName: string) => {
