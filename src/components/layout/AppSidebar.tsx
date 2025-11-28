@@ -35,6 +35,7 @@ const baseMenuItems = [
 // Menu items only for regular users (not admin)
 const userOnlyItems = [
   { title: "Evaluación", url: "/evaluation", icon: ClipboardCheck },
+  { title: "Mis Actividades", url: "/my-tasks", icon: CheckSquare },
 ];
 
 export function AppSidebar() {
@@ -164,6 +165,18 @@ export function AppSidebar() {
                       >
                         <FileText className="h-5 w-5" />
                         {state === "expanded" && <span>Revisión de Evaluaciones</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/admin/task-reviews"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <CheckSquare className="h-5 w-5" />
+                        {state === "expanded" && <span>Revisión de Actividades</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

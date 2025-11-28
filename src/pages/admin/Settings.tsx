@@ -23,6 +23,7 @@ export default function Settings() {
   const [uploading, setUploading] = useState<"left" | "right" | null>(null);
   const [signaturePresidentName, setSignaturePresidentName] = useState("");
   const [signatureCoordinatorName, setSignatureCoordinatorName] = useState("");
+  const [signatureResponsibleName, setSignatureResponsibleName] = useState("");
 
   useEffect(() => {
     loadSettings();
@@ -47,6 +48,7 @@ export default function Settings() {
         setLogoRight(data.header_logo_right);
         setSignaturePresidentName(data.signature_president_name || "");
         setSignatureCoordinatorName(data.signature_coordinator_name || "");
+        setSignatureResponsibleName(data.signature_responsible_name || "");
       }
     } catch (error: any) {
       console.error("Error loading settings:", error);
@@ -104,6 +106,7 @@ export default function Settings() {
         header_logo_right: logoRight,
         signature_president_name: signaturePresidentName,
         signature_coordinator_name: signatureCoordinatorName,
+        signature_responsible_name: signatureResponsibleName,
       };
 
       const { error } = await supabase
@@ -336,6 +339,16 @@ export default function Settings() {
                 value={signatureCoordinatorName}
                 onChange={(e) => setSignatureCoordinatorName(e.target.value)}
                 placeholder="Ing. Javier Marcillo Merino, Mg"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="responsible-signature">Nombre Responsable Comisión de Investigación</Label>
+              <Input
+                id="responsible-signature"
+                value={signatureResponsibleName}
+                onChange={(e) => setSignatureResponsibleName(e.target.value)}
+                placeholder="Ing. María González, MSc"
               />
             </div>
 
