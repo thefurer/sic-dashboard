@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { generatePlanningPDF } from "@/lib/planningPdfGenerator";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface PlanningPreviewStepProps {
   planId: string | null;
@@ -127,7 +129,26 @@ export function PlanningPreviewStep({
 
             <div>
               <p className="text-sm text-muted-foreground">Horario de Reuniones</p>
-              <p>{plan.meeting_schedule}</p>
+              <div className="space-y-1">
+                {plan.meeting_schedule && Array.isArray(plan.meeting_schedule) && plan.meeting_schedule.length > 0 ? (
+                  plan.meeting_schedule.map((item: any, index: number) => {
+                    if (typeof item === 'string') {
+                      // Legacy format
+                      return <p key={index}>{format(new Date(item), "dd/MM/yyyy", { locale: es })}</p>;
+                    } else if (item.date && item.time) {
+                      // New format with time
+                      return (
+                        <p key={index}>
+                          {format(new Date(item.date), "dd/MM/yyyy", { locale: es })} - {item.time}
+                        </p>
+                      );
+                    }
+                    return null;
+                  })
+                ) : (
+                  <p className="text-muted-foreground">No hay reuniones programadas</p>
+                )}
+              </div>
             </div>
 
             {plan.drive_link && (
