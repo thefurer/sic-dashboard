@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Plus, FileText, Trash2 } from "lucide-react";
+import { Plus, FileText, Trash2, RefreshCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import EntryFormDialog, { type EntryData, type IndicatorType } from "./EntryFormDialog";
@@ -265,11 +265,33 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
     toast.success("Proyecto guardado correctamente");
   };
 
+  const handleClearAll = async (indicatorName: string) => {
+    if (!confirm("¿Estás seguro de eliminar todos los registros de esta sección? El puntaje volverá a 0.")) {
+      return;
+    }
+
+    await handleFieldUpdate(indicatorName, {
+      entries: [],
+      project_entries: [],
+      score_obtained: 0,
+    });
+
+    toast.success("Sección limpiada correctamente");
+  };
+
   const getItemData = (indicatorName: string) => {
     const isProject = indicatorName === "Proyectos I+D+i";
     const existing = items.find((i) => i.indicator_name === indicatorName);
     
-    if (existing) return existing;
+    if (existing) {
+      // Map evidence_details back to entries/project_entries if needed
+      const mappedItem = {
+        ...existing,
+        entries: !isProject ? (existing.entries || (existing as any).evidence_details || []) : undefined,
+        project_entries: isProject ? (existing.project_entries || (existing as any).evidence_details || []) : undefined,
+      };
+      return mappedItem;
+    }
 
     return {
       score_obtained: 0,
@@ -322,15 +344,28 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-semibold">Proyectos Registrados</h4>
-                      <Button
-                        onClick={handleAddProjectEntry}
-                        size="sm"
-                        variant="outline"
-                        className="gap-2"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Agregar Proyecto
-                      </Button>
+                      <div className="flex gap-2">
+                        {(itemData.project_entries || []).length > 0 && (
+                          <Button
+                            onClick={() => handleClearAll(indicator.name)}
+                            size="sm"
+                            variant="ghost"
+                            className="gap-2 text-destructive hover:text-destructive"
+                          >
+                            <RefreshCcw className="w-4 h-4" />
+                            Limpiar Todo
+                          </Button>
+                        )}
+                        <Button
+                          onClick={handleAddProjectEntry}
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Agregar Proyecto
+                        </Button>
+                      </div>
                     </div>
 
                     {(itemData.project_entries || []).length === 0 ? (
@@ -389,15 +424,28 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-semibold">Entradas Registradas</Label>
-                      <Button
-                        onClick={() => handleAddEntry(indicator.name)}
-                        size="sm"
-                        variant="outline"
-                        className="gap-2"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Agregar {indicator.name}
-                      </Button>
+                      <div className="flex gap-2">
+                        {(itemData.entries || []).length > 0 && (
+                          <Button
+                            onClick={() => handleClearAll(indicator.name)}
+                            size="sm"
+                            variant="ghost"
+                            className="gap-2 text-destructive hover:text-destructive"
+                          >
+                            <RefreshCcw className="w-4 h-4" />
+                            Limpiar Todo
+                          </Button>
+                        )}
+                        <Button
+                          onClick={() => handleAddEntry(indicator.name)}
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Agregar {indicator.name}
+                        </Button>
+                      </div>
                     </div>
 
                     {(itemData.entries || []).length === 0 ? (
