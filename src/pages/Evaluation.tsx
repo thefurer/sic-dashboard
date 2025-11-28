@@ -29,6 +29,12 @@ export default function Evaluation() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // Force zero-base scoring on mount
+  const totalScore = evaluationItems.reduce(
+    (sum, item) => sum + (item.score_obtained || 0),
+    0
+  );
+
   // Fetch or create draft report
   const { data: existingReport, isLoading } = useQuery({
     queryKey: ["evaluation-report", new Date().getFullYear()],
@@ -94,7 +100,8 @@ export default function Evaluation() {
 
   useEffect(() => {
     if (items) {
-      setEvaluationItems(items);
+      // Only set items if they exist, ensuring empty array means zero score
+      setEvaluationItems(items.length > 0 ? items : []);
     }
   }, [items]);
 
@@ -178,15 +185,12 @@ export default function Evaluation() {
   };
 
   const getStepScore = (category: string) => {
+    // Ensure zero-based calculation
+    if (!evaluationItems || evaluationItems.length === 0) return 0;
     return evaluationItems
       .filter((item) => item.category === category)
       .reduce((sum, item) => sum + (item.score_obtained || 0), 0);
   };
-
-  const totalScore = evaluationItems.reduce(
-    (sum, item) => sum + (item.score_obtained || 0),
-    0
-  );
 
   if (isLoading) {
     return (

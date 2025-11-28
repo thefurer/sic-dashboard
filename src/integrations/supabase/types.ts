@@ -175,9 +175,13 @@ export type Database = {
       }
       evaluation_reports: {
         Row: {
+          admin_observations: string | null
+          correction_deadline: string | null
           created_at: string | null
           group_id: string
           id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           status: string
           submitted_at: string | null
           total_score: number | null
@@ -186,9 +190,13 @@ export type Database = {
           year: number
         }
         Insert: {
+          admin_observations?: string | null
+          correction_deadline?: string | null
           created_at?: string | null
           group_id: string
           id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string
           submitted_at?: string | null
           total_score?: number | null
@@ -197,9 +205,13 @@ export type Database = {
           year: number
         }
         Update: {
+          admin_observations?: string | null
+          correction_deadline?: string | null
           created_at?: string | null
           group_id?: string
           id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string
           submitted_at?: string | null
           total_score?: number | null

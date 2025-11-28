@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Sun, Moon } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
+import { UserNotificationBell } from "@/components/UserNotificationBell";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -24,6 +26,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const { theme, setTheme } = useTheme();
+  const { data: userRole } = useUserRole();
 
   const getInitials = (name: string) => {
     return name
@@ -55,7 +58,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>
             </Button>
-            <NotificationBell />
+            {userRole === "admin" ? <NotificationBell /> : <UserNotificationBell />}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 hover:opacity-80 transition-opacity">
