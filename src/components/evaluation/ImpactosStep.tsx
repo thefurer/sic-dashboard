@@ -173,7 +173,12 @@ export default function ImpactosStep({ reportId, items, onItemsChange }: Impacto
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated");
 
-      const fileName = `${user.id}/${reportId}/${indicatorName.replace(/\s+/g, "_")}_${index + 1}_${Date.now()}.pdf`;
+      // Sanitize filename: remove accents and special characters
+      const sanitizedName = indicatorName
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "_");
+      const fileName = `${user.id}/${reportId}/${sanitizedName}_${index + 1}_${Date.now()}.pdf`;
 
       const { error: uploadError } = await supabase.storage
         .from("evaluation-evidence")
