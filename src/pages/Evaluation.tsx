@@ -399,6 +399,7 @@ export default function Evaluation() {
               reportId={reportId}
               items={evaluationItems.filter((item) => item.category === "A")}
               onItemsChange={setEvaluationItems}
+              isReadOnly={existingReport?.status === "submitted" || existingReport?.status === "approved"}
             />
           )}
           {currentStep === 2 && (
@@ -406,6 +407,7 @@ export default function Evaluation() {
               reportId={reportId}
               items={evaluationItems.filter((item) => item.category === "B")}
               onItemsChange={setEvaluationItems}
+              isReadOnly={existingReport?.status === "submitted" || existingReport?.status === "approved"}
             />
           )}
           {currentStep === 3 && (
@@ -413,6 +415,7 @@ export default function Evaluation() {
               reportId={reportId}
               items={evaluationItems.filter((item) => item.category === "C")}
               onItemsChange={setEvaluationItems}
+              isReadOnly={existingReport?.status === "submitted" || existingReport?.status === "approved"}
             />
           )}
           {currentStep === 4 && (
@@ -420,6 +423,7 @@ export default function Evaluation() {
               reportId={reportId}
               items={evaluationItems.filter((item) => item.category === "D")}
               onItemsChange={setEvaluationItems}
+              isReadOnly={existingReport?.status === "submitted" || existingReport?.status === "approved"}
             />
           )}
           {currentStep === 5 && (

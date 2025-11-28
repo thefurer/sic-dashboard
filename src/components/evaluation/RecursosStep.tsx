@@ -20,6 +20,7 @@ interface RecursosStepProps {
   reportId: string | null;
   items: EvaluationItem[];
   onItemsChange: (items: any[]) => void;
+  isReadOnly?: boolean;
 }
 
 const INDICATORS = [
@@ -27,7 +28,7 @@ const INDICATORS = [
   { name: "Convocatorias Nacionales", points: 5, unitScore: 5 },
 ];
 
-export default function RecursosStep({ reportId, items, onItemsChange }: RecursosStepProps) {
+export default function RecursosStep({ reportId, items, onItemsChange, isReadOnly = false }: RecursosStepProps) {
   const [internacionalDialogOpen, setInternacionalDialogOpen] = useState(false);
   const [nacionalDialogOpen, setNacionalDialogOpen] = useState(false);
   const [editingInternacional, setEditingInternacional] = useState<ConvocatoriaEntry | null>(null);
@@ -184,6 +185,15 @@ export default function RecursosStep({ reportId, items, onItemsChange }: Recurso
         <h2 className="text-2xl font-bold text-foreground mb-2">Recursos Económicos</h2>
         <p className="text-muted-foreground">Sección C - Máximo 15 puntos</p>
       </div>
+
+      {isReadOnly && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+          <p className="text-sm text-amber-900 dark:text-amber-100">
+            <strong>Modo solo lectura:</strong> Esta evaluación ya fue enviada y no puede ser modificada. 
+            Si necesitas realizar cambios, contacta al administrador.
+          </p>
+        </div>
+      )}
 
       <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
         <p className="text-lg font-semibold text-primary">Puntos Sección C: {totalScore}/15</p>

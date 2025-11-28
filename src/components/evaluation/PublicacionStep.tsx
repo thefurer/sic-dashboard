@@ -27,6 +27,7 @@ interface PublicacionStepProps {
   reportId: string | null;
   items: EvaluationItem[];
   onItemsChange: (items: any[]) => void;
+  isReadOnly?: boolean;
 }
 
 const INDICATORS = [
@@ -37,7 +38,7 @@ const INDICATORS = [
   { name: "Ponencias", points: 5, unitScore: 1 },
 ];
 
-export default function PublicacionStep({ reportId, items, onItemsChange }: PublicacionStepProps) {
+export default function PublicacionStep({ reportId, items, onItemsChange, isReadOnly = false }: PublicacionStepProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [currentIndicator, setCurrentIndicator] = useState<string | null>(null);
@@ -384,6 +385,15 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
         </p>
       </div>
 
+      {isReadOnly && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+          <p className="text-sm text-amber-900 dark:text-amber-100">
+            <strong>Modo solo lectura:</strong> Esta evaluación ya fue enviada y no puede ser modificada. 
+            Si necesitas realizar cambios, contacta al administrador.
+          </p>
+        </div>
+      )}
+
       <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
         <p className="text-lg font-semibold text-primary">
           Puntos Sección A: {totalScore}/45
@@ -411,28 +421,30 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-semibold">Proyectos Registrados</h4>
-                      <div className="flex gap-2">
-                        {(itemData.project_entries || []).length > 0 && (
+                      {!isReadOnly && (
+                        <div className="flex gap-2">
+                          {(itemData.project_entries || []).length > 0 && (
+                            <Button
+                              onClick={() => handleClearAll(indicator.name)}
+                              size="sm"
+                              variant="ghost"
+                              className="gap-2 text-destructive hover:text-destructive"
+                            >
+                              <RefreshCcw className="w-4 h-4" />
+                              Limpiar Todo
+                            </Button>
+                          )}
                           <Button
-                            onClick={() => handleClearAll(indicator.name)}
+                            onClick={handleAddProjectEntry}
                             size="sm"
-                            variant="ghost"
-                            className="gap-2 text-destructive hover:text-destructive"
+                            variant="outline"
+                            className="gap-2"
                           >
-                            <RefreshCcw className="w-4 h-4" />
-                            Limpiar Todo
+                            <Plus className="w-4 h-4" />
+                            Agregar Proyecto
                           </Button>
-                        )}
-                        <Button
-                          onClick={handleAddProjectEntry}
-                          size="sm"
-                          variant="outline"
-                          className="gap-2"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Agregar Proyecto
-                        </Button>
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     {(itemData.project_entries || []).length === 0 ? (
@@ -461,22 +473,24 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEditProjectEntry(entry.id!)}
-                                >
-                                  Editar
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteProjectEntry(entry.id!)}
-                                >
-                                  <Trash2 className="w-4 h-4 text-destructive" />
-                                </Button>
-                              </div>
+                              {!isReadOnly && (
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEditProjectEntry(entry.id!)}
+                                  >
+                                    Editar
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteProjectEntry(entry.id!)}
+                                  >
+                                    <Trash2 className="w-4 h-4 text-destructive" />
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -491,28 +505,30 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-semibold">Entradas Registradas</Label>
-                      <div className="flex gap-2">
-                        {(itemData.entries || []).length > 0 && (
+                      {!isReadOnly && (
+                        <div className="flex gap-2">
+                          {(itemData.entries || []).length > 0 && (
+                            <Button
+                              onClick={() => handleClearAll(indicator.name)}
+                              size="sm"
+                              variant="ghost"
+                              className="gap-2 text-destructive hover:text-destructive"
+                            >
+                              <RefreshCcw className="w-4 h-4" />
+                              Limpiar Todo
+                            </Button>
+                          )}
                           <Button
-                            onClick={() => handleClearAll(indicator.name)}
+                            onClick={() => handleAddEntry(indicator.name)}
                             size="sm"
-                            variant="ghost"
-                            className="gap-2 text-destructive hover:text-destructive"
+                            variant="outline"
+                            className="gap-2"
                           >
-                            <RefreshCcw className="w-4 h-4" />
-                            Limpiar Todo
+                            <Plus className="w-4 h-4" />
+                            Agregar {indicator.name}
                           </Button>
-                        )}
-                        <Button
-                          onClick={() => handleAddEntry(indicator.name)}
-                          size="sm"
-                          variant="outline"
-                          className="gap-2"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Agregar {indicator.name}
-                        </Button>
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     {(itemData.entries || []).length === 0 ? (
@@ -539,22 +555,24 @@ export default function PublicacionStep({ reportId, items, onItemsChange }: Publ
                                 </p>
                               </div>
                             </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditEntry(indicator.name, entry.id!)}
-                              >
-                                Editar
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteEntry(indicator.name, entry.id!)}
-                              >
-                                <Trash2 className="w-4 h-4 text-destructive" />
-                              </Button>
-                            </div>
+                            {!isReadOnly && (
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditEntry(indicator.name, entry.id!)}
+                                >
+                                  Editar
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteEntry(indicator.name, entry.id!)}
+                                >
+                                  <Trash2 className="w-4 h-4 text-destructive" />
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         ))}
                        </div>
