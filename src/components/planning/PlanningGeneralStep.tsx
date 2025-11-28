@@ -57,7 +57,9 @@ export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGener
       
       // Parse meeting_schedule from JSONB array
       if (data.meeting_schedule && Array.isArray(data.meeting_schedule)) {
-        const dates = data.meeting_schedule.map((dateStr: string) => new Date(dateStr));
+        const dates = data.meeting_schedule
+          .map((dateStr: string) => new Date(dateStr))
+          .filter(date => !isNaN(date.getTime())); // Filter out invalid dates
         setMeetingDates(dates);
       }
       
