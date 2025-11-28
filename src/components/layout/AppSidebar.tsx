@@ -147,6 +147,18 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <NavLink
+                        to="/admin/evaluations"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <FileText className="h-5 w-5" />
+                        {state === "expanded" && <span>Revisión de Evaluaciones</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
                         to="/admin/settings"
                         className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                         activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"

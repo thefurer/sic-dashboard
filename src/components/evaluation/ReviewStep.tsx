@@ -8,9 +8,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FileText, Send, AlertCircle } from "lucide-react";
+import { FileText, Send, AlertCircle, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { generateEvaluationPDF } from "@/lib/evaluationPdfGenerator";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface EvaluationItem {
   category: string;
@@ -46,6 +52,64 @@ const CATEGORY_MAX_SCORES = {
 };
 
 export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting }: ReviewStepProps) {
+  const { data: report } = useQuery({
+    queryKey: ["evaluation-report", new Date().getFullYear()],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const currentYear = new Date().getFullYear();
+
+      const { data, error } = await supabase
+        .from("evaluation_reports")
+        .select(`
+          *,
+          profiles!evaluation_reports_user_id_fkey (full_name)
+        `)
+        .eq("user_id", user.id)
+        .eq("year", currentYear)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: observationAlert } = useQuery({
+    queryKey: ["evaluation-observation-alert"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const currentYear = new Date().getFullYear();
+
+      const { data, error } = await supabase
+        .from("evaluation_reports")
+        .select("admin_observations, correction_deadline")
+        .eq("user_id", user.id)
+        .eq("year", currentYear)
+        .eq("status", "observado")
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const handleDownloadPDF = async () => {
+    if (!report) return;
+
+    const userName = (report.profiles as any)?.full_name || "Usuario";
+    
+    await generateEvaluationPDF({
+      year: report.year,
+      total_score: totalScore,
+      status: report.status,
+      items: items,
+      userName: userName,
+    });
+  };
+
   const getCategoryScore = (category: string) => {
     return items
       .filter((item) => item.category === category)
@@ -67,6 +131,22 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting }
           Revise su evaluación antes de enviar el informe final
         </p>
       </div>
+
+      {/* Admin Observations Alert */}
+      {observationAlert && observationAlert.admin_observations && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <p className="font-semibold mb-2">Observaciones del Administrador:</p>
+            <p className="mb-2">{observationAlert.admin_observations}</p>
+            {observationAlert.correction_deadline && (
+              <p className="text-sm">
+                Fecha límite: {format(new Date(observationAlert.correction_deadline), "dd 'de' MMMM, yyyy", { locale: es })}
+              </p>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Validation Alert */}
       {!canSubmit && (
@@ -110,26 +190,49 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting }
         })}
       </div>
 
-      {/* Total Score Card */}
-      <Card className={`border-2 ${canSubmit ? "bg-gradient-to-r from-green-500/10 to-green-500/5 border-green-500" : "bg-gradient-to-r from-primary/10 to-primary/5 border-primary"}`}>
-        <CardContent className="pt-6">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">Puntuación Total</p>
-            <p className={`text-6xl font-bold mb-2 ${canSubmit ? "text-green-600" : "text-primary"}`}>
-              {totalScore}
-            </p>
-            <p className="text-2xl text-muted-foreground">/ 100 puntos</p>
-            <div className="mt-4">
-              <Badge
-                variant={canSubmit ? "default" : "outline"}
-                className={`text-lg px-4 py-1 ${canSubmit ? "bg-green-600" : ""}`}
-              >
-                {canSubmit ? "Completo" : `Faltan ${100 - totalScore} puntos`}
-              </Badge>
+      {/* Total Score and PDF Download */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className={`md:col-span-2 border-2 ${canSubmit ? "bg-gradient-to-r from-green-500/10 to-green-500/5 border-green-500" : "bg-gradient-to-r from-primary/10 to-primary/5 border-primary"}`}>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">Puntuación Total</p>
+              <p className={`text-6xl font-bold mb-2 ${canSubmit ? "text-green-600" : "text-primary"}`}>
+                {totalScore}
+              </p>
+              <p className="text-2xl text-muted-foreground">/ 100 puntos</p>
+              <div className="mt-4">
+                <Badge
+                  variant={canSubmit ? "default" : "outline"}
+                  className={`text-lg px-4 py-1 ${canSubmit ? "bg-green-600" : ""}`}
+                >
+                  {canSubmit ? "Completo" : `Faltan ${100 - totalScore} puntos`}
+                </Badge>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center h-full gap-4">
+              <Button
+                variant="outline"
+                onClick={handleDownloadPDF}
+                disabled={!report}
+                className="w-full"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Descargar Informe (PDF)
+              </Button>
+              {report?.status === 'draft' && (
+                <p className="text-xs text-muted-foreground text-center">
+                  El PDF incluirá marca de agua "BORRADOR"
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Detailed Items by Category */}
       {categories.map((category) => {
