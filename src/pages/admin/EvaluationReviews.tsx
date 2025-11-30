@@ -20,9 +20,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Search, Eye, Trash2 } from "lucide-react";
+import { Search, Eye, Trash2, FileText } from "lucide-react";
 import { ReviewModal } from "@/components/evaluation/ReviewModal";
 import { toast } from "sonner";
+import { generateGlobalEvaluationReport } from "@/lib/globalEvaluationReportGenerator";
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   submitted: { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", label: "🔴 Pendiente" },
@@ -80,6 +81,28 @@ export default function EvaluationReviews() {
     }
   };
 
+  const handleGenerateGlobalReport = async () => {
+    try {
+      const approvedReports = reports?.filter(r => r.status === 'approved') || [];
+      
+      if (approvedReports.length === 0) {
+        toast.error("No hay evaluaciones aprobadas para generar el informe");
+        return;
+      }
+
+      toast.loading("Generando informe global...");
+      await generateGlobalEvaluationReport(approvedReports, parseInt(selectedYear));
+      toast.dismiss();
+      toast.success("Informe global generado exitosamente");
+    } catch (error: any) {
+      console.error("Global report error:", error);
+      toast.dismiss();
+      toast.error("Error al generar informe", {
+        description: error.message || "No se pudo generar el informe"
+      });
+    }
+  };
+
   const filteredReports = reports?.filter((report) => {
     const userName = (report.profiles as any)?.full_name?.toLowerCase() || "";
     return userName.includes(searchTerm.toLowerCase());
@@ -91,11 +114,21 @@ export default function EvaluationReviews() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Revisión de Evaluaciones</h1>
-        <p className="text-muted-foreground">
-          Revisa y aprueba las evaluaciones anuales enviadas por los investigadores
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Revisión de Evaluaciones</h1>
+          <p className="text-muted-foreground">
+            Revisa y aprueba las evaluaciones anuales enviadas por los investigadores
+          </p>
+        </div>
+        <Button
+          onClick={handleGenerateGlobalReport}
+          size="lg"
+          className="gap-2"
+        >
+          <FileText className="w-4 h-4" />
+          Generar Informe General (PDF)
+        </Button>
       </div>
 
       <Card className="p-6">
