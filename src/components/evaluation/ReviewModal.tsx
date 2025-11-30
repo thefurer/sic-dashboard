@@ -252,12 +252,14 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
 
                                 {/* Article Metadata */}
                                 {articleMeta && (
-                                  <div className="mb-3 p-3 bg-muted/50 rounded text-xs space-y-1">
-                                    {articleMeta.title && <p><strong>Título:</strong> {articleMeta.title}</p>}
-                                    {articleMeta.authors && <p><strong>Autores:</strong> {articleMeta.authors}</p>}
+                                  <div className="mb-3 p-3 bg-muted/30 rounded-md border text-xs space-y-1.5">
+                                    {articleMeta.title && <p className="break-words"><strong>Título:</strong> {articleMeta.title}</p>}
+                                    {articleMeta.authors && <p className="break-words"><strong>Autores:</strong> {articleMeta.authors}</p>}
                                     {articleMeta.journal && <p><strong>Revista:</strong> {articleMeta.journal}</p>}
+                                    {articleMeta.editorial && <p><strong>Editorial:</strong> {articleMeta.editorial}</p>}
                                     {articleMeta.issn && <p><strong>ISSN:</strong> {articleMeta.issn}</p>}
-                                    {articleMeta.doi && <p><strong>DOI:</strong> {articleMeta.doi}</p>}
+                                    {articleMeta.isbn && <p><strong>ISBN:</strong> {articleMeta.isbn}</p>}
+                                    {articleMeta.doi && <p className="break-all font-mono"><strong>DOI:</strong> {articleMeta.doi}</p>}
                                     {articleMeta.quartile && <p><strong>Cuartil:</strong> {articleMeta.quartile}</p>}
                                     {articleMeta.indexed_in && <p><strong>Indizado en:</strong> {articleMeta.indexed_in}</p>}
                                   </div>
@@ -300,24 +302,33 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
 
                                 {/* Evidence Files */}
                                 {evidenceDetails.length > 0 && (
-                                  <div className="space-y-2">
-                                    <p className="text-xs font-semibold">Evidencias Cargadas:</p>
+                                  <div className="space-y-2 mt-3">
+                                    <div className="flex items-center gap-2 text-xs font-semibold">
+                                      <FileText className="w-3 h-3" />
+                                      Evidencias Cargadas ({evidenceDetails.length}):
+                                    </div>
                                     {evidenceDetails.map((evidence, idx) => (
-                                      <div key={idx} className="flex items-start gap-2 p-2 bg-slate-50 dark:bg-slate-900 rounded">
+                                      <div key={idx} className="flex items-start gap-3 p-3 bg-card border rounded-md hover:bg-accent/50 transition-colors">
+                                        <FileText className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-xs font-semibold text-foreground">
+                                            {evidence.description || `Documento ${idx + 1}`}
+                                          </p>
+                                          {evidence.url && (
+                                            <p className="text-xs text-muted-foreground mt-0.5 truncate font-mono">
+                                              {evidence.url.split('/').pop()}
+                                            </p>
+                                          )}
+                                        </div>
                                         <Button
-                                          variant="ghost"
+                                          variant="default"
                                           size="sm"
                                           className="h-7 text-xs shrink-0"
                                           onClick={() => handleOpenEvidence(evidence.url)}
                                         >
                                           <ExternalLink className="w-3 h-3 mr-1" />
-                                          Archivo {idx + 1}
+                                          Ver Documento
                                         </Button>
-                                        {evidence.description && (
-                                          <p className="text-xs text-muted-foreground italic flex-1">
-                                            {evidence.description}
-                                          </p>
-                                        )}
                                       </div>
                                     ))}
                                   </div>
@@ -427,9 +438,23 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
                                   </span>
                                 </div>
 
-                                {item.monto && (
-                                  <div className="mb-3 p-2 bg-green-50 dark:bg-green-950/20 rounded text-xs">
-                                    <p><strong>Monto Asignado:</strong> ${item.monto.toFixed(2)} USD</p>
+                                {item.monto !== undefined && item.monto !== null && (
+                                  <div className="mb-3 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-md text-xs">
+                                    <p className="font-bold text-green-700 dark:text-green-400">
+                                      Monto Asignado: ${Number(item.monto).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                                    </p>
+                                  </div>
+                                )}
+
+                                {item.fase && (
+                                  <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-950/20 rounded text-xs">
+                                    <p><strong>Fase:</strong> <span className="capitalize">{item.fase}</span></p>
+                                  </div>
+                                )}
+
+                                {item.porcentaje_ejecucion !== undefined && item.porcentaje_ejecucion !== null && (
+                                  <div className="mb-3 p-2 bg-indigo-50 dark:bg-indigo-950/20 rounded text-xs">
+                                    <p><strong>Porcentaje de Ejecución:</strong> {item.porcentaje_ejecucion}%</p>
                                   </div>
                                 )}
 
@@ -441,24 +466,33 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
                                 )}
 
                                 {evidenceDetails.length > 0 && (
-                                  <div className="space-y-2">
-                                    <p className="text-xs font-semibold">Evidencias Cargadas:</p>
+                                  <div className="space-y-2 mt-3">
+                                    <div className="flex items-center gap-2 text-xs font-semibold">
+                                      <FileText className="w-3 h-3" />
+                                      Evidencias Cargadas ({evidenceDetails.length}):
+                                    </div>
                                     {evidenceDetails.map((evidence, idx) => (
-                                      <div key={idx} className="flex items-start gap-2 p-2 bg-slate-50 dark:bg-slate-900 rounded">
+                                      <div key={idx} className="flex items-start gap-3 p-3 bg-card border rounded-md hover:bg-accent/50 transition-colors">
+                                        <FileText className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-xs font-semibold text-foreground">
+                                            {evidence.description || `Documento ${idx + 1}`}
+                                          </p>
+                                          {evidence.url && (
+                                            <p className="text-xs text-muted-foreground mt-0.5 truncate font-mono">
+                                              {evidence.url.split('/').pop()}
+                                            </p>
+                                          )}
+                                        </div>
                                         <Button
-                                          variant="ghost"
+                                          variant="default"
                                           size="sm"
                                           className="h-7 text-xs shrink-0"
                                           onClick={() => handleOpenEvidence(evidence.url)}
                                         >
                                           <ExternalLink className="w-3 h-3 mr-1" />
-                                          Archivo {idx + 1}
+                                          Ver Documento
                                         </Button>
-                                        {evidence.description && (
-                                          <p className="text-xs text-muted-foreground italic flex-1">
-                                            {evidence.description}
-                                          </p>
-                                        )}
                                       </div>
                                     ))}
                                   </div>
@@ -498,31 +532,40 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
                                 </div>
 
                                 {item.justification && (
-                                  <div className="mb-3 p-3 bg-amber-50 dark:bg-amber-950/20 rounded text-xs">
+                                  <div className="mb-3 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-md border border-amber-200 dark:border-amber-900 text-xs">
                                     <strong>Justificación del Impacto:</strong>
-                                    <p className="mt-1 italic whitespace-pre-wrap">{item.justification}</p>
+                                    <p className="mt-2 italic whitespace-pre-wrap text-foreground/90">{item.justification}</p>
                                   </div>
                                 )}
 
                                 {evidenceDetails.length > 0 && (
-                                  <div className="space-y-2">
-                                    <p className="text-xs font-semibold">Evidencias Cargadas:</p>
+                                  <div className="space-y-2 mt-3">
+                                    <div className="flex items-center gap-2 text-xs font-semibold">
+                                      <FileText className="w-3 h-3" />
+                                      Evidencias Cargadas ({evidenceDetails.length}):
+                                    </div>
                                     {evidenceDetails.map((evidence, idx) => (
-                                      <div key={idx} className="flex items-start gap-2 p-2 bg-slate-50 dark:bg-slate-900 rounded">
+                                      <div key={idx} className="flex items-start gap-3 p-3 bg-card border rounded-md hover:bg-accent/50 transition-colors">
+                                        <FileText className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-xs font-semibold text-foreground">
+                                            {evidence.description || `Documento ${idx + 1}`}
+                                          </p>
+                                          {evidence.url && (
+                                            <p className="text-xs text-muted-foreground mt-0.5 truncate font-mono">
+                                              {evidence.url.split('/').pop()}
+                                            </p>
+                                          )}
+                                        </div>
                                         <Button
-                                          variant="ghost"
+                                          variant="default"
                                           size="sm"
                                           className="h-7 text-xs shrink-0"
                                           onClick={() => handleOpenEvidence(evidence.url)}
                                         >
                                           <ExternalLink className="w-3 h-3 mr-1" />
-                                          Archivo {idx + 1}
+                                          Ver Documento
                                         </Button>
-                                        {evidence.description && (
-                                          <p className="text-xs text-muted-foreground italic flex-1">
-                                            {evidence.description}
-                                          </p>
-                                        )}
                                       </div>
                                     ))}
                                   </div>
