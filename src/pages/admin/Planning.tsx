@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/StatusBadge";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function Planning() {
@@ -144,9 +144,14 @@ export default function Planning() {
                           const item = plan.meeting_schedule[0];
                           if (typeof item === 'object' && item !== null && 'date' in item) {
                             const dateValue = item.date as string;
-                            return `${format(new Date(dateValue), "PPP", { locale: es })}${item.time ? ` ${item.time}` : ''}`;
+                            const parsedDate = new Date(dateValue);
+                            if (isValid(parsedDate)) {
+                              return `${format(parsedDate, "PPP", { locale: es })}${item.time ? ` ${item.time}` : ''}`;
+                            }
+                            return "Fecha inválida";
                           }
-                          return typeof item === 'string' ? format(new Date(item), "PPP", { locale: es }) : "Sin fechas";
+                          const parsedDate = new Date(item as string);
+                          return typeof item === 'string' && isValid(parsedDate) ? format(parsedDate, "PPP", { locale: es }) : "Sin fechas";
                         }
                         return `${plan.meeting_schedule.length} fechas programadas`;
                       }
