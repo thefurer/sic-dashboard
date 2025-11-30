@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -13,11 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, CheckCircle2, AlertCircle } from "lucide-react";
+import { CalendarIcon, CheckCircle2, AlertCircle, ExternalLink, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ReviewModalProps {
   open: boolean;
@@ -36,6 +37,22 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
   const [observations, setObservations] = useState("");
   const [deadline, setDeadline] = useState<Date>();
   const queryClient = useQueryClient();
+
+  // Fetch evaluation items with evidence
+  const { data: evaluationItems } = useQuery({
+    queryKey: ["evaluation-items", report.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("evaluation_items")
+        .select("*")
+        .eq("report_id", report.id)
+        .order("category", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open,
+  });
 
   const approveMutation = useMutation({
     mutationFn: async () => {
@@ -138,6 +155,63 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
               </p>
             )}
           </div>
+
+          {/* Evidence Details Section */}
+          {evaluationItems && evaluationItems.length > 0 && (
+            <div className="rounded-lg border p-4">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Evidencias Cargadas
+              </h3>
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-4">
+                  {evaluationItems.map((item) => {
+                    const evidenceDetails = item.evidence_details as Array<{url: string, description: string}> || [];
+                    return (
+                      <div key={item.id} className="border-l-2 border-primary pl-4 pb-4">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div>
+                            <p className="font-medium text-sm">{item.indicator_name}</p>
+                            <p className="text-xs text-muted-foreground">Categoría {item.category}</p>
+                          </div>
+                          <span className="text-xs font-semibold text-primary">
+                            {item.score_obtained || 0} pts
+                          </span>
+                        </div>
+                        {item.justification && (
+                          <p className="text-sm text-muted-foreground mb-2 italic">
+                            {item.justification}
+                          </p>
+                        )}
+                        {evidenceDetails.length > 0 && (
+                          <div className="space-y-2 mt-2">
+                            {evidenceDetails.map((evidence, idx) => (
+                              <div key={idx} className="flex items-center gap-2 text-sm">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8"
+                                  onClick={() => window.open(evidence.url, '_blank')}
+                                >
+                                  <ExternalLink className="w-3 h-3 mr-1" />
+                                  Ver Evidencia {idx + 1}
+                                </Button>
+                                {evidence.description && (
+                                  <span className="text-xs text-muted-foreground truncate">
+                                    {evidence.description}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
 
           <div className="space-y-3">
             <Label htmlFor="observations">Observaciones / Correcciones</Label>

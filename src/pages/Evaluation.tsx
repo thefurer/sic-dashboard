@@ -405,6 +405,36 @@ export default function Evaluation() {
             </div>
           )}
 
+          {/* Approved Banner with New Evaluation Button */}
+          {existingReport?.status === "approved" && (
+            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">✓</div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-green-900 dark:text-green-100 mb-1">
+                    Evaluación Aprobada
+                  </h3>
+                  <p className="text-sm text-green-800 dark:text-green-200 mb-3">
+                    Esta evaluación ha sido aprobada por el administrador. Está en modo solo lectura.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (window.confirm("¿Deseas iniciar una nueva evaluación para el año " + (new Date().getFullYear() + 1) + "?")) {
+                        navigate("/evaluation?new=true");
+                        window.location.reload();
+                      }
+                    }}
+                    className="border-green-500 text-green-700 hover:bg-green-50 dark:hover:bg-green-900/30"
+                  >
+                    Iniciar Nueva Evaluación ({new Date().getFullYear() + 1})
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Correction Alert Banner */}
           {existingReport?.status === "observado" && (
             <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
