@@ -128,7 +128,7 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Revisar Evaluación - {userName}</DialogTitle>
           <DialogDescription>
@@ -156,58 +156,178 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
             )}
           </div>
 
-          {/* Evidence Details Section */}
+          {/* Evidence Details Section - Grouped by Category */}
           {evaluationItems && evaluationItems.length > 0 && (
             <div className="rounded-lg border p-4">
               <h3 className="font-semibold mb-3 flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                Evidencias Cargadas
+                Evidencias Cargadas ({evaluationItems.length} items)
               </h3>
-              <ScrollArea className="h-[300px] pr-4">
-                <div className="space-y-4">
-                  {evaluationItems.map((item) => {
-                    const evidenceDetails = item.evidence_details as Array<{url: string, description: string}> || [];
-                    return (
-                      <div key={item.id} className="border-l-2 border-primary pl-4 pb-4">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div>
-                            <p className="font-medium text-sm">{item.indicator_name}</p>
-                            <p className="text-xs text-muted-foreground">Categoría {item.category}</p>
-                          </div>
-                          <span className="text-xs font-semibold text-primary">
-                            {item.score_obtained || 0} pts
-                          </span>
-                        </div>
-                        {item.justification && (
-                          <p className="text-sm text-muted-foreground mb-2 italic">
-                            {item.justification}
-                          </p>
-                        )}
-                        {evidenceDetails.length > 0 && (
-                          <div className="space-y-2 mt-2">
-                            {evidenceDetails.map((evidence, idx) => (
-                              <div key={idx} className="flex items-center gap-2 text-sm">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8"
-                                  onClick={() => window.open(evidence.url, '_blank')}
-                                >
-                                  <ExternalLink className="w-3 h-3 mr-1" />
-                                  Ver Evidencia {idx + 1}
-                                </Button>
-                                {evidence.description && (
-                                  <span className="text-xs text-muted-foreground truncate">
-                                    {evidence.description}
-                                  </span>
-                                )}
+              <ScrollArea className="h-[400px] pr-4">
+                <div className="space-y-6">
+                  {/* Section A: Publication */}
+                  {evaluationItems.filter(i => i.category === 'A').length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-3 text-primary">Sección A: Publicación</h4>
+                      <div className="space-y-3">
+                        {evaluationItems.filter(i => i.category === 'A').map((item) => {
+                          const evidenceDetails = item.evidence_details as Array<{url: string, description: string}> || [];
+                          return (
+                            <div key={item.id} className="border-l-2 border-blue-500 pl-4 pb-3 bg-blue-50/50 dark:bg-blue-950/20 rounded-r">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <p className="font-medium text-sm">{item.indicator_name}</p>
+                                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                  {item.score_obtained || 0} pts
+                                </span>
                               </div>
-                            ))}
-                          </div>
-                        )}
+                              {item.justification && (
+                                <p className="text-xs text-muted-foreground mb-2 italic">{item.justification}</p>
+                              )}
+                              {evidenceDetails.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {evidenceDetails.map((evidence, idx) => (
+                                    <Button
+                                      key={idx}
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 text-xs"
+                                      onClick={() => window.open(evidence.url, '_blank')}
+                                    >
+                                      <ExternalLink className="w-3 h-3 mr-1" />
+                                      Evidencia {idx + 1}
+                                    </Button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
+                    </div>
+                  )}
+                  
+                  {/* Section B: Transfer */}
+                  {evaluationItems.filter(i => i.category === 'B').length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-3 text-primary">Sección B: Transferencia</h4>
+                      <div className="space-y-3">
+                        {evaluationItems.filter(i => i.category === 'B').map((item) => {
+                          const evidenceDetails = item.evidence_details as Array<{url: string, description: string}> || [];
+                          return (
+                            <div key={item.id} className="border-l-2 border-green-500 pl-4 pb-3 bg-green-50/50 dark:bg-green-950/20 rounded-r">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <p className="font-medium text-sm">{item.indicator_name}</p>
+                                <span className="text-xs font-semibold text-green-600 dark:text-green-400">
+                                  {item.score_obtained || 0} pts
+                                </span>
+                              </div>
+                              {item.justification && (
+                                <p className="text-xs text-muted-foreground mb-2 italic">{item.justification}</p>
+                              )}
+                              {evidenceDetails.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {evidenceDetails.map((evidence, idx) => (
+                                    <Button
+                                      key={idx}
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 text-xs"
+                                      onClick={() => window.open(evidence.url, '_blank')}
+                                    >
+                                      <ExternalLink className="w-3 h-3 mr-1" />
+                                      Evidencia {idx + 1}
+                                    </Button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Section C: Resources */}
+                  {evaluationItems.filter(i => i.category === 'C').length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-3 text-primary">Sección C: Recursos</h4>
+                      <div className="space-y-3">
+                        {evaluationItems.filter(i => i.category === 'C').map((item) => {
+                          const evidenceDetails = item.evidence_details as Array<{url: string, description: string}> || [];
+                          return (
+                            <div key={item.id} className="border-l-2 border-purple-500 pl-4 pb-3 bg-purple-50/50 dark:bg-purple-950/20 rounded-r">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <p className="font-medium text-sm">{item.indicator_name}</p>
+                                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                                  {item.score_obtained || 0} pts
+                                </span>
+                              </div>
+                              {item.justification && (
+                                <p className="text-xs text-muted-foreground mb-2 italic">{item.justification}</p>
+                              )}
+                              {evidenceDetails.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {evidenceDetails.map((evidence, idx) => (
+                                    <Button
+                                      key={idx}
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 text-xs"
+                                      onClick={() => window.open(evidence.url, '_blank')}
+                                    >
+                                      <ExternalLink className="w-3 h-3 mr-1" />
+                                      Evidencia {idx + 1}
+                                    </Button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Section D: Impacts */}
+                  {evaluationItems.filter(i => i.category === 'D').length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-3 text-primary">Sección D: Impactos</h4>
+                      <div className="space-y-3">
+                        {evaluationItems.filter(i => i.category === 'D').map((item) => {
+                          const evidenceDetails = item.evidence_details as Array<{url: string, description: string}> || [];
+                          return (
+                            <div key={item.id} className="border-l-2 border-orange-500 pl-4 pb-3 bg-orange-50/50 dark:bg-orange-950/20 rounded-r">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <p className="font-medium text-sm">{item.indicator_name}</p>
+                                <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">
+                                  {item.score_obtained || 0} pts
+                                </span>
+                              </div>
+                              {item.justification && (
+                                <p className="text-xs text-muted-foreground mb-2 italic">{item.justification}</p>
+                              )}
+                              {evidenceDetails.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {evidenceDetails.map((evidence, idx) => (
+                                    <Button
+                                      key={idx}
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 text-xs"
+                                      onClick={() => window.open(evidence.url, '_blank')}
+                                    >
+                                      <ExternalLink className="w-3 h-3 mr-1" />
+                                      Evidencia {idx + 1}
+                                    </Button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             </div>
