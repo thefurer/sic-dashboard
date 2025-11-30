@@ -94,7 +94,7 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
       const { error } = await supabase
         .from("evaluation_reports")
         .update({
-          status: "observado",
+          status: "needs_correction",
           admin_observations: observations,
           correction_deadline: deadline?.toISOString().split('T')[0] || null,
           reviewed_at: new Date().toISOString(),
