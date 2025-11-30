@@ -43,7 +43,7 @@ export default function EvaluationReviews() {
         .from("evaluation_reports")
         .select(`
           *,
-          profiles!evaluation_reports_user_id_fkey (
+          profiles (
             full_name,
             email
           )
