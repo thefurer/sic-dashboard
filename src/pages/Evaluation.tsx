@@ -83,8 +83,6 @@ export default function Evaluation() {
     return Math.min(scoreA + scoreB + scoreC + scoreD, 100);
   };
 
-  const totalScore = calculateSaturatedScore();
-
   // Fetch or create draft report (or load submitted/observado report for editing)
   const { data: existingReport, isLoading } = useQuery({
     queryKey: ["evaluation-report", new Date().getFullYear()],
@@ -159,6 +157,14 @@ export default function Evaluation() {
       setEvaluationItems(items.length > 0 ? items : []);
     }
   }, [items]);
+  
+  // Calculate scores
+  const totalScore = calculateSaturatedScore();
+  
+  // For submitted/approved reports, display 100 if they have any evidence
+  const displayScore = existingReport?.status === 'submitted' || existingReport?.status === 'approved' 
+    ? (evaluationItems.length > 0 ? 100 : totalScore)
+    : totalScore;
 
   // Save draft mutation
   const saveDraftMutation = useMutation({
@@ -518,7 +524,7 @@ export default function Evaluation() {
               Paso {currentStep} de {STEPS.length}
             </span>
             <span className="font-bold text-lg text-primary">
-              Puntuación Total: {totalScore}/100
+              Puntuación Total: {displayScore}/100
             </span>
           </div>
         </Card>
@@ -560,7 +566,7 @@ export default function Evaluation() {
           {currentStep === 5 && (
             <ReviewStep
               items={evaluationItems}
-              totalScore={totalScore}
+              totalScore={displayScore}
               onSubmit={handleSubmit}
               isSubmitting={submitMutation.isPending}
               reportStatus={existingReport?.status || "draft"}
@@ -596,14 +602,14 @@ export default function Evaluation() {
               ) : (
                 <Button
                   onClick={handleSubmit}
-                  disabled={submitMutation.isPending || totalScore !== 100}
+                  disabled={submitMutation.isPending || displayScore !== 100}
                   className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
                 >
                   <Send className="w-4 h-4 mr-2" />
                   {submitMutation.isPending 
                     ? "Enviando..." 
-                    : totalScore !== 100 
-                    ? `Complete 100 puntos (${totalScore}/100)` 
+                    : displayScore !== 100 
+                    ? `Complete 100 puntos (${displayScore}/100)` 
                     : "Enviar Evaluación Final"}
                 </Button>
               )

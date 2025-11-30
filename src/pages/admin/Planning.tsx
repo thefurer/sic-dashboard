@@ -136,11 +136,22 @@ export default function Planning() {
                   </p>
                   <p>
                     <strong>Reuniones:</strong>{" "}
-                    {Array.isArray(plan.meeting_schedule) && plan.meeting_schedule.length > 0
-                      ? plan.meeting_schedule.length === 1
-                        ? String(plan.meeting_schedule[0])
-                        : `${plan.meeting_schedule.length} fechas programadas`
-                      : "Sin fechas"}
+                    {(() => {
+                      if (!plan.meeting_schedule) return "Sin fechas";
+                      if (Array.isArray(plan.meeting_schedule)) {
+                        if (plan.meeting_schedule.length === 0) return "Sin fechas";
+                        if (plan.meeting_schedule.length === 1) {
+                          const item = plan.meeting_schedule[0];
+                          if (typeof item === 'object' && item !== null && 'date' in item) {
+                            const dateValue = item.date as string;
+                            return `${format(new Date(dateValue), "PPP", { locale: es })}${item.time ? ` ${item.time}` : ''}`;
+                          }
+                          return typeof item === 'string' ? format(new Date(item), "PPP", { locale: es }) : "Sin fechas";
+                        }
+                        return `${plan.meeting_schedule.length} fechas programadas`;
+                      }
+                      return "Sin fechas";
+                    })()}
                   </p>
                 </div>
               </CardContent>
