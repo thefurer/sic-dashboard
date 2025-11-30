@@ -29,7 +29,7 @@ export function UserNotificationBell() {
         .select("*")
         .eq("user_id", user.id)
         .eq("year", currentYear)
-        .eq("status", "observado")
+        .eq("status", "needs_correction")
         .maybeSingle();
 
       if (error) throw error;

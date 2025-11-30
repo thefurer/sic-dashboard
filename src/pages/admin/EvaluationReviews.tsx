@@ -26,7 +26,7 @@ import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   submitted: { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", label: "🔴 Pendiente" },
-  observado: { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-400", label: "🟡 Observado" },
+  needs_correction: { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-400", label: "🟡 Corrección Requerida" },
   approved: { bg: "bg-green-100 dark:bg-green-900/30", text: "text-green-700 dark:text-green-400", label: "🟢 Aprobado" },
 };
 
@@ -50,7 +50,7 @@ export default function EvaluationReviews() {
           )
         `)
         .eq("year", parseInt(selectedYear))
-        .in("status", ["submitted", "observado", "approved"])
+        .in("status", ["submitted", "needs_correction", "approved"])
         .order("submitted_at", { ascending: sortBy === "oldest" });
 
       if (error) throw error;
