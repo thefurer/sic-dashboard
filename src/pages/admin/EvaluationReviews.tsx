@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,6 +35,7 @@ export default function EvaluationReviews() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [reviewingReport, setReviewingReport] = useState<any>(null);
+  const queryClient = useQueryClient();
 
   const { data: reports, isLoading, refetch } = useQuery({
     queryKey: ["evaluation-reports", selectedYear],
@@ -58,18 +59,24 @@ export default function EvaluationReviews() {
   });
 
   const handleDelete = async (reportId: string) => {
-    if (!window.confirm("¿Estás seguro de eliminar esta evaluación?")) return;
+    if (!window.confirm("¿Estás seguro de eliminar esta evaluación? Esto también eliminará todos los ítems asociados.")) return;
 
-    const { error } = await supabase
-      .from("evaluation_reports")
-      .delete()
-      .eq("id", reportId);
+    try {
+      const { error } = await supabase
+        .from("evaluation_reports")
+        .delete()
+        .eq("id", reportId);
 
-    if (error) {
-      toast.error("Error al eliminar", { description: error.message });
-    } else {
-      toast.success("Evaluación eliminada");
-      refetch();
+      if (error) throw error;
+      
+      toast.success("Evaluación eliminada exitosamente");
+      await queryClient.invalidateQueries({ queryKey: ["evaluation-reports"] });
+      await queryClient.refetchQueries({ queryKey: ["evaluation-reports"] });
+    } catch (error: any) {
+      console.error("Delete error:", error);
+      toast.error("Error al eliminar", { 
+        description: error.message || "No se pudo eliminar la evaluación" 
+      });
     }
   };
 
