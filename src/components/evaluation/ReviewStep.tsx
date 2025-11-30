@@ -206,44 +206,38 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
   };
 
   const getCategoryItems = (category: string) => {
-    // Group items by indicator_name to prevent duplicates
+    // Filter items by category and ensure uniqueness by id
     const categoryItems = items.filter((item) => item.category === category);
     
-    // For category D, deduplicate by indicator type
+    // For category D, deduplicate by exact indicator_name (Social/Ambiental/Económico)
     if (category === 'D') {
-      const grouped: Record<string, any> = {};
+      const uniqueByType = new Map();
       categoryItems.forEach(item => {
-        const indicatorType = item.indicator_name?.includes('Social') ? 'Social' 
-          : item.indicator_name?.includes('Ambiental') ? 'Ambiental'
-          : item.indicator_name?.includes('Económico') ? 'Económico'
-          : item.indicator_name;
-        
-        if (!grouped[indicatorType]) {
-          grouped[indicatorType] = {
+        const key = item.indicator_name;
+        // Only keep first occurrence of each indicator type
+        if (!uniqueByType.has(key)) {
+          uniqueByType.set(key, {
             ...item,
             quantity: 1,
-            score_obtained: item.indicator_name?.includes('Social') ? 10
-              : item.indicator_name?.includes('Ambiental') ? 10
-              : item.indicator_name?.includes('Económico') ? 10
-              : item.score_obtained
-          };
+            score_obtained: 10 // Each impact type = 10 pts
+          });
         }
       });
-      return Object.values(grouped);
+      return Array.from(uniqueByType.values());
     }
     
-    // For other categories, group by indicator_name
-    const grouped: Record<string, any> = {};
+    // For other categories, deduplicate by indicator_name
+    const uniqueByName = new Map();
     categoryItems.forEach(item => {
-      if (!grouped[item.indicator_name]) {
-        grouped[item.indicator_name] = {
+      if (!uniqueByName.has(item.indicator_name)) {
+        uniqueByName.set(item.indicator_name, {
           ...item,
           quantity: 1
-        };
+        });
       }
     });
     
-    return Object.values(grouped);
+    return Array.from(uniqueByName.values());
   };
 
   const canSubmit = totalScore === 100 && reportStatus === "draft";
@@ -423,9 +417,9 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {categoryItems.map((item, index) => (
+                    {categoryItems.map((item) => (
                       <>
-                        <TableRow key={`${item.indicator_name}-${index}`}>
+                        <TableRow key={item.id || `${item.indicator_name}-${item.category}`}>
                           <TableCell className="font-medium">{item.indicator_name}</TableCell>
                           <TableCell className="text-center">
                             {category === "D" ? "-" : item.quantity || 0}
@@ -461,7 +455,7 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
                           </TableCell>
                         </TableRow>
                         {category === "D" && item.justification && (
-                          <TableRow key={`${item.indicator_name}-${index}-justification`}>
+                          <TableRow key={`${item.id || item.indicator_name}-justification`}>
                             <TableCell colSpan={4} className="text-sm">
                               <span className="font-medium">Justificación:</span> {item.justification}
                             </TableCell>

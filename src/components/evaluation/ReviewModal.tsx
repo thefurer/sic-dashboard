@@ -38,7 +38,7 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
   const [deadline, setDeadline] = useState<Date>();
   const queryClient = useQueryClient();
 
-  // Fetch evaluation items with evidence
+  // Fetch evaluation items with evidence - deduplicate Section D by indicator_name
   const { data: evaluationItems } = useQuery({
     queryKey: ["evaluation-items", report.id],
     queryFn: async () => {
@@ -49,7 +49,25 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
         .order("category", { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      
+      // Deduplicate Section D items by indicator_name
+      const items = data || [];
+      const uniqueItems = new Map();
+      
+      items.forEach(item => {
+        if (item.category === 'D') {
+          // For Section D, only keep one entry per indicator type
+          const key = item.indicator_name;
+          if (!uniqueItems.has(key)) {
+            uniqueItems.set(key, item);
+          }
+        } else {
+          // For other sections, keep all items
+          uniqueItems.set(item.id, item);
+        }
+      });
+      
+      return Array.from(uniqueItems.values());
     },
     enabled: open,
   });
