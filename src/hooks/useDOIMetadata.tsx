@@ -8,7 +8,10 @@ export interface ArticleMetadata {
   journal?: string;
   volume?: string;
   issue?: string;
+  issn?: string;
   doi: string;
+  publisher?: string;
+  url?: string;
 }
 
 export function useDOIMetadata() {
@@ -45,6 +48,9 @@ export function useDOIMetadata() {
       const volume = work.volume || "";
       const issue = work.issue || "";
       
+      // Extract ISSN (CrossRef typically returns an array)
+      const issn = work.ISSN?.[0] || "";
+      
       const metadata: ArticleMetadata = {
         title: work.title?.[0] || "",
         authors,
@@ -52,7 +58,10 @@ export function useDOIMetadata() {
         journal,
         volume,
         issue,
+        issn,
         doi: cleanDOI,
+        publisher: work.publisher || "",
+        url: work.URL || "",
       };
       
       toast({

@@ -6,10 +6,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Mail, Phone, FileText, Trash2, Download } from "lucide-react";
+import { Loader2, Mail, Phone, FileText, Trash2, Download, Filter } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Profile {
   id: string;
@@ -22,11 +24,22 @@ interface Profile {
   cv_url: string | null;
   is_approved: boolean;
   created_at: string;
+  research_role: string | null;
 }
+
+const RESEARCH_ROLES = [
+  'Director de proyecto',
+  'Investigador principal',
+  'Investigador asociado',
+  'Investigador',
+  'Estudiante Investigador',
+  'Personal técnico'
+];
 
 export default function UserDirectory() {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
@@ -39,6 +52,24 @@ export default function UserDirectory() {
 
       if (error) throw error;
       return data as Profile[];
+    },
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ research_role: role })
+        .eq("id", userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-users"] });
+      toast.success("Rol actualizado correctamente");
+    },
+    onError: () => {
+      toast.error("Error al actualizar rol");
     },
   });
 
@@ -70,6 +101,12 @@ export default function UserDirectory() {
       .slice(0, 2);
   };
 
+  const filteredUsers = users?.filter((user) => {
+    if (roleFilter === "all") return true;
+    if (roleFilter === "none") return !user.research_role;
+    return user.research_role === roleFilter;
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -79,11 +116,34 @@ export default function UserDirectory() {
         </p>
       </div>
 
+      <Card className="mb-4">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
+            <Filter className="h-5 w-5 text-muted-foreground" />
+            <Label>Filtrar por Rol:</Label>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-[280px]">
+                <SelectValue placeholder="Todos los roles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los roles</SelectItem>
+                <SelectItem value="none">Sin rol asignado</SelectItem>
+                {RESEARCH_ROLES.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Todos los Usuarios</CardTitle>
           <CardDescription>
-            {users?.length || 0} usuarios en total
+            {filteredUsers?.length || 0} usuarios mostrados {roleFilter !== "all" && `(de ${users?.length || 0} total)`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -91,19 +151,20 @@ export default function UserDirectory() {
             <div className="flex justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : users && users.length > 0 ? (
+          ) : filteredUsers && filteredUsers.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Usuario</TableHead>
                   <TableHead>Código</TableHead>
+                  <TableHead>Rol de Investigación</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Teléfono</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell 
                       className="cursor-pointer hover:bg-muted/50"
@@ -121,6 +182,26 @@ export default function UserDirectory() {
                     </TableCell>
                     <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
                       {user.researcher_code || "N/A"}
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Select
+                        value={user.research_role || "none"}
+                        onValueChange={(value) =>
+                          updateRoleMutation.mutate({ userId: user.id, role: value === "none" ? "" : value })
+                        }
+                      >
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue placeholder="Sin rol" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sin rol</SelectItem>
+                          {RESEARCH_ROLES.map((role) => (
+                            <SelectItem key={role} value={role}>
+                              {role}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
                       {user.is_approved ? (

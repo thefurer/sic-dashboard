@@ -14,6 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          career_name: string | null
+          created_at: string | null
+          faculty_name: string | null
+          header_logo_left: string | null
+          header_logo_right: string | null
+          header_subtext: string | null
+          id: string
+          institution_name: string
+          instructions_pdf_url: string | null
+          mission_text: string | null
+          objectives_text: string | null
+          planning_pdf_url: string | null
+          registry_pdf_url: string | null
+          research_lines: Json | null
+          signature_coordinator_name: string | null
+          signature_president_name: string | null
+          signature_responsible_name: string | null
+          updated_at: string | null
+          vision_text: string | null
+          work_plan_pdf_url: string | null
+        }
+        Insert: {
+          career_name?: string | null
+          created_at?: string | null
+          faculty_name?: string | null
+          header_logo_left?: string | null
+          header_logo_right?: string | null
+          header_subtext?: string | null
+          id?: string
+          institution_name?: string
+          instructions_pdf_url?: string | null
+          mission_text?: string | null
+          objectives_text?: string | null
+          planning_pdf_url?: string | null
+          registry_pdf_url?: string | null
+          research_lines?: Json | null
+          signature_coordinator_name?: string | null
+          signature_president_name?: string | null
+          signature_responsible_name?: string | null
+          updated_at?: string | null
+          vision_text?: string | null
+          work_plan_pdf_url?: string | null
+        }
+        Update: {
+          career_name?: string | null
+          created_at?: string | null
+          faculty_name?: string | null
+          header_logo_left?: string | null
+          header_logo_right?: string | null
+          header_subtext?: string | null
+          id?: string
+          institution_name?: string
+          instructions_pdf_url?: string | null
+          mission_text?: string | null
+          objectives_text?: string | null
+          planning_pdf_url?: string | null
+          registry_pdf_url?: string | null
+          research_lines?: Json | null
+          signature_coordinator_name?: string | null
+          signature_president_name?: string | null
+          signature_responsible_name?: string | null
+          updated_at?: string | null
+          vision_text?: string | null
+          work_plan_pdf_url?: string | null
+        }
+        Relationships: []
+      }
+      assigned_tasks: {
+        Row: {
+          activity_id: string
+          admin_observations: string | null
+          created_at: string | null
+          evidence_description: string | null
+          evidence_link: string | null
+          evidence_url: string | null
+          id: string
+          plan_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          admin_observations?: string | null
+          created_at?: string | null
+          evidence_description?: string | null
+          evidence_link?: string | null
+          evidence_url?: string | null
+          id?: string
+          plan_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          admin_observations?: string | null
+          created_at?: string | null
+          evidence_description?: string | null
+          evidence_link?: string | null
+          evidence_url?: string | null
+          id?: string
+          plan_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assigned_tasks_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "planning_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_tasks_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planning_sheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           category: string
@@ -41,6 +176,334 @@ export type Database = {
         }
         Relationships: []
       }
+      evaluation_items: {
+        Row: {
+          article_metadata: Json | null
+          category: string
+          created_at: string | null
+          evidence_details: Json | null
+          evidence_url: string | null
+          fase: string | null
+          id: string
+          indicator_name: string
+          justification: string | null
+          monto: number | null
+          porcentaje_ejecucion: number | null
+          project_roles: Json | null
+          proposal_type: string | null
+          quantity: number | null
+          related_project_id: string | null
+          report_id: string
+          score_obtained: number | null
+          team_members: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          article_metadata?: Json | null
+          category: string
+          created_at?: string | null
+          evidence_details?: Json | null
+          evidence_url?: string | null
+          fase?: string | null
+          id?: string
+          indicator_name: string
+          justification?: string | null
+          monto?: number | null
+          porcentaje_ejecucion?: number | null
+          project_roles?: Json | null
+          proposal_type?: string | null
+          quantity?: number | null
+          related_project_id?: string | null
+          report_id: string
+          score_obtained?: number | null
+          team_members?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          article_metadata?: Json | null
+          category?: string
+          created_at?: string | null
+          evidence_details?: Json | null
+          evidence_url?: string | null
+          fase?: string | null
+          id?: string
+          indicator_name?: string
+          justification?: string | null
+          monto?: number | null
+          porcentaje_ejecucion?: number | null
+          project_roles?: Json | null
+          proposal_type?: string | null
+          quantity?: number | null
+          related_project_id?: string | null
+          report_id?: string
+          score_obtained?: number | null
+          team_members?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_items_related_project_id_fkey"
+            columns: ["related_project_id"]
+            isOneToOne: false
+            referencedRelation: "official_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_items_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluation_reports: {
+        Row: {
+          admin_observations: string | null
+          correction_deadline: string | null
+          created_at: string | null
+          edit_justification: string | null
+          edited_after_submission: boolean | null
+          group_id: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string | null
+          total_score: number | null
+          updated_at: string | null
+          user_id: string
+          year: number
+        }
+        Insert: {
+          admin_observations?: string | null
+          correction_deadline?: string | null
+          created_at?: string | null
+          edit_justification?: string | null
+          edited_after_submission?: boolean | null
+          group_id: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          total_score?: number | null
+          updated_at?: string | null
+          user_id: string
+          year: number
+        }
+        Update: {
+          admin_observations?: string | null
+          correction_deadline?: string | null
+          created_at?: string | null
+          edit_justification?: string | null
+          edited_after_submission?: boolean | null
+          group_id?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          total_score?: number | null
+          updated_at?: string | null
+          user_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_posts: {
+        Row: {
+          created_at: string
+          full_content: string
+          id: string
+          image_url: string
+          is_active: boolean
+          short_description: string
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          full_content: string
+          id?: string
+          image_url: string
+          is_active?: boolean
+          short_description: string
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          full_content?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          short_description?: string
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      official_projects: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          project_document_url: string | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          project_document_url?: string | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          project_document_url?: string | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      planning_activities: {
+        Row: {
+          activity: string
+          created_at: string
+          end_date: string
+          id: string
+          objective: string
+          order_index: number
+          plan_id: string
+          responsibles: Json
+          start_date: string
+          verification_means: string
+        }
+        Insert: {
+          activity: string
+          created_at?: string
+          end_date: string
+          id?: string
+          objective: string
+          order_index?: number
+          plan_id: string
+          responsibles?: Json
+          start_date: string
+          verification_means: string
+        }
+        Update: {
+          activity?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          objective?: string
+          order_index?: number
+          plan_id?: string
+          responsibles?: Json
+          start_date?: string
+          verification_means?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_activities_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planning_sheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planning_members: {
+        Row: {
+          created_at: string
+          id: string
+          member_type: string
+          plan_id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_type: string
+          plan_id: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_type?: string
+          plan_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_members_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planning_sheets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planning_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planning_sheets: {
+        Row: {
+          created_at: string
+          created_by: string
+          drive_link: string | null
+          id: string
+          meeting_schedule: Json | null
+          period_name: string
+          president_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          drive_link?: string | null
+          id?: string
+          meeting_schedule?: Json | null
+          period_name: string
+          president_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          drive_link?: string | null
+          id?: string
+          meeting_schedule?: Json | null
+          period_name?: string
+          president_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -52,6 +515,7 @@ export type Database = {
           id: string
           is_approved: boolean
           phone: string | null
+          research_role: string | null
           researcher_code: string | null
           updated_at: string
         }
@@ -65,6 +529,7 @@ export type Database = {
           id: string
           is_approved?: boolean
           phone?: string | null
+          research_role?: string | null
           researcher_code?: string | null
           updated_at?: string
         }
@@ -78,6 +543,7 @@ export type Database = {
           id?: string
           is_approved?: boolean
           phone?: string | null
+          research_role?: string | null
           researcher_code?: string | null
           updated_at?: string
         }

@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useTheme } from "@/components/theme-provider";
 import {
   DropdownMenu,
@@ -11,8 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Sun, Moon } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
+import { UserNotificationBell } from "@/components/UserNotificationBell";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -20,7 +24,9 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const { user, signOut } = useAuth();
+  const { profile } = useProfile();
   const { theme, setTheme } = useTheme();
+  const { data: userRole } = useUserRole();
 
   const getInitials = (name: string) => {
     return name
@@ -30,6 +36,9 @@ export function MainLayout({ children }: MainLayoutProps) {
       .toUpperCase()
       .slice(0, 2);
   };
+
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || "Usuario";
+  const avatarUrl = profile?.avatar_url;
 
   return (
     <SidebarProvider>
@@ -49,21 +58,24 @@ export function MainLayout({ children }: MainLayoutProps) {
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>
             </Button>
-            <NotificationBell />
+            {userRole === "admin" ? <NotificationBell /> : <UserNotificationBell />}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      {user?.user_metadata?.full_name || "Usuario"}
+                  <div className="text-right max-w-[180px]">
+                    <p className="text-sm font-medium truncate">
+                      {displayName}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate">
                       {user?.email}
                     </p>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold">
-                    {getInitials(user?.user_metadata?.full_name || "U")}
-                  </div>
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={avatarUrl || undefined} alt={displayName} />
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {getInitials(displayName)}
+                    </AvatarFallback>
+                  </Avatar>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -20,6 +21,10 @@ export default function Profile() {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvUrl, setCvUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -113,11 +118,48 @@ export default function Profile() {
         toast.success('Perfil actualizado correctamente');
         setCvFile(null);
         setAvatarFile(null);
+        // Actualizar la vista previa con la nueva URL
+        setAvatarPreview(avatarUrl);
+        setCvUrl(newCvUrl);
       }
     } catch (err: any) {
       toast.error(err?.message || 'Error al guardar los archivos');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      toast.error('Las contraseñas no coinciden');
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        toast.error(error.message || 'Error al cambiar la contraseña');
+      } else {
+        toast.success('Contraseña actualizada correctamente');
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al cambiar la contraseña');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -185,6 +227,43 @@ export default function Profile() {
                 <Button type="submit" disabled={saving}>{saving ? 'Guardando...' : 'Guardar cambios'}</Button>
                 <Button variant="ghost" onClick={() => { setAvatarFile(null); setCvFile(null); setAvatarPreview(avatarPreview); }}>Restaurar</Button>
               </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Cambiar Contraseña</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <Label htmlFor="newPassword">Nueva contraseña</Label>
+                <Input 
+                  id="newPassword" 
+                  type="password" 
+                  value={newPassword} 
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  required 
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                <Input 
+                  id="confirmPassword" 
+                  type="password" 
+                  value={confirmPassword} 
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirma tu nueva contraseña"
+                  required 
+                />
+              </div>
+
+              <Button type="submit" disabled={changingPassword}>
+                {changingPassword ? 'Cambiando...' : 'Cambiar contraseña'}
+              </Button>
             </form>
           </CardContent>
         </Card>

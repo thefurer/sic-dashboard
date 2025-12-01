@@ -2,13 +2,15 @@ import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
-  FolderKanban,
-  BookOpen,
-  Target,
+  ClipboardCheck,
   Users,
   UserPlus,
   FileText,
   CheckSquare,
+  CalendarClock,
+  Settings,
+  Landmark,
+  FolderOpen,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -24,12 +26,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const menuItems = [
+// Base menu items visible to all users
+const baseMenuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Proyectos", url: "/projects", icon: FolderKanban },
-  { title: "Producción Científica", url: "/production", icon: BookOpen },
-  { title: "Impactos", url: "/impacts", icon: Target },
-  { title: "Vinculación", url: "/vinculacion", icon: Users },
+  { title: "Institucional", url: "/institutional", icon: Landmark },
+];
+
+// Menu items only for regular users (not admin)
+const userOnlyItems = [
+  { title: "Evaluación", url: "/evaluation", icon: ClipboardCheck },
+  { title: "Mis Actividades", url: "/my-tasks", icon: CheckSquare },
 ];
 
 export function AppSidebar() {
@@ -67,7 +73,24 @@ export function AppSidebar() {
           <SidebarGroupLabel className="text-slate-500 dark:text-slate-400 text-xs font-medium px-3">Navegación</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {/* Base menu items for all users */}
+              {baseMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                      activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {state === "expanded" && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+
+              {/* User-only menu items (hidden from admin) */}
+              {!isAdmin && userOnlyItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -82,6 +105,7 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               
+              {/* Admin-only menu items */}
               {isAdmin && (
                 <>
                   <SidebarMenuItem>
@@ -111,24 +135,60 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <NavLink
-                        to="/tasks"
+                        to="/admin/planning"
                         className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                         activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
                       >
-                        <CheckSquare className="h-5 w-5" />
-                        {state === "expanded" && <span>Tareas</span>}
+                        <CalendarClock className="h-5 w-5" />
+                        {state === "expanded" && <span>Planificación Estratégica</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <NavLink
-                        to="/admin/institutional"
+                        to="/admin/projects-list"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <FolderOpen className="h-5 w-5" />
+                        {state === "expanded" && <span>Proyectos Oficiales</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/admin/evaluations"
                         className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                         activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
                       >
                         <FileText className="h-5 w-5" />
-                        {state === "expanded" && <span>Gestión Institucional</span>}
+                        {state === "expanded" && <span>Revisión de Evaluaciones</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/admin/task-reviews"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <CheckSquare className="h-5 w-5" />
+                        {state === "expanded" && <span>Revisión de Actividades</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/admin/settings"
+                        className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        activeClassName="bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      >
+                        <Settings className="h-5 w-5" />
+                        {state === "expanded" && <span>Configuración</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

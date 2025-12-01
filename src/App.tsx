@@ -10,15 +10,19 @@ import NotFound from "./pages/NotFound";
 import { MainLayout } from "./components/layout/MainLayout";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import Projects from "./pages/Projects";
-import ScientificProduction from "./pages/ScientificProduction";
-import Impacts from "./pages/Impacts";
-import Vinculacion from "./pages/Vinculacion";
 import Profile from "./pages/Profile";
+import Evaluation from "./pages/Evaluation";
 import PendingApprovals from "./pages/admin/PendingApprovals";
 import UserDirectory from "./pages/admin/UserDirectory";
-import InstitutionalDocs from "./pages/admin/InstitutionalDocs";
+import Institutional from "./pages/Institutional";
 import Tasks from "./pages/Tasks";
+import Planning from "./pages/admin/Planning";
+import PlanningBuilder from "./pages/admin/PlanningBuilder";
+import Settings from "./pages/admin/Settings";
+import OfficialProjectsList from "./pages/admin/OfficialProjectsList";
+import EvaluationReviews from "./pages/admin/EvaluationReviews";
+import TaskReviews from "./pages/admin/TaskReviews";
+import MyTasks from "./pages/MyTasks";
 
 const queryClient = new QueryClient();
 
@@ -37,24 +41,9 @@ const App = () => (
                 <MainLayout><Dashboard /></MainLayout>
               </ProtectedRoute>
             } />
-            <Route path="/projects" element={
+            <Route path="/evaluation" element={
               <ProtectedRoute>
-                <MainLayout><Projects /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/production" element={
-              <ProtectedRoute>
-                <MainLayout><ScientificProduction /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/impacts" element={
-              <ProtectedRoute>
-                <MainLayout><Impacts /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/vinculacion" element={
-              <ProtectedRoute>
-                <MainLayout><Vinculacion /></MainLayout>
+                <MainLayout><Evaluation /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
@@ -77,9 +66,49 @@ const App = () => (
                 <MainLayout><Tasks /></MainLayout>
               </ProtectedRoute>
             } />
-            <Route path="/admin/institutional" element={
+            <Route path="/institutional" element={
               <ProtectedRoute>
-                <MainLayout><InstitutionalDocs /></MainLayout>
+                <MainLayout><Institutional /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/planning" element={
+              <ProtectedRoute>
+                <MainLayout><Planning /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/planning/new" element={
+              <ProtectedRoute>
+                <MainLayout><PlanningBuilder /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/planning/:id" element={
+              <ProtectedRoute>
+                <MainLayout><PlanningBuilder /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/settings" element={
+              <ProtectedRoute>
+                <MainLayout><Settings /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/projects-list" element={
+              <ProtectedRoute>
+                <MainLayout><OfficialProjectsList /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/evaluations" element={
+              <ProtectedRoute>
+                <MainLayout><EvaluationReviews /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/task-reviews" element={
+              <ProtectedRoute>
+                <MainLayout><TaskReviews /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/my-tasks" element={
+              <ProtectedRoute>
+                <MainLayout><MyTasks /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
