@@ -51,19 +51,20 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar 
-      className={state === "collapsed" ? "w-14" : "w-64"} 
+    <Sidebar
+      variant="floating"
+      className={state === "collapsed" ? "w-14" : "w-64"}
       collapsible="icon"
     >
       <SidebarContent className="bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-center">
           {state === "expanded" ? (
-            <div>
+            <div className="text-center drop-shadow-sm">
               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">UNESUM</h2>
               <p className="text-xs text-slate-600 dark:text-slate-400">Sistemas Inteligentes</p>
             </div>
           ) : (
-            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
+            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm drop-shadow-md">
               U
             </div>
           )}
