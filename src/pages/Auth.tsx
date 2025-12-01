@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, Lock, Phone, Code } from "lucide-react";
 import gisicfLogo from "@/assets/gisicf-logo.png";
 import { useNavigate } from "react-router-dom";
 
@@ -53,10 +53,7 @@ function ParticleBackground({ count = 60 }: { count?: number }) {
 
     function step() {
       ctx.clearRect(0, 0, width, height);
-      // subtle background haze
-      // draw particles
       for (const p of particlesRef.current) {
-        // mouse interaction: gentle repulse
         const dx = p.x - mouseRef.current.x;
         const dy = p.y - mouseRef.current.y;
         const dist2 = dx * dx + dy * dy;
@@ -66,28 +63,24 @@ function ParticleBackground({ count = 60 }: { count?: number }) {
           p.vy += (dy / Math.sqrt(dist2 + 0.001)) * 0.15 * force;
         }
 
-        // drift
         p.x += p.vx;
         p.y += p.vy;
         p.vx *= 0.98;
         p.vy *= 0.98;
 
-        // wrap
         if (p.x < -20) p.x = width + 20;
         if (p.x > width + 20) p.x = -20;
         if (p.y < -20) p.y = height + 20;
         if (p.y > height + 20) p.y = -20;
 
-        // draw
         ctx.beginPath();
         ctx.fillStyle = `rgba(255,255,255,${p.alpha})`;
         ctx.shadowBlur = 8;
-        ctx.shadowColor = `rgba(160,200,255,${p.alpha})`;
+        ctx.shadowColor = `rgba(0,122,51,${p.alpha * 0.5})`;
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // optional: draw faint connecting lines
       for (let i = 0; i < particlesRef.current.length; i++) {
         for (let j = i + 1; j < particlesRef.current.length; j++) {
           const a = particlesRef.current[i];
@@ -98,7 +91,7 @@ function ParticleBackground({ count = 60 }: { count?: number }) {
           if (d < 70) {
             ctx.beginPath();
             const alpha = 0.06 * (1 - d / 70);
-            ctx.strokeStyle = `rgba(160,200,255,${alpha})`;
+            ctx.strokeStyle = `rgba(0,122,51,${alpha})`;
             ctx.lineWidth = 0.6;
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
@@ -182,98 +175,95 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex relative overflow-hidden bg-gradient-to-b from-slate-900/40 to-slate-900/60">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/18 via-background to-accent/18 -z-10">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-mesh-gradient"></div>
-        <div className="absolute top-40 right-20 w-72 h-72 bg-accent/30 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-mesh-gradient animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-mesh-gradient animation-delay-4000"></div>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Premium Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(0,122,51,0.9);stop-opacity:1" /><stop offset="100%" style="stop-color:rgba(10,20,40,0.95);stop-opacity:1" /></linearGradient></defs><rect width="1200" height="800" fill="url(%23grad)"/></svg>')`,
+          backgroundAttachment: "fixed",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-green-900/20 via-slate-900/40 to-blue-900/20"></div>
       </div>
 
-      {/* Particle layer (interactive, behind content) */}
-      <ParticleBackground count={72} />
+      {/* Particle layer */}
+      <ParticleBackground count={80} />
 
-      {/* Left side - Image/Branding */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center flex flex-col items-center"
-          whileHover={{ scale: 1.02 }}
+      {/* Premium Card Container */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative z-20 w-full px-4 sm:px-6"
+      >
+        <Card className="w-full max-w-[450px] mx-auto border-0 shadow-2xl" 
+          style={{
+            backdropFilter: "blur(16px)",
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+          }}
         >
-          <motion.img
-            src={gisicfLogo}
-            alt="GISICF Logo"
-            className="w-48 h-auto mb-6 rounded-xl shadow-2xl border border-white/10"
-            animate={{
-              y: [0, -10, 0],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          <motion.p
-            className="text-xl font-medium text-foreground max-w-md"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-          >
-            Plataforma de Gestión de Investigación
-          </motion.p>
-          <motion.p
-            className="text-sm text-muted-foreground mt-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-          >
-            Universidad Estatal del Sur de Manabí
-          </motion.p>
-        </motion.div>
-      </div>
+          <div className="relative">
+            {/* Header Section */}
+            <CardHeader className="text-center pb-4 pt-8">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+                className="flex justify-center mb-4"
+              >
+                <img
+                  src={gisicfLogo}
+                  alt="GISICF Logo"
+                  className="w-20 h-20 object-contain"
+                />
+              </motion.div>
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent mb-2">
+                Bienvenido Investigador
+              </CardTitle>
+              <CardDescription className="text-base text-slate-600">
+                Plataforma de Gestión de Investigación Científica
+              </CardDescription>
+            </CardHeader>
 
-      {/* Right side - Auth Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="w-full max-w-md"
-          whileHover={{ y: -6, scale: 1.01 }}
-        >
-          <Card className="border-2 border-primary/20 shadow-2xl backdrop-blur-sm bg-card/95 relative overflow-hidden">
-            <div className="absolute inset-0 rounded-lg opacity-60 pointer-events-none"></div>
-            <div className="absolute inset-[-2px] bg-gradient-to-r from-primary via-accent to-primary rounded-lg blur-sm animate-[spin_6s_linear_infinite] opacity-30"></div>
+            <CardContent>
+              <Tabs defaultValue="login" className="w-full">
+                {/* Tab Navigation */}
+                <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-100 p-1 rounded-lg">
+                  <TabsTrigger 
+                    value="login"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white rounded-md font-medium transition-all duration-200 hover:scale-105"
+                  >
+                    Iniciar Sesión
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="register"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white rounded-md font-medium transition-all duration-200 hover:scale-105"
+                  >
+                    Registrarse
+                  </TabsTrigger>
+                </TabsList>
 
-            <div className="relative bg-card rounded-lg">
-              <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  GISICF - UNESUM
-                </CardTitle>
-                <CardDescription>Acceso al Sistema de Gestión de Investigación</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="login" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger className="hover:scale-[1.03] transition-transform" value="login">
-                      Iniciar Sesión
-                    </TabsTrigger>
-                    <TabsTrigger className="hover:scale-[1.03] transition-transform" value="register">
-                      Registrarse
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="login">
-                    <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                      <motion.div
-                        className="space-y-2"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        <Label htmlFor="login-email">Correo Institucional</Label>
+                {/* Login Tab */}
+                <TabsContent value="login" className="mt-0">
+                  <motion.form 
+                    onSubmit={handleLogin} 
+                    className="space-y-4"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                  >
+                    <motion.div
+                      className="space-y-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.35 }}
+                    >
+                      <Label htmlFor="login-email" className="text-sm font-medium text-slate-700">
+                        Correo Institucional
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-5 w-5 text-green-600" />
                         <Input
                           id="login-email"
                           type="email"
@@ -281,59 +271,78 @@ export default function Auth() {
                           value={loginData.email}
                           onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                           required
-                          className="transition-all duration-300 focus:ring-4 focus:ring-primary/30"
+                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
-                      </motion.div>
-                      <motion.div
-                        className="space-y-2"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                      >
-                        <Label htmlFor="login-password">Contraseña</Label>
+                      </div>
+                    </motion.div>
+
+                    <motion.div
+                      className="space-y-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <Label htmlFor="login-password" className="text-sm font-medium text-slate-700">
+                        Contraseña
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-5 w-5 text-green-600" />
                         <Input
                           id="login-password"
                           type="password"
+                          placeholder="••••••••"
                           value={loginData.password}
                           onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                           required
-                          className="transition-all duration-300 focus:ring-4 focus:ring-primary/30"
+                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
-                      </motion.div>
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                      >
-                        <Button
-                          type="submit"
-                          className="w-full relative overflow-hidden group transform-gpu hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-                          disabled={loading}
-                        >
-                          <span className="relative z-10 flex items-center justify-center">
-                            {loading ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Iniciando sesión...
-                              </>
-                            ) : (
-                              "Ingresar"
-                            )}
-                          </span>
-                        </Button>
-                      </motion.div>
-                    </form>
-                  </TabsContent>
+                      </div>
+                    </motion.div>
 
-                  <TabsContent value="register">
-                    <form onSubmit={handleRegister} className="space-y-4 mt-4">
-                      <motion.div
-                        className="space-y-2"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.45 }}
+                      className="pt-2"
+                    >
+                      <Button
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-2 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+                        disabled={loading}
                       >
-                        <Label htmlFor="register-email">Correo Institucional</Label>
+                        {loading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Iniciando sesión...
+                          </>
+                        ) : (
+                          "Ingresar"
+                        )}
+                      </Button>
+                    </motion.div>
+                  </motion.form>
+                </TabsContent>
+
+                {/* Register Tab */}
+                <TabsContent value="register" className="mt-0">
+                  <motion.form 
+                    onSubmit={handleRegister} 
+                    className="space-y-4"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                  >
+                    <motion.div
+                      className="space-y-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.35 }}
+                    >
+                      <Label htmlFor="register-email" className="text-sm font-medium text-slate-700">
+                        Correo Institucional
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-5 w-5 text-green-600" />
                         <Input
                           id="register-email"
                           type="email"
@@ -341,33 +350,46 @@ export default function Auth() {
                           value={registerData.email}
                           onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                           required
-                          className="transition-all duration-300 focus:ring-4 focus:ring-primary/30"
+                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
-                      </motion.div>
-                      <motion.div
-                        className="space-y-2"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                      >
-                        <Label htmlFor="register-password">Contraseña</Label>
+                      </div>
+                    </motion.div>
+
+                    <motion.div
+                      className="space-y-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <Label htmlFor="register-password" className="text-sm font-medium text-slate-700">
+                        Contraseña
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-5 w-5 text-green-600" />
                         <Input
                           id="register-password"
                           type="password"
+                          placeholder="••••••••"
                           value={registerData.password}
                           onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                           required
                           minLength={6}
-                          className="transition-all duration-300 focus:ring-4 focus:ring-primary/30"
+                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
-                      </motion.div>
-                      <motion.div
-                        className="space-y-2"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                      >
-                        <Label htmlFor="register-phone">Número de Teléfono</Label>
+                      </div>
+                    </motion.div>
+
+                    <motion.div
+                      className="space-y-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.45 }}
+                    >
+                      <Label htmlFor="register-phone" className="text-sm font-medium text-slate-700">
+                        Número de Teléfono
+                      </Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-3 h-5 w-5 text-green-600" />
                         <Input
                           id="register-phone"
                           type="tel"
@@ -375,16 +397,22 @@ export default function Auth() {
                           value={registerData.phoneNumber}
                           onChange={(e) => setRegisterData({ ...registerData, phoneNumber: e.target.value })}
                           required
-                          className="transition-all duration-300 focus:ring-4 focus:ring-primary/30"
+                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
-                      </motion.div>
-                      <motion.div
-                        className="space-y-2"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                      >
-                        <Label htmlFor="register-code">Código de Investigador</Label>
+                      </div>
+                    </motion.div>
+
+                    <motion.div
+                      className="space-y-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <Label htmlFor="register-code" className="text-sm font-medium text-slate-700">
+                        Código de Investigador
+                      </Label>
+                      <div className="relative">
+                        <Code className="absolute left-3 top-3 h-5 w-5 text-green-600" />
                         <Input
                           id="register-code"
                           type="text"
@@ -392,42 +420,58 @@ export default function Auth() {
                           value={registerData.researcherCode}
                           onChange={(e) => setRegisterData({ ...registerData, researcherCode: e.target.value })}
                           required
-                          className="transition-all duration-300 focus:ring-4 focus:ring-primary/30"
+                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
-                      </motion.div>
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6 }}
+                      </div>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.55 }}
+                      className="pt-2"
+                    >
+                      <Button
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-2 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+                        disabled={loading}
                       >
-                        <Button
-                          type="submit"
-                          className="w-full relative overflow-hidden group transform-gpu hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-                          disabled={loading}
-                        >
-                          <span className="relative z-10 flex items-center justify-center">
-                            {loading ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Registrando...
-                              </>
-                            ) : (
-                              "Registrarse"
-                            )}
-                          </span>
-                        </Button>
-                      </motion.div>
-                      <p className="text-xs text-muted-foreground text-center mt-4">
-                        Su cuenta será revisada por el administrador antes de otorgar acceso
-                      </p>
-                    </form>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </div>
-          </Card>
-        </motion.div>
-      </div>
+                        {loading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Registrando...
+                          </>
+                        ) : (
+                          "Registrarse"
+                        )}
+                      </Button>
+                    </motion.div>
+
+                    <motion.p 
+                      className="text-xs text-slate-500 text-center mt-4"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.6 }}
+                    >
+                      Su cuenta será revisada por el administrador antes de otorgar acceso
+                    </motion.p>
+                  </motion.form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+
+            {/* Footer */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="border-t border-slate-200 px-6 py-4 text-center text-xs text-slate-500 bg-slate-50/50 rounded-b-2xl"
+            >
+              © 2025 UNESUM - GISICF
+            </motion.div>
+          </div>
+        </Card>
+      </motion.div>
     </div>
   );
 }
