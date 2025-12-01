@@ -139,4 +139,13 @@ All colors MUST be HSL.
   .animation-delay-4000 {
     animation-delay: 4s;
   }
+  
+  /* Glassmorphism Background Gradients */
+  .glass-bg-light {
+    background: radial-gradient(ellipse at top, hsl(var(--background)) 0%, hsl(var(--muted)) 50%, hsl(var(--background)) 100%);
+  }
+  
+  .glass-bg-dark {
+    background: radial-gradient(ellipse at top left, hsl(var(--primary) / 0.15) 0%, hsl(var(--background)) 50%, hsl(var(--accent) / 0.1) 100%);
+  }
 }
