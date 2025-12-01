@@ -25,30 +25,38 @@ const Dashboard = () => {
   const isSuperAdmin = profile?.email === "christian.caicedo@unesum.edu.ec";
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Noticias y Novedades</h1>
-          <p className="text-muted-foreground">
-            Grupo de Investigación: Sistemas Inteligentes y Ciberfísicos
-          </p>
+    <div className="min-h-screen glass-bg-light dark:glass-bg-dark p-6 space-y-8">
+      {/* Header Section - Glass Card */}
+      <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg border border-white/40 dark:border-slate-700/50 rounded-[30px] shadow-sm hover:shadow-lg transition-all duration-300 p-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Noticias y Novedades
+            </h1>
+            <p className="text-muted-foreground mt-2 text-lg">
+              Grupo de Investigación: Sistemas Inteligentes y Ciberfísicos
+            </p>
+          </div>
+          
+          {isSuperAdmin && (
+            <Button 
+              onClick={() => setShowManager(true)}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Gestionar Noticias
+            </Button>
+          )}
         </div>
-        
-        {isSuperAdmin && (
-          <Button onClick={() => setShowManager(true)}>
-            <Settings className="h-4 w-4 mr-2" />
-            Gestionar Noticias
-          </Button>
-        )}
       </div>
 
-      {/* News Carousel */}
-      <div className="relative">
+      {/* News Carousel - Full Width Glass Container */}
+      <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg border border-white/40 dark:border-slate-700/50 rounded-[30px] shadow-sm hover:shadow-lg transition-all duration-300 p-8">
         {isLoading ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Skeleton className="h-[400px] rounded-2xl" />
-            <Skeleton className="h-[400px] rounded-2xl" />
-            <Skeleton className="h-[400px] rounded-2xl" />
+            <Skeleton className="h-[450px] rounded-[30px]" />
+            <Skeleton className="h-[450px] rounded-[30px]" />
+            <Skeleton className="h-[450px] rounded-[30px]" />
           </div>
         ) : newsPosts && newsPosts.length > 0 ? (
           <Carousel
@@ -58,9 +66,9 @@ const Dashboard = () => {
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-4">
+            <CarouselContent className="-ml-6">
               {newsPosts.map((news) => (
-                <CarouselItem key={news.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                <CarouselItem key={news.id} className="pl-6 md:basis-1/2 lg:basis-1/3">
                   <NewsCard
                     title={news.title}
                     shortDescription={news.short_description}
@@ -70,14 +78,17 @@ const Dashboard = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="left-4" />
-            <CarouselNext className="right-4" />
+            <CarouselPrevious className="left-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/40 hover:bg-white dark:hover:bg-slate-800" />
+            <CarouselNext className="right-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/40 hover:bg-white dark:hover:bg-slate-800" />
           </Carousel>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No hay noticias disponibles</p>
+          <div className="text-center py-16">
+            <p className="text-muted-foreground text-lg">No hay noticias disponibles</p>
             {isSuperAdmin && (
-              <Button onClick={() => setShowManager(true)} className="mt-4">
+              <Button 
+                onClick={() => setShowManager(true)} 
+                className="mt-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
                 Agregar Primera Noticia
               </Button>
             )}
