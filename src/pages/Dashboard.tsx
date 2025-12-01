@@ -25,15 +25,15 @@ const Dashboard = () => {
   const isSuperAdmin = profile?.email === "christian.caicedo@unesum.edu.ec";
 
   return (
-    <div className="min-h-screen glass-bg-light dark:glass-bg-dark p-6 space-y-8">
-      {/* Header Section - Glass Card */}
-      <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg border border-white/40 dark:border-slate-700/50 rounded-[30px] shadow-sm hover:shadow-lg transition-all duration-300 p-8">
-        <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      {/* Header Section - Premium Glass Card */}
+      <div className="glass-card-hover p-8 animate-fade-in-up animate-fade-in-up-1">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-primary via-emerald-500 to-accent bg-clip-text text-transparent">
               Noticias y Novedades
             </h1>
-            <p className="text-muted-foreground mt-2 text-lg">
+            <p className="text-muted-foreground mt-3 text-lg font-medium">
               Grupo de Investigación: Sistemas Inteligentes y Ciberfísicos
             </p>
           </div>
@@ -41,22 +41,24 @@ const Dashboard = () => {
           {isSuperAdmin && (
             <Button 
               onClick={() => setShowManager(true)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-2xl shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 active:scale-95 px-6 py-2 font-semibold"
             >
-              <Settings className="h-4 w-4 mr-2" />
+              <Settings className="h-5 w-5 mr-2" />
               Gestionar Noticias
             </Button>
           )}
         </div>
       </div>
 
-      {/* News Carousel - Full Width Glass Container */}
-      <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg border border-white/40 dark:border-slate-700/50 rounded-[30px] shadow-sm hover:shadow-lg transition-all duration-300 p-8">
+      {/* Bento Grid Layout - News Carousel */}
+      <div className="glass-card-hover p-8 animate-fade-in-up animate-fade-in-up-2">
+        <h2 className="text-2xl font-semibold mb-6 text-foreground">Últimas Publicaciones</h2>
+        
         {isLoading ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Skeleton className="h-[450px] rounded-[30px]" />
-            <Skeleton className="h-[450px] rounded-[30px]" />
-            <Skeleton className="h-[450px] rounded-[30px]" />
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-[450px] rounded-3xl" />
+            ))}
           </div>
         ) : newsPosts && newsPosts.length > 0 ? (
           <Carousel
@@ -67,27 +69,31 @@ const Dashboard = () => {
             className="w-full"
           >
             <CarouselContent className="-ml-6">
-              {newsPosts.map((news) => (
-                <CarouselItem key={news.id} className="pl-6 md:basis-1/2 lg:basis-1/3">
-                  <NewsCard
-                    title={news.title}
-                    shortDescription={news.short_description}
-                    imageUrl={news.image_url}
-                    onClick={() => setSelectedNews(news)}
-                  />
+              {newsPosts.map((news, idx) => (
+                <CarouselItem key={news.id} className="pl-6 md:basis-1/2 lg:basis-1/3 animate-fade-in-up" style={{ animationDelay: `${0.1 + idx * 0.05}s` }}>
+                  <div className="rounded-3xl overflow-hidden cursor-pointer group floating-card h-[450px]">
+                    <NewsCard
+                      title={news.title}
+                      shortDescription={news.short_description}
+                      imageUrl={news.image_url}
+                      onClick={() => setSelectedNews(news)}
+                    />
+                    {/* Gradient Overlay with Glow Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="left-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/40 hover:bg-white dark:hover:bg-slate-800" />
-            <CarouselNext className="right-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/40 hover:bg-white dark:hover:bg-slate-800" />
+            <CarouselPrevious className="left-2 bg-gradient-to-r from-white/70 to-white/50 dark:from-slate-900/70 dark:to-slate-900/50 backdrop-blur-md border-white/40 hover:bg-white dark:hover:bg-slate-800 shadow-lg" />
+            <CarouselNext className="right-2 bg-gradient-to-r from-white/70 to-white/50 dark:from-slate-900/70 dark:to-slate-900/50 backdrop-blur-md border-white/40 hover:bg-white dark:hover:bg-slate-800 shadow-lg" />
           </Carousel>
         ) : (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">No hay noticias disponibles</p>
+          <div className="text-center py-20">
+            <p className="text-muted-foreground text-lg mb-6">No hay noticias disponibles</p>
             {isSuperAdmin && (
               <Button 
-                onClick={() => setShowManager(true)} 
-                className="mt-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                onClick={() => setShowManager(true)}
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-2xl shadow-lg shadow-emerald-500/30 active:scale-95 transition-all"
               >
                 Agregar Primera Noticia
               </Button>
