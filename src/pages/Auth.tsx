@@ -215,7 +215,7 @@ export default function Auth() {
                 <img
                   src={gisicfLogo}
                   alt="GISICF Logo"
-                  className="w-20 h-20 object-contain"
+                  className="w-20 h-20 object-contain rounded-full"
                 />
               </motion.div>
               <CardTitle className="text-3xl font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent mb-2">
