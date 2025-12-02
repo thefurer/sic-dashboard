@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 interface NewsCardProps {
   title: string;
@@ -8,16 +9,21 @@ interface NewsCardProps {
 }
 
 export const NewsCard = ({ title, shortDescription, imageUrl, onClick }: NewsCardProps) => {
+  const [imgError, setImgError] = useState(false);
+  const fallbackImage = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80";
+  
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -8 }}
       className="relative h-[450px] rounded-[30px] overflow-hidden cursor-pointer group shadow-lg hover:shadow-2xl transition-all duration-500"
       onClick={onClick}
     >
-      {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-        style={{ backgroundImage: `url(${imageUrl})` }}
+      {/* Background Image with Error Handling */}
+      <img
+        src={imgError ? fallbackImage : imageUrl}
+        alt={title}
+        onError={() => setImgError(true)}
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
       
       {/* Enhanced Gradient Overlay - Glassmorphic */}
