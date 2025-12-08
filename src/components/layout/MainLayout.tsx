@@ -97,13 +97,13 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
                   align="end" 
-                  className="w-72 p-0 glass-card-dark border-white/10"
+                  className="w-72 p-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xl rounded-xl"
                 >
                   {/* Profile Header */}
-                  <div className="p-4 bg-gradient-to-br from-primary/20 to-transparent">
+                  <div className="p-4 bg-gradient-to-br from-primary/10 dark:from-primary/20 to-transparent rounded-t-xl">
                     <div className="flex items-center gap-4">
                       <div className="relative">
-                        <div className="absolute inset-0 bg-primary/50 blur-lg rounded-full" />
+                        <div className="absolute inset-0 bg-primary/30 dark:bg-primary/50 blur-lg rounded-full" />
                         <Avatar className="w-14 h-14 ring-2 ring-primary relative">
                           <AvatarImage src={avatarUrl || undefined} alt={displayName} />
                           <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-lg font-semibold">
@@ -125,20 +125,20 @@ export function MainLayout({ children }: MainLayoutProps) {
                     </div>
                   </div>
                   
-                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuSeparator className="bg-slate-200 dark:bg-white/10" />
                   
                   <DropdownMenuGroup className="p-2">
                     <DropdownMenuLabel className="text-xs text-muted-foreground font-normal px-2">Mi Cuenta</DropdownMenuLabel>
                     <DropdownMenuItem 
                       onClick={() => { window.location.href = '/profile'; }}
-                      className="cursor-pointer rounded-lg hover:bg-white/10 transition-colors"
+                      className="cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                     >
                       <User className="mr-3 h-4 w-4 text-primary" />
                       <span>Ver Perfil</span>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   
-                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuSeparator className="bg-slate-200 dark:bg-white/10" />
                   
                   <DropdownMenuGroup className="p-2">
                     <DropdownMenuLabel className="text-xs text-muted-foreground font-normal px-2">Sesión</DropdownMenuLabel>

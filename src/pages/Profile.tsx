@@ -232,7 +232,7 @@ export default function Profile() {
                     value={fullName} 
                     onChange={(e) => setFullName(e.target.value)} 
                     required 
-                    className="bg-background/50 border-white/10 focus:ring-2 focus:ring-primary/50"
+                    className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50"
                   />
                 </div>
 
@@ -246,7 +246,7 @@ export default function Profile() {
                     type="tel" 
                     value={phone} 
                     onChange={(e) => setPhone(e.target.value)} 
-                    className="bg-background/50 border-white/10 focus:ring-2 focus:ring-primary/50"
+                    className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50"
                   />
                 </div>
 
@@ -256,7 +256,7 @@ export default function Profile() {
                     id="researcher" 
                     value={researcherCode} 
                     onChange={(e) => setResearcherCode(e.target.value)} 
-                    className="bg-background/50 border-white/10 focus:ring-2 focus:ring-primary/50 font-mono"
+                    className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50 font-mono"
                   />
                 </div>
 
@@ -268,7 +268,7 @@ export default function Profile() {
                       <AvatarFallback className="bg-primary/20">{getInitials(fullName || "U")}</AvatarFallback>
                     </Avatar>
                     <label className="flex-1">
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-white/20 hover:border-primary/50 cursor-pointer transition-colors">
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-slate-300 dark:border-white/20 hover:border-primary/50 cursor-pointer transition-colors bg-slate-50/50 dark:bg-transparent">
                         <Upload className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">Cambiar foto</span>
                       </div>
@@ -322,7 +322,7 @@ export default function Profile() {
                   </Button>
                 </div>
               ) : (
-                <div className="p-6 rounded-xl border border-dashed border-white/20 text-center">
+                <div className="p-6 rounded-xl border border-dashed border-slate-300 dark:border-white/20 text-center bg-slate-50/50 dark:bg-transparent">
                   <FileText className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
                   <p className="text-sm text-muted-foreground">No hay CV cargado</p>
                 </div>
@@ -331,7 +331,7 @@ export default function Profile() {
               <div className="space-y-2">
                 <Label>Subir nuevo CV (PDF)</Label>
                 <label className="block">
-                  <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-dashed border-white/20 hover:border-primary/50 cursor-pointer transition-colors">
+                  <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-dashed border-slate-300 dark:border-white/20 hover:border-primary/50 cursor-pointer transition-colors bg-slate-50/50 dark:bg-transparent">
                     <Upload className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
                       {cvFile ? cvFile.name : 'Seleccionar archivo PDF'}
@@ -362,7 +362,7 @@ export default function Profile() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
                     required 
-                    className="bg-background/50 border-white/10 focus:ring-2 focus:ring-primary/50"
+                    className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50"
                   />
                 </div>
 
@@ -375,7 +375,7 @@ export default function Profile() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirma tu nueva contraseña"
                     required 
-                    className="bg-background/50 border-white/10 focus:ring-2 focus:ring-primary/50"
+                    className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50"
                   />
                 </div>
 

@@ -167,12 +167,12 @@ export default function Institutional() {
             {isAdmin && (
               <Dialog open={missionOpen} onOpenChange={setMissionOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full border-white/20 hover:bg-white/10">
+                  <Button variant="outline" size="sm" className="w-full border-slate-200 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10">
                     <Pencil className="h-4 w-4 mr-2" />
                     Editar Misión
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="glass-card-dark border-white/10">
+                <DialogContent className="glass-card border-slate-200 dark:border-white/10">
                   <DialogHeader>
                     <DialogTitle>Editar Misión</DialogTitle>
                   </DialogHeader>
@@ -184,7 +184,7 @@ export default function Institutional() {
                         value={missionText}
                         onChange={(e) => setMissionText(e.target.value)}
                         rows={6}
-                        className="mt-2 bg-background/50 border-white/10"
+                        className="mt-2 bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
                       />
                     </div>
                     <Button
@@ -228,12 +228,12 @@ export default function Institutional() {
             {isAdmin && (
               <Dialog open={visionOpen} onOpenChange={setVisionOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full border-white/20 hover:bg-white/10">
+                  <Button variant="outline" size="sm" className="w-full border-slate-200 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10">
                     <Pencil className="h-4 w-4 mr-2" />
                     Editar Visión
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="glass-card-dark border-white/10">
+                <DialogContent className="glass-card border-slate-200 dark:border-white/10">
                   <DialogHeader>
                     <DialogTitle>Editar Visión</DialogTitle>
                   </DialogHeader>
@@ -245,7 +245,7 @@ export default function Institutional() {
                         value={visionText}
                         onChange={(e) => setVisionText(e.target.value)}
                         rows={6}
-                        className="mt-2 bg-background/50 border-white/10"
+                        className="mt-2 bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
                       />
                     </div>
                     <Button
@@ -289,12 +289,12 @@ export default function Institutional() {
             {isAdmin && (
               <Dialog open={objectivesOpen} onOpenChange={setObjectivesOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full border-white/20 hover:bg-white/10">
+                  <Button variant="outline" size="sm" className="w-full border-slate-200 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10">
                     <Pencil className="h-4 w-4 mr-2" />
                     Editar Objetivos
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="glass-card-dark border-white/10">
+                <DialogContent className="glass-card border-slate-200 dark:border-white/10">
                   <DialogHeader>
                     <DialogTitle>Editar Objetivos</DialogTitle>
                   </DialogHeader>
@@ -306,7 +306,7 @@ export default function Institutional() {
                         value={objectivesText}
                         onChange={(e) => setObjectivesText(e.target.value)}
                         rows={6}
-                        className="mt-2 bg-background/50 border-white/10"
+                        className="mt-2 bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
                       />
                     </div>
                     <Button
@@ -372,7 +372,7 @@ export default function Institutional() {
                     handlePdfUpload(e, "registry_pdf_url", "Registro")
                   }
                   disabled={uploading === "registry_pdf_url"}
-                  className="text-xs bg-background/50 border-white/10"
+                  className="text-xs bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
                 />
                 {uploading === "registry_pdf_url" && (
                   <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
@@ -420,7 +420,7 @@ export default function Institutional() {
                     handlePdfUpload(e, "instructions_pdf_url", "Instructivo")
                   }
                   disabled={uploading === "instructions_pdf_url"}
-                  className="text-xs bg-background/50 border-white/10"
+                  className="text-xs bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
                 />
                 {uploading === "instructions_pdf_url" && (
                   <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
@@ -468,7 +468,7 @@ export default function Institutional() {
                     handlePdfUpload(e, "work_plan_pdf_url", "Plan de Trabajo")
                   }
                   disabled={uploading === "work_plan_pdf_url"}
-                  className="text-xs bg-background/50 border-white/10"
+                  className="text-xs bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
                 />
                 {uploading === "work_plan_pdf_url" && (
                   <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
@@ -516,7 +516,7 @@ export default function Institutional() {
                     handlePdfUpload(e, "planning_pdf_url", "Planificación")
                   }
                   disabled={uploading === "planning_pdf_url"}
-                  className="text-xs bg-background/50 border-white/10"
+                  className="text-xs bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
                 />
                 {uploading === "planning_pdf_url" && (
                   <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
