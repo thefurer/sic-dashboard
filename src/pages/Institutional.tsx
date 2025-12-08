@@ -11,7 +11,6 @@ import { toast } from "sonner";
 import { 
   Building2, 
   Pencil, 
-  Upload, 
   Download, 
   Loader2, 
   Target,
@@ -19,6 +18,7 @@ import {
   BookOpen,
   Briefcase,
   CalendarRange,
+  Eye,
   ListTree
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -138,7 +138,7 @@ export default function Institutional() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">
+        <h1 className="text-3xl font-bold gradient-text">
           Información General del Grupo GISICF
         </h1>
         <p className="text-muted-foreground mt-2">
@@ -149,10 +149,13 @@ export default function Institutional() {
       {/* Row 1: Strategic Text - Mission, Vision, Objectives */}
       <div className="grid gap-6 md:grid-cols-3">
         {/* Misión Card */}
-        <Card>
+        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Building2 className="h-5 w-5 text-primary relative" />
+              </div>
               Misión
             </CardTitle>
           </CardHeader>
@@ -164,12 +167,12 @@ export default function Institutional() {
             {isAdmin && (
               <Dialog open={missionOpen} onOpenChange={setMissionOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button variant="outline" size="sm" className="w-full border-white/20 hover:bg-white/10">
                     <Pencil className="h-4 w-4 mr-2" />
                     Editar Misión
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="glass-card-dark border-white/10">
                   <DialogHeader>
                     <DialogTitle>Editar Misión</DialogTitle>
                   </DialogHeader>
@@ -181,7 +184,7 @@ export default function Institutional() {
                         value={missionText}
                         onChange={(e) => setMissionText(e.target.value)}
                         rows={6}
-                        className="mt-2"
+                        className="mt-2 bg-background/50 border-white/10"
                       />
                     </div>
                     <Button
@@ -192,7 +195,7 @@ export default function Institutional() {
                         })
                       }
                       disabled={updateMutation.isPending}
-                      className="w-full"
+                      className="w-full bg-gradient-to-r from-primary to-primary/80"
                     >
                       {updateMutation.isPending && (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -207,10 +210,13 @@ export default function Institutional() {
         </Card>
 
         {/* Visión Card */}
-        <Card>
+        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Eye className="h-5 w-5 text-primary relative" />
+              </div>
               Visión
             </CardTitle>
           </CardHeader>
@@ -222,12 +228,12 @@ export default function Institutional() {
             {isAdmin && (
               <Dialog open={visionOpen} onOpenChange={setVisionOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button variant="outline" size="sm" className="w-full border-white/20 hover:bg-white/10">
                     <Pencil className="h-4 w-4 mr-2" />
                     Editar Visión
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="glass-card-dark border-white/10">
                   <DialogHeader>
                     <DialogTitle>Editar Visión</DialogTitle>
                   </DialogHeader>
@@ -239,7 +245,7 @@ export default function Institutional() {
                         value={visionText}
                         onChange={(e) => setVisionText(e.target.value)}
                         rows={6}
-                        className="mt-2"
+                        className="mt-2 bg-background/50 border-white/10"
                       />
                     </div>
                     <Button
@@ -250,7 +256,7 @@ export default function Institutional() {
                         })
                       }
                       disabled={updateMutation.isPending}
-                      className="w-full"
+                      className="w-full bg-gradient-to-r from-primary to-primary/80"
                     >
                       {updateMutation.isPending && (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -265,10 +271,13 @@ export default function Institutional() {
         </Card>
 
         {/* Objetivos Card */}
-        <Card>
+        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Target className="h-5 w-5 text-primary relative" />
+              </div>
               Objetivos
             </CardTitle>
           </CardHeader>
@@ -280,12 +289,12 @@ export default function Institutional() {
             {isAdmin && (
               <Dialog open={objectivesOpen} onOpenChange={setObjectivesOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button variant="outline" size="sm" className="w-full border-white/20 hover:bg-white/10">
                     <Pencil className="h-4 w-4 mr-2" />
                     Editar Objetivos
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="glass-card-dark border-white/10">
                   <DialogHeader>
                     <DialogTitle>Editar Objetivos</DialogTitle>
                   </DialogHeader>
@@ -297,7 +306,7 @@ export default function Institutional() {
                         value={objectivesText}
                         onChange={(e) => setObjectivesText(e.target.value)}
                         rows={6}
-                        className="mt-2"
+                        className="mt-2 bg-background/50 border-white/10"
                       />
                     </div>
                     <Button
@@ -308,7 +317,7 @@ export default function Institutional() {
                         })
                       }
                       disabled={updateMutation.isPending}
-                      className="w-full"
+                      className="w-full bg-gradient-to-r from-primary to-primary/80"
                     >
                       {updateMutation.isPending && (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -323,19 +332,22 @@ export default function Institutional() {
         </Card>
       </div>
 
-      {/* Row 2: Documents - Registry, Instructions, Work Plan, Planning */}
+      {/* Row 2: Documents */}
       <div className="grid gap-6 md:grid-cols-4">
         {/* Registry PDF */}
-        <Card>
-          <CardHeader>
+        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
+          <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <FileBadge className="h-5 w-5 text-primary" />
+              <div className="relative">
+                <div className="absolute inset-0 bg-amber-500/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <FileBadge className="h-5 w-5 text-amber-500 relative" />
+              </div>
               Registro
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {settings?.registry_pdf_url ? (
-              <Button asChild variant="default" size="sm" className="w-full">
+              <Button asChild size="sm" className="w-full bg-gradient-to-r from-primary to-primary/80">
                 <a
                   href={settings.registry_pdf_url}
                   target="_blank"
@@ -346,7 +358,7 @@ export default function Institutional() {
                 </a>
               </Button>
             ) : (
-              <p className="text-xs text-center text-muted-foreground">
+              <p className="text-xs text-center text-muted-foreground py-2">
                 No disponible
               </p>
             )}
@@ -360,7 +372,7 @@ export default function Institutional() {
                     handlePdfUpload(e, "registry_pdf_url", "Registro")
                   }
                   disabled={uploading === "registry_pdf_url"}
-                  className="text-xs"
+                  className="text-xs bg-background/50 border-white/10"
                 />
                 {uploading === "registry_pdf_url" && (
                   <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
@@ -371,16 +383,19 @@ export default function Institutional() {
         </Card>
 
         {/* Instructions PDF */}
-        <Card>
-          <CardHeader>
+        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
+          <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <BookOpen className="h-5 w-5 text-primary" />
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <BookOpen className="h-5 w-5 text-blue-500 relative" />
+              </div>
               Instructivo
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {settings?.instructions_pdf_url ? (
-              <Button asChild variant="default" size="sm" className="w-full">
+              <Button asChild size="sm" className="w-full bg-gradient-to-r from-primary to-primary/80">
                 <a
                   href={settings.instructions_pdf_url}
                   target="_blank"
@@ -391,7 +406,7 @@ export default function Institutional() {
                 </a>
               </Button>
             ) : (
-              <p className="text-xs text-center text-muted-foreground">
+              <p className="text-xs text-center text-muted-foreground py-2">
                 No disponible
               </p>
             )}
@@ -405,7 +420,7 @@ export default function Institutional() {
                     handlePdfUpload(e, "instructions_pdf_url", "Instructivo")
                   }
                   disabled={uploading === "instructions_pdf_url"}
-                  className="text-xs"
+                  className="text-xs bg-background/50 border-white/10"
                 />
                 {uploading === "instructions_pdf_url" && (
                   <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
@@ -416,16 +431,19 @@ export default function Institutional() {
         </Card>
 
         {/* Work Plan PDF */}
-        <Card>
-          <CardHeader>
+        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
+          <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Briefcase className="h-5 w-5 text-primary" />
+              <div className="relative">
+                <div className="absolute inset-0 bg-purple-500/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Briefcase className="h-5 w-5 text-purple-500 relative" />
+              </div>
               Plan de Trabajo
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {settings?.work_plan_pdf_url ? (
-              <Button asChild variant="default" size="sm" className="w-full">
+              <Button asChild size="sm" className="w-full bg-gradient-to-r from-primary to-primary/80">
                 <a
                   href={settings.work_plan_pdf_url}
                   target="_blank"
@@ -436,7 +454,7 @@ export default function Institutional() {
                 </a>
               </Button>
             ) : (
-              <p className="text-xs text-center text-muted-foreground">
+              <p className="text-xs text-center text-muted-foreground py-2">
                 No disponible
               </p>
             )}
@@ -450,7 +468,7 @@ export default function Institutional() {
                     handlePdfUpload(e, "work_plan_pdf_url", "Plan de Trabajo")
                   }
                   disabled={uploading === "work_plan_pdf_url"}
-                  className="text-xs"
+                  className="text-xs bg-background/50 border-white/10"
                 />
                 {uploading === "work_plan_pdf_url" && (
                   <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
@@ -460,17 +478,20 @@ export default function Institutional() {
           </CardContent>
         </Card>
 
-        {/* Operational Planning (Renamed) */}
-        <Card>
-          <CardHeader>
+        {/* Operational Planning */}
+        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
+          <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <CalendarRange className="h-5 w-5 text-primary" />
+              <div className="relative">
+                <div className="absolute inset-0 bg-teal-500/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <CalendarRange className="h-5 w-5 text-teal-500 relative" />
+              </div>
               Planificación Semestral
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {settings?.planning_pdf_url ? (
-              <Button asChild variant="default" size="sm" className="w-full">
+              <Button asChild size="sm" className="w-full bg-gradient-to-r from-primary to-primary/80">
                 <a
                   href={settings.planning_pdf_url}
                   target="_blank"
@@ -481,7 +502,7 @@ export default function Institutional() {
                 </a>
               </Button>
             ) : (
-              <p className="text-xs text-center text-muted-foreground">
+              <p className="text-xs text-center text-muted-foreground py-2">
                 No disponible
               </p>
             )}
@@ -495,7 +516,7 @@ export default function Institutional() {
                     handlePdfUpload(e, "planning_pdf_url", "Planificación")
                   }
                   disabled={uploading === "planning_pdf_url"}
-                  className="text-xs"
+                  className="text-xs bg-background/50 border-white/10"
                 />
                 {uploading === "planning_pdf_url" && (
                   <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
@@ -507,56 +528,55 @@ export default function Institutional() {
       </div>
 
       {/* Row 3: Research Lines */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <ListTree className="h-5 w-5 text-primary" />
-            Líneas de Investigación
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ListTree className="h-5 w-5 text-primary" />
+              Líneas de Investigación
+            </div>
+            {isAdmin && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setResearchLinesOpen(true)}
+                className="border-white/20 hover:bg-white/10"
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            )}
           </CardTitle>
-          {isAdmin && (
-            <Button
-              onClick={() => setResearchLinesOpen(true)}
-              variant="outline"
-              size="sm"
-            >
-              <Pencil className="h-4 w-4 mr-2" />
-              Editar Líneas
-            </Button>
-          )}
         </CardHeader>
         <CardContent>
-          <Accordion type="single" collapsible className="w-full">
-            {researchLines.map((line, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-sm">
-                  {line}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-sm text-muted-foreground">
+          {researchLines.length > 0 ? (
+            <Accordion type="single" collapsible className="w-full">
+              {researchLines.map((line, idx) => (
+                <AccordionItem key={idx} value={`item-${idx}`} className="border-white/10">
+                  <AccordionTrigger className="text-sm hover:text-primary">
+                    {line}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground text-sm">
                     Línea de investigación activa del grupo GISICF.
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-
-          {researchLines.length === 0 && (
-            <p className="text-sm text-center text-muted-foreground py-8">
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
               No hay líneas de investigación definidas
             </p>
           )}
         </CardContent>
       </Card>
 
-      {/* Research Lines Manager Modal */}
-      {settings && (
-        <ResearchLinesManager
-          open={researchLinesOpen}
-          onOpenChange={setResearchLinesOpen}
-          currentLines={researchLines}
-          settingsId={settings.id}
-        />
-      )}
+      {/* Research Lines Manager Dialog */}
+      <ResearchLinesManager
+        open={researchLinesOpen}
+        onOpenChange={setResearchLinesOpen}
+        currentLines={researchLines}
+        settingsId={settings?.id || ""}
+      />
     </div>
   );
 }

@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { User, Phone, FileText, Lock, BadgeCheck, Download, Upload } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -47,6 +48,15 @@ export default function Profile() {
     
     loadProfile();
   }, [user]);
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] ?? null;
@@ -118,7 +128,6 @@ export default function Profile() {
         toast.success('Perfil actualizado correctamente');
         setCvFile(null);
         setAvatarFile(null);
-        // Actualizar la vista previa con la nueva URL
         setAvatarPreview(avatarUrl);
         setCvUrl(newCvUrl);
       }
@@ -164,110 +173,225 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-[70vh] flex items-start justify-center py-12">
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-2xl px-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Editar Perfil</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSave} className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4 items-center">
-                <div className="md:col-span-2">
-                  <Label htmlFor="fullName">Nombre completo</Label>
-                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                    {avatarPreview ? (
-                      <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-sm text-muted-foreground">Sin foto</span>
-                    )}
-                  </div>
-                  <input aria-label="Subir avatar" type="file" accept="image/*" onChange={handleFile} />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="phone">Número de celular</Label>
-                <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
-              </div>
-
-              <div>
-                <Label htmlFor="researcher">Código de investigador</Label>
-                <Input id="researcher" value={researcherCode} onChange={(e) => setResearcherCode(e.target.value)} />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="cv">Curriculum Vitae (PDF)</Label>
-                <div className="flex items-center gap-3">
-                  <input 
-                    id="cv"
-                    aria-label="Subir CV" 
-                    type="file" 
-                    accept=".pdf,application/pdf" 
-                    onChange={handleCvFile}
-                    className="text-sm"
-                  />
-                  {cvUrl && (
-                    <a 
-                      href={cvUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline"
-                    >
-                      Ver CV actual
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Button type="submit" disabled={saving}>{saving ? 'Guardando...' : 'Guardar cambios'}</Button>
-                <Button variant="ghost" onClick={() => { setAvatarFile(null); setCvFile(null); setAvatarPreview(avatarPreview); }}>Restaurar</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Cambiar Contraseña</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <div>
-                <Label htmlFor="newPassword">Nueva contraseña</Label>
-                <Input 
-                  id="newPassword" 
-                  type="password" 
-                  value={newPassword} 
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
-                  required 
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
-                <Input 
-                  id="confirmPassword" 
-                  type="password" 
-                  value={confirmPassword} 
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirma tu nueva contraseña"
-                  required 
-                />
-              </div>
-
-              <Button type="submit" disabled={changingPassword}>
-                {changingPassword ? 'Cambiando...' : 'Cambiar contraseña'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+    <div className="min-h-[70vh]">
+      {/* Hero Header with Hexagonal Pattern */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ duration: 0.5 }}
+        className="relative overflow-hidden rounded-2xl mb-8 glass-card-dark hex-pattern"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-transparent" />
+        <div className="relative p-8 flex flex-col sm:flex-row items-center gap-6">
+          {/* Avatar with Glow */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/50 blur-2xl rounded-full scale-110" />
+            <Avatar className="w-28 h-28 ring-4 ring-primary/50 relative shadow-2xl">
+              <AvatarImage src={avatarPreview || undefined} alt={fullName} />
+              <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-3xl font-bold">
+                {getInitials(fullName || "U")}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          
+          {/* User Info */}
+          <div className="text-center sm:text-left">
+            <div className="flex items-center justify-center sm:justify-start gap-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">{fullName || "Usuario"}</h1>
+              <BadgeCheck className="h-6 w-6 text-primary" />
+            </div>
+            <p className="text-slate-400 mt-1">{user?.email}</p>
+            {researcherCode && (
+              <p className="text-sm text-primary mt-2 font-mono">Código: {researcherCode}</p>
+            )}
+          </div>
+        </div>
       </motion.div>
+
+      {/* Bento Grid Layout */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Personal Information Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Card className="glass-card h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                Información Personal
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSave} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Nombre completo</Label>
+                  <Input 
+                    id="fullName" 
+                    value={fullName} 
+                    onChange={(e) => setFullName(e.target.value)} 
+                    required 
+                    className="bg-background/50 border-white/10 focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    Número de celular
+                  </Label>
+                  <Input 
+                    id="phone" 
+                    type="tel" 
+                    value={phone} 
+                    onChange={(e) => setPhone(e.target.value)} 
+                    className="bg-background/50 border-white/10 focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="researcher">Código de investigador</Label>
+                  <Input 
+                    id="researcher" 
+                    value={researcherCode} 
+                    onChange={(e) => setResearcherCode(e.target.value)} 
+                    className="bg-background/50 border-white/10 focus:ring-2 focus:ring-primary/50 font-mono"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Foto de perfil</Label>
+                  <div className="flex items-center gap-4">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={avatarPreview || undefined} />
+                      <AvatarFallback className="bg-primary/20">{getInitials(fullName || "U")}</AvatarFallback>
+                    </Avatar>
+                    <label className="flex-1">
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-white/20 hover:border-primary/50 cursor-pointer transition-colors">
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Cambiar foto</span>
+                      </div>
+                      <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <Button 
+                    type="submit" 
+                    disabled={saving}
+                    className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg hover:shadow-primary/25"
+                  >
+                    {saving ? 'Guardando...' : 'Guardar cambios'}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* CV Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Curriculum Vitae
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {cvUrl ? (
+                <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-8 w-8 text-primary" />
+                    <div>
+                      <p className="font-medium">CV Cargado</p>
+                      <p className="text-xs text-muted-foreground">Documento PDF</p>
+                    </div>
+                  </div>
+                  <Button asChild variant="outline" size="sm" className="border-primary/30 hover:bg-primary/10">
+                    <a href={cvUrl} target="_blank" rel="noopener noreferrer">
+                      <Download className="h-4 w-4 mr-2" />
+                      Ver
+                    </a>
+                  </Button>
+                </div>
+              ) : (
+                <div className="p-6 rounded-xl border border-dashed border-white/20 text-center">
+                  <FileText className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
+                  <p className="text-sm text-muted-foreground">No hay CV cargado</p>
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <Label>Subir nuevo CV (PDF)</Label>
+                <label className="block">
+                  <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-dashed border-white/20 hover:border-primary/50 cursor-pointer transition-colors">
+                    <Upload className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      {cvFile ? cvFile.name : 'Seleccionar archivo PDF'}
+                    </span>
+                  </div>
+                  <input type="file" accept=".pdf,application/pdf" onChange={handleCvFile} className="hidden" />
+                </label>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Security Card */}
+          <Card className="glass-card mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5 text-primary" />
+                Seguridad
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">Nueva contraseña</Label>
+                  <Input 
+                    id="newPassword" 
+                    type="password" 
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    required 
+                    className="bg-background/50 border-white/10 focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                  <Input 
+                    id="confirmPassword" 
+                    type="password" 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirma tu nueva contraseña"
+                    required 
+                    className="bg-background/50 border-white/10 focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+
+                <Button 
+                  type="submit" 
+                  disabled={changingPassword}
+                  variant="outline"
+                  className="border-primary/30 hover:bg-primary/10"
+                >
+                  {changingPassword ? 'Cambiando...' : 'Cambiar contraseña'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
     </div>
   );
 }
