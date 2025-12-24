@@ -36,7 +36,7 @@ import { useState } from "react";
 // Base menu items visible to all users
 const baseMenuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Institucional", url: "/institutional", icon: Landmark },
+  { title: "Información General", url: "/institutional", icon: Landmark },
 ];
 
 // Menu items only for regular users (not admin)
