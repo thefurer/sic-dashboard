@@ -323,17 +323,7 @@ export default function Settings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="president-signature">Nombre del Presidente</Label>
-              <Input
-                id="president-signature"
-                value={signaturePresidentName}
-                onChange={(e) => setSignaturePresidentName(e.target.value)}
-                placeholder="Ing. Christian Caicedo Plúa, PhD"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="coordinator-signature">Nombre del Coordinador</Label>
+              <Label htmlFor="coordinator-signature">Coordinador del Grupo de Investigación GISICF</Label>
               <Input
                 id="coordinator-signature"
                 value={signatureCoordinatorName}
@@ -343,12 +333,22 @@ export default function Settings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="responsible-signature">Nombre Responsable Comisión de Investigación</Label>
+              <Label htmlFor="responsible-signature">Responsable Comisión de Investigación</Label>
               <Input
                 id="responsible-signature"
                 value={signatureResponsibleName}
                 onChange={(e) => setSignatureResponsibleName(e.target.value)}
-                placeholder="Ing. María González, MSc"
+                placeholder="Ing. Karina Mero, MSc"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="president-signature">Coordinador de la Carrera de TI</Label>
+              <Input
+                id="president-signature"
+                value={signaturePresidentName}
+                onChange={(e) => setSignaturePresidentName(e.target.value)}
+                placeholder="Ing. Christian Caicedo Plúa, PhD"
               />
             </div>
 
