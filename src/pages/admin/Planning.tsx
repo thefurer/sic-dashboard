@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, FileText, Calendar, Pencil, Trash2 } from "lucide-react";
+import { Plus, FileText, Calendar, Pencil, Trash2, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import { es } from "date-fns/locale";
 export default function Planning() {
   const navigate = useNavigate();
   const [planToDelete, setPlanToDelete] = useState<string | null>(null);
+  const [assigning, setAssigning] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: plans, isLoading } = useQuery({
@@ -47,6 +48,86 @@ export default function Planning() {
       toast.error("Error al eliminar planificación");
     },
   });
+
+  const assignTasksForPlan = async (planId: string) => {
+    setAssigning(planId);
+    try {
+      // Fetch activities for this plan
+      const { data: activities, error: activitiesError } = await supabase
+        .from("planning_activities")
+        .select("*")
+        .eq("plan_id", planId);
+
+      if (activitiesError) throw activitiesError;
+
+      // Fetch members for this plan
+      const { data: members, error: membersError } = await supabase
+        .from("planning_members")
+        .select("profile_id, profiles(id, full_name)")
+        .eq("plan_id", planId);
+
+      if (membersError) throw membersError;
+
+      // Create a map of full_name to profile_id
+      const memberMap = new Map<string, string>();
+      members?.forEach((pm: any) => {
+        memberMap.set(pm.profiles.full_name, pm.profile_id);
+      });
+
+      // Delete existing assigned_tasks for this plan
+      await supabase
+        .from("assigned_tasks")
+        .delete()
+        .eq("plan_id", planId);
+
+      // Create tasks for each activity and its responsibles
+      const tasksToInsert: any[] = [];
+      
+      for (const activity of activities || []) {
+        const responsibles = (activity.responsibles as string[]) || [];
+        
+        for (const responsible of responsibles) {
+          const responsibleStr = String(responsible);
+          let profileId = memberMap.get(responsibleStr);
+          
+          if (!profileId) {
+            for (const [name, id] of memberMap.entries()) {
+              if (name.toLowerCase().includes(responsibleStr.toLowerCase()) || 
+                  responsibleStr.toLowerCase().includes(name.toLowerCase())) {
+                profileId = id;
+                break;
+              }
+            }
+          }
+          
+          if (profileId) {
+            tasksToInsert.push({
+              activity_id: activity.id,
+              plan_id: planId,
+              user_id: profileId,
+              status: "pending",
+            });
+          }
+        }
+      }
+
+      if (tasksToInsert.length > 0) {
+        const { error } = await supabase
+          .from("assigned_tasks")
+          .insert(tasksToInsert);
+
+        if (error) throw error;
+        toast.success(`${tasksToInsert.length} tareas asignadas a responsables`);
+      } else {
+        toast.info("No se encontraron responsables para asignar");
+      }
+    } catch (error: any) {
+      console.error("Error assigning tasks:", error);
+      toast.error("Error al asignar tareas");
+    } finally {
+      setAssigning(null);
+    }
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -85,6 +166,21 @@ export default function Planning() {
               className="hover:shadow-lg transition-shadow group relative"
             >
               <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                {plan.status === "finalized" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      assignTasksForPlan(plan.id);
+                    }}
+                    disabled={assigning === plan.id}
+                    className="bg-background/80 backdrop-blur-sm text-primary hover:text-primary"
+                    title="Asignar tareas a responsables"
+                  >
+                    <Users className={`h-4 w-4 ${assigning === plan.id ? 'animate-spin' : ''}`} />
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
