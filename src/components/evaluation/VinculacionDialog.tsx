@@ -65,11 +65,8 @@ export default function VinculacionDialog({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("evaluation-evidence")
-        .getPublicUrl(fileName);
-
-      const newEvidence = { url: publicUrl, description: "", type };
+      // Store only the path, not public URL (bucket is now private)
+      const newEvidence = { url: fileName, description: "", type };
       setEvidences([...evidences, newEvidence]);
 
       toast.success("Archivo cargado correctamente");

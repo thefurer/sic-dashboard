@@ -20,6 +20,7 @@ import { es } from "date-fns/locale";
 import { useState } from "react";
 import { toast } from "sonner";
 import EditJustificationDialog from "./EditJustificationDialog";
+import { openSignedUrl } from "@/hooks/useSignedUrl";
 
 interface EvaluationItem {
   category: string;
@@ -445,7 +446,7 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => item.evidence_url && window.open(item.evidence_url, "_blank")}
+                                onClick={() => item.evidence_url && openSignedUrl('evaluation-evidence', item.evidence_url)}
                               >
                                 <FileText className="w-4 h-4" />
                               </Button>

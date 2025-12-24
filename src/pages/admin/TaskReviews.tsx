@@ -18,6 +18,7 @@ import { format, differenceInDays, isPast, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 import { drawPDFHeader } from "@/lib/pdfHeaderUtils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { openSignedUrl } from "@/hooks/useSignedUrl";
 
 export default function TaskReviews() {
   const { toast } = useToast();
@@ -433,11 +434,13 @@ export default function TaskReviews() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {task.evidence_url && (
-                              <Button variant="ghost" size="sm" asChild>
-                                <a href={task.evidence_url} target="_blank" rel="noopener noreferrer">
-                                  <FileText className="h-4 w-4 mr-1" />
-                                  Ver
-                                </a>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => openSignedUrl('evaluation-evidence', task.evidence_url)}
+                              >
+                                <FileText className="h-4 w-4 mr-1" />
+                                Ver
                               </Button>
                             )}
                             {task.evidence_link && (

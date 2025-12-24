@@ -71,11 +71,8 @@ export default function ProjectEntryDialog({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("evaluation-evidence")
-        .getPublicUrl(fileName);
-
-      setEvidences([...evidences, { url: publicUrl, description }]);
+      // Store only the path, not public URL (bucket is now private)
+      setEvidences([...evidences, { url: fileName, description }]);
       toast.success("Evidencia subida correctamente");
     } catch (error: any) {
       toast.error("Error al subir evidencia", { description: error.message });

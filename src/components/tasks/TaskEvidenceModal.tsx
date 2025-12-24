@@ -34,11 +34,8 @@ export function TaskEvidenceModal({ open, onOpenChange, task, onSuccess }: TaskE
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from("evaluation-evidence")
-        .getPublicUrl(filePath);
-
-      return urlData.publicUrl;
+      // Return just the path, not the public URL (bucket is now private)
+      return filePath;
     } catch (error: any) {
       throw error;
     }

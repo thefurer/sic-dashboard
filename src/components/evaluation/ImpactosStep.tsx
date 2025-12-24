@@ -188,18 +188,15 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("evaluation-evidence")
-        .getPublicUrl(fileName);
-
+      // Store only the path, not public URL (bucket is now private)
       const existingItem = items.find((i) => i.indicator_name === indicatorName);
       const existingUrls = existingItem?.evidence_url
         ? JSON.parse(existingItem.evidence_url)
         : [];
 
-      // Update the URL at the specific index
+      // Update the URL at the specific index (storing path, not public URL)
       const updatedUrls = [...existingUrls];
-      updatedUrls[index] = publicUrl;
+      updatedUrls[index] = fileName;
 
       const hasJustification = existingItem?.justification && existingItem.justification.trim().length > 0;
       const indicator = INDICATORS.find((i) => i.name === indicatorName);
