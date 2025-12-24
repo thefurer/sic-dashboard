@@ -75,11 +75,8 @@ export default function ConvocatoriaDialog({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("evaluation-evidence")
-        .getPublicUrl(fileName);
-
-      const newEvidence = { url: publicUrl, description: "", type: evidenceType };
+      // Store only the path, not public URL (bucket is now private)
+      const newEvidence = { url: fileName, description: "", type: evidenceType };
       setEvidences([...evidences, newEvidence]);
 
       toast.success("Archivo cargado correctamente");

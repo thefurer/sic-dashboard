@@ -98,13 +98,10 @@ export default function EntryFormDialog({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("evaluation-evidence")
-        .getPublicUrl(fileName);
-
+      // Store only the path, not public URL (bucket is now private)
       setFiles({
         ...files,
-        [fileType]: { url: publicUrl, name: file.name },
+        [fileType]: { url: fileName, name: file.name },
       });
 
       toast.success("Archivo subido correctamente");

@@ -22,6 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { openSignedUrl } from "@/hooks/useSignedUrl";
 
 interface ReviewModalProps {
   open: boolean;
@@ -164,27 +165,21 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
     return project?.name || "Proyecto no encontrado";
   };
 
-  const handleOpenEvidence = (filePath: string) => {
+  const handleOpenEvidence = async (filePath: string) => {
     if (!filePath) {
       toast.error("Ruta de archivo no encontrada");
       return;
     }
     
-    // Check if it's already a full URL
+    // Check if it's already a full URL (legacy data)
     if (filePath.startsWith('http')) {
-      window.open(filePath, '_blank');
+      // For legacy public URLs, try to extract the path and get signed URL
+      await openSignedUrl('evaluation-evidence', filePath);
       return;
     }
     
-    const { data } = supabase.storage
-      .from('evaluation-evidence')
-      .getPublicUrl(filePath);
-    
-    if (data?.publicUrl) {
-      window.open(data.publicUrl, '_blank');
-    } else {
-      toast.error("No se pudo generar la URL del archivo");
-    }
+    // Get signed URL for private bucket
+    await openSignedUrl('evaluation-evidence', filePath);
   };
 
   const approveMutation = useMutation({

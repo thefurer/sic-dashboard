@@ -11,6 +11,7 @@ import { Upload, FileText, ExternalLink, AlertCircle, Clock, AlertTriangle, User
 import { format, differenceInDays, isPast, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
+import { openSignedUrl } from "@/hooks/useSignedUrl";
 
 export default function MyTasks() {
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
@@ -447,11 +448,12 @@ export default function MyTasks() {
                               )}
                               
                               {task.evidence_url && (
-                                <Button variant="outline" asChild>
-                                  <a href={task.evidence_url} target="_blank" rel="noopener noreferrer">
-                                    <FileText className="mr-2 h-4 w-4" />
-                                    Ver Archivo
-                                  </a>
+                                <Button 
+                                  variant="outline" 
+                                  onClick={() => openSignedUrl('evaluation-evidence', task.evidence_url)}
+                                >
+                                  <FileText className="mr-2 h-4 w-4" />
+                                  Ver Archivo
                                 </Button>
                               )}
                               
