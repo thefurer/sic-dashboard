@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Sun, Moon, Shield, BadgeCheck } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { UserNotificationBell } from "@/components/UserNotificationBell";
+import { UserActivityNotificationBell } from "@/components/UserActivityNotificationBell";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Badge } from "@/components/ui/badge";
 
@@ -74,6 +75,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 <span className="sr-only">Toggle theme</span>
               </Button>
               
+              <UserActivityNotificationBell />
               {userRole === "admin" ? <NotificationBell /> : <UserNotificationBell />}
               
               {/* Premium Profile Dropdown */}

@@ -22,6 +22,12 @@ interface ActivityDialogProps {
   nextOrderIndex: number;
 }
 
+interface TeamMember {
+  label: string;
+  value: string; // profile_id
+  fullName: string;
+}
+
 export function ActivityDialog({
   open,
   onOpenChange,
@@ -36,7 +42,7 @@ export function ActivityDialog({
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [verificationMeans, setVerificationMeans] = useState("");
   const [selectedResponsibles, setSelectedResponsibles] = useState<string[]>([]);
-  const [teamMembers, setTeamMembers] = useState<{ label: string; value: string }[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -50,6 +56,7 @@ export function ActivityDialog({
       setStartDate(new Date(activity.start_date));
       setEndDate(new Date(activity.end_date));
       setVerificationMeans(activity.verification_means);
+      // Map responsibles names to profile IDs if needed
       setSelectedResponsibles(activity.responsibles || []);
     } else {
       resetForm();
@@ -61,7 +68,7 @@ export function ActivityDialog({
 
     const { data, error } = await supabase
       .from("planning_members")
-      .select("profile_id, profiles(full_name)")
+      .select("profile_id, profiles(id, full_name)")
       .eq("plan_id", planId);
 
     if (error) {
@@ -71,10 +78,20 @@ export function ActivityDialog({
 
     const members = data?.map((m: any) => ({
       label: m.profiles.full_name,
-      value: m.profiles.full_name,
+      value: m.profile_id, // Use profile_id as value for proper task assignment
+      fullName: m.profiles.full_name,
     })) || [];
 
     setTeamMembers(members);
+
+    // If editing, map existing responsibles (names) to IDs
+    if (activity && activity.responsibles) {
+      const responsibleIds = activity.responsibles.map((name: string) => {
+        const member = members.find(m => m.fullName === name);
+        return member?.value || name;
+      });
+      setSelectedResponsibles(responsibleIds);
+    }
   };
 
   const resetForm = () => {
@@ -100,6 +117,12 @@ export function ActivityDialog({
     setSaving(true);
 
     try {
+      // Convert selected IDs back to names for storage in responsibles field
+      const responsibleNames = selectedResponsibles.map(id => {
+        const member = teamMembers.find(m => m.value === id);
+        return member?.fullName || id;
+      });
+
       const activityData = {
         plan_id: planId,
         activity: activityText,
@@ -107,9 +130,11 @@ export function ActivityDialog({
         start_date: format(startDate, "yyyy-MM-dd"),
         end_date: format(endDate, "yyyy-MM-dd"),
         verification_means: verificationMeans,
-        responsibles: selectedResponsibles,
+        responsibles: responsibleNames,
         order_index: activity ? activity.order_index : nextOrderIndex,
       };
+
+      let activityId = activity?.id;
 
       if (activity) {
         const { error } = await supabase
@@ -118,21 +143,97 @@ export function ActivityDialog({
           .eq("id", activity.id);
 
         if (error) throw error;
-        toast.success("Actividad actualizada");
       } else {
-        const { error } = await supabase
+        const { data: newActivity, error } = await supabase
           .from("planning_activities")
-          .insert(activityData);
+          .insert(activityData)
+          .select("id")
+          .single();
 
         if (error) throw error;
-        toast.success("Actividad agregada");
+        activityId = newActivity.id;
       }
 
+      // Now create/update assigned_tasks for each responsible
+      if (activityId) {
+        await assignTasksToResponsibles(activityId, planId, selectedResponsibles, activity !== null);
+      }
+
+      toast.success(activity ? "Actividad actualizada" : "Actividad agregada y asignada a responsables");
       onSaved();
     } catch (error: any) {
       toast.error(error.message || "Error al guardar");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const assignTasksToResponsibles = async (
+    activityId: string, 
+    planId: string, 
+    responsibleIds: string[],
+    isUpdate: boolean
+  ) => {
+    try {
+      if (isUpdate) {
+        // Get existing assigned tasks for this activity
+        const { data: existingTasks } = await supabase
+          .from("assigned_tasks")
+          .select("user_id")
+          .eq("activity_id", activityId);
+
+        const existingUserIds = existingTasks?.map(t => t.user_id) || [];
+        
+        // Find new responsibles that don't have tasks yet
+        const newResponsibles = responsibleIds.filter(id => !existingUserIds.includes(id));
+        
+        // Find responsibles that were removed
+        const removedResponsibles = existingUserIds.filter(id => !responsibleIds.includes(id));
+
+        // Delete tasks for removed responsibles (only if pending)
+        if (removedResponsibles.length > 0) {
+          await supabase
+            .from("assigned_tasks")
+            .delete()
+            .eq("activity_id", activityId)
+            .in("user_id", removedResponsibles)
+            .eq("status", "pending");
+        }
+
+        // Create tasks for new responsibles
+        if (newResponsibles.length > 0) {
+          const newTasks = newResponsibles.map(userId => ({
+            activity_id: activityId,
+            plan_id: planId,
+            user_id: userId,
+            status: "pending",
+          }));
+
+          const { error } = await supabase
+            .from("assigned_tasks")
+            .insert(newTasks);
+
+          if (error) throw error;
+        }
+      } else {
+        // New activity - create tasks for all responsibles
+        const tasks = responsibleIds.map(userId => ({
+          activity_id: activityId,
+          plan_id: planId,
+          user_id: userId,
+          status: "pending",
+        }));
+
+        const { error } = await supabase
+          .from("assigned_tasks")
+          .insert(tasks);
+
+        if (error) throw error;
+      }
+    } catch (error: any) {
+      console.error("Error assigning tasks:", error);
+      // Don't throw - activity was saved, just log the error
+      toast.error("Actividad guardada pero hubo un error al asignar tareas");
     }
   };
 
@@ -213,7 +314,7 @@ export function ActivityDialog({
           <div>
             <Label>Responsables *</Label>
             <MultiSelect
-              options={teamMembers}
+              options={teamMembers.map(m => ({ label: m.label, value: m.value }))}
               selected={selectedResponsibles}
               onChange={setSelectedResponsibles}
               placeholder="Selecciona responsables..."
