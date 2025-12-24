@@ -61,7 +61,7 @@ export function PlanningPreviewStep({
 
     const { data: members, error: membersError } = await supabase
       .from("planning_members")
-      .select("member_type, profiles(full_name)")
+      .select("member_type, profile_id, profiles(id, full_name)")
       .eq("plan_id", planId);
 
     if (membersError) {
@@ -87,10 +87,13 @@ export function PlanningPreviewStep({
   };
 
   const handleFinalize = async () => {
-    if (!planId) return;
+    if (!planId || !planData) return;
 
     setFinalizing(true);
     try {
+      // First, create assigned_tasks for all activities and their responsibles
+      await createAssignedTasksForAllActivities();
+
       const { error } = await supabase
         .from("planning_sheets")
         .update({ status: "finalized" })
@@ -98,12 +101,83 @@ export function PlanningPreviewStep({
 
       if (error) throw error;
 
-      toast.success("Planificación finalizada");
+      toast.success("Planificación finalizada y actividades asignadas a responsables");
       navigate("/admin/planning");
     } catch (error: any) {
       toast.error(error.message || "Error al finalizar");
     } finally {
       setFinalizing(false);
+    }
+  };
+
+  const createAssignedTasksForAllActivities = async () => {
+    if (!planId || !planData?.activities || !planData?.members) return;
+
+    const { activities, members } = planData;
+    
+    // Create a map of full_name/email to profile_id
+    const memberMap = new Map<string, string>();
+    members.forEach((m: any) => {
+      memberMap.set(m.profiles.full_name, m.profile_id || m.profiles?.id);
+    });
+
+    // Also get profile_ids from planning_members table
+    const { data: planningMembers } = await supabase
+      .from("planning_members")
+      .select("profile_id, profiles(full_name)")
+      .eq("plan_id", planId);
+
+    planningMembers?.forEach((pm: any) => {
+      memberMap.set(pm.profiles.full_name, pm.profile_id);
+    });
+
+    // Delete existing assigned_tasks for this plan to avoid duplicates
+    await supabase
+      .from("assigned_tasks")
+      .delete()
+      .eq("plan_id", planId);
+
+    // Create tasks for each activity and its responsibles
+    const tasksToInsert: any[] = [];
+    
+    for (const activity of activities) {
+      const responsibles = activity.responsibles || [];
+      
+      for (const responsible of responsibles) {
+        // Try to find profile_id by name
+        let profileId = memberMap.get(responsible);
+        
+        // If not found directly, search by partial match
+        if (!profileId) {
+          for (const [name, id] of memberMap.entries()) {
+            if (name.toLowerCase().includes(responsible.toLowerCase()) || 
+                responsible.toLowerCase().includes(name.toLowerCase())) {
+              profileId = id;
+              break;
+            }
+          }
+        }
+        
+        if (profileId) {
+          tasksToInsert.push({
+            activity_id: activity.id,
+            plan_id: planId,
+            user_id: profileId,
+            status: "pending",
+          });
+        }
+      }
+    }
+
+    if (tasksToInsert.length > 0) {
+      const { error } = await supabase
+        .from("assigned_tasks")
+        .insert(tasksToInsert);
+
+      if (error) {
+        console.error("Error creating assigned tasks:", error);
+        throw new Error("Error al asignar tareas a los responsables");
+      }
     }
   };
 

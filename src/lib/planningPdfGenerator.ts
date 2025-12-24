@@ -241,9 +241,13 @@ export async function generatePlanningPDF(planData: any) {
     .select("signature_president_name, signature_coordinator_name, signature_responsible_name")
     .single();
 
-  const presidentName = settings?.signature_president_name || "Ing. Christian Caicedo Plúa, PhD";
-  const coordinatorName = settings?.signature_coordinator_name || "Ing. Javier Marcillo Merino, Mg";
-  const responsibleName = settings?.signature_responsible_name || "Ing. María González, MSc";
+  // Based on current DB values:
+  // signature_coordinator_name = "Ing. Christian Caicedo Plúa, PhD." -> Coordinador del Grupo GISICF
+  // signature_responsible_name = "Ing. Karina Mero, MSc" -> Responsable Comisión de Investigación
+  // signature_president_name = "Ing. Javier Marcillo Merino, Mg" -> Coordinador de la Carrera de TI
+  const coordinadorGrupoName = settings?.signature_coordinator_name || "Ing. Christian Caicedo Plúa, PhD";
+  const responsableComisionName = settings?.signature_responsible_name || "Ing. Karina Mero, MSc";
+  const coordinadorCarreraName = settings?.signature_president_name || "Ing. Javier Marcillo Merino, Mg";
 
   // Reset text color to black for signatures
   doc.setTextColor(0, 0, 0);
@@ -254,7 +258,7 @@ export async function generatePlanningPDF(planData: any) {
   const centerX = pageWidth / 2;
   const rightX = pageWidth - 14 - colWidth / 2;
   
-  // Left signature line (President)
+  // Left signature line (Coordinador del Grupo GISICF)
   doc.setLineWidth(0.5);
   doc.setDrawColor(0, 0, 0);
   doc.line(leftX - 25, finalY, leftX + 25, finalY);
@@ -262,22 +266,22 @@ export async function generatePlanningPDF(planData: any) {
   // Left signature - Name (Bold)
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text(presidentName, leftX, finalY + 5, { align: "center" });
+  doc.text(coordinadorGrupoName, leftX, finalY + 5, { align: "center" });
   
   // Left signature - Title (Regular, wrapped)
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  const titleLeft = "Coordinador del Grupo de investigación GISICF";
+  const titleLeft = "Coordinador del Grupo de Investigación GISICF";
   const splitTitleLeft = doc.splitTextToSize(titleLeft, 50);
   doc.text(splitTitleLeft, leftX, finalY + 10, { align: "center" });
   
-  // Center signature line (Responsible)
+  // Center signature line (Responsable Comisión de Investigación)
   doc.line(centerX - 25, finalY, centerX + 25, finalY);
   
   // Center signature - Name (Bold)
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text(responsibleName, centerX, finalY + 5, { align: "center" });
+  doc.text(responsableComisionName, centerX, finalY + 5, { align: "center" });
   
   // Center signature - Title (Regular, wrapped)
   doc.setFont("helvetica", "normal");
@@ -286,13 +290,13 @@ export async function generatePlanningPDF(planData: any) {
   const splitTitleCenter = doc.splitTextToSize(titleCenter, 50);
   doc.text(splitTitleCenter, centerX, finalY + 10, { align: "center" });
   
-  // Right signature line (Coordinator)
+  // Right signature line (Coordinador de la Carrera de TI)
   doc.line(rightX - 25, finalY, rightX + 25, finalY);
   
   // Right signature - Name (Bold)
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text(coordinatorName, rightX, finalY + 5, { align: "center" });
+  doc.text(coordinadorCarreraName, rightX, finalY + 5, { align: "center" });
   
   // Right signature - Title (Regular, wrapped)
   doc.setFont("helvetica", "normal");
