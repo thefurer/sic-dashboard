@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TaskEvidenceModal } from "@/components/tasks/TaskEvidenceModal";
-import { Upload, FileText, ExternalLink, AlertCircle, Clock, AlertTriangle, Users, Target, Calendar } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Upload, FileText, ExternalLink, AlertCircle, Clock, AlertTriangle, Users, Target, Calendar, ChevronDown, Link as LinkIcon, CalendarClock } from "lucide-react";
 import { format, differenceInDays, isPast, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,6 +36,13 @@ export default function MyTasks() {
             verification_means,
             responsibles,
             plan_id
+          ),
+          planning_sheets!inner(
+            id,
+            period_name,
+            president_name,
+            drive_link,
+            meeting_schedule
           )
         `)
         .eq("user_id", user.user?.id)
@@ -44,6 +52,56 @@ export default function MyTasks() {
       return data;
     },
   });
+
+  // Fetch planning members for all plans the user is involved in
+  const planIds = [...new Set(tasks?.map(t => t.plan_id) || [])];
+  
+  const { data: planningMembers } = useQuery({
+    queryKey: ["planning-members", planIds],
+    queryFn: async () => {
+      if (planIds.length === 0) return {};
+      
+      const { data, error } = await supabase
+        .from("planning_members")
+        .select(`
+          plan_id,
+          member_type,
+          profiles(id, full_name, email)
+        `)
+        .in("plan_id", planIds);
+
+      if (error) throw error;
+      
+      // Group by plan_id
+      const grouped: Record<string, { coordinators: any[], members: any[] }> = {};
+      data?.forEach(member => {
+        if (!grouped[member.plan_id]) {
+          grouped[member.plan_id] = { coordinators: [], members: [] };
+        }
+        if (member.member_type === "coordinator") {
+          grouped[member.plan_id].coordinators.push(member.profiles);
+        } else {
+          grouped[member.plan_id].members.push(member.profiles);
+        }
+      });
+      
+      return grouped;
+    },
+    enabled: planIds.length > 0,
+  });
+
+  // Group tasks by plan_id
+  const tasksByPlan = tasks?.reduce((acc, task) => {
+    const planId = task.plan_id;
+    if (!acc[planId]) {
+      acc[planId] = {
+        planInfo: task.planning_sheets,
+        tasks: []
+      };
+    }
+    acc[planId].tasks.push(task);
+    return acc;
+  }, {} as Record<string, { planInfo: any, tasks: any[] }>) || {};
 
   const handleUploadEvidence = (task: any) => {
     setSelectedTask(task);
@@ -158,144 +216,261 @@ export default function MyTasks() {
         )}
       </AnimatePresence>
 
-      {tasks && tasks.length > 0 ? (
-        <div className="grid gap-6">
-          {tasks.map((task) => {
-            const deadlineStatus = getDeadlineStatus(task.planning_activities.end_date, task.status);
-            const responsibles = task.planning_activities.responsibles || [];
+      {Object.keys(tasksByPlan).length > 0 ? (
+        <div className="space-y-8">
+          {Object.entries(tasksByPlan).map(([planId, { planInfo, tasks: planTasks }]) => {
+            const members = planningMembers?.[planId];
+            const meetingSchedule = planInfo?.meeting_schedule as { date: string; time: string }[] | null;
             
             return (
-              <motion.div
-                key={task.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={deadlineStatus?.type === "overdue" ? "ring-2 ring-destructive rounded-lg" : ""}
-              >
-                <Card className={deadlineStatus?.type === "overdue" ? "border-destructive" : ""}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap mb-2">
-                          {deadlineStatus && (
-                            <Badge className={deadlineStatus.className}>
-                              {deadlineStatus.type === "overdue" ? <AlertTriangle className="h-3 w-3 mr-1" /> : <Clock className="h-3 w-3 mr-1" />}
-                              {deadlineStatus.message}
-                            </Badge>
-                          )}
-                          {getStatusBadge(task.status)}
-                        </div>
-                        <CardTitle className="text-xl">{task.planning_activities.activity}</CardTitle>
-                        <CardDescription className="mt-2 flex items-start gap-2">
-                          <Target className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                          <span>{task.planning_activities.objective}</span>
-                        </CardDescription>
-                      </div>
-                    </div>
+              <div key={planId} className="space-y-4">
+                {/* Plan Header Card with General Info */}
+                <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      <Calendar className="h-6 w-6 text-primary" />
+                      {planInfo?.period_name || "Plan de Trabajo"}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Dates and Details Grid */}
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Fecha Inicio</p>
-                          <p className="font-medium">
-                            {format(new Date(task.planning_activities.start_date), "dd 'de' MMMM, yyyy", { locale: es })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Fecha Fin</p>
-                          <p className={`font-medium ${deadlineStatus?.type === "overdue" ? "text-destructive" : ""}`}>
-                            {format(new Date(task.planning_activities.end_date), "dd 'de' MMMM, yyyy", { locale: es })}
-                            {deadlineStatus && (
-                              <span className={`ml-2 text-xs ${deadlineStatus.type === "overdue" ? "text-destructive" : "text-orange-500"}`}>
-                                ({deadlineStatus.daysText})
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2 md:col-span-2 lg:col-span-1">
-                        <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Medio de Verificación</p>
-                          <p className="font-medium">{task.planning_activities.verification_means}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Responsibles */}
-                    {Array.isArray(responsibles) && responsibles.length > 0 && (
-                      <div className="flex items-start gap-2">
-                        <Users className="h-4 w-4 text-muted-foreground mt-1" />
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">Responsables:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {responsibles.map((name: unknown, idx: number) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
-                                {String(name)}
-                              </Badge>
-                            ))}
+                    {/* General Data Section */}
+                    <Collapsible defaultOpen>
+                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left font-semibold text-lg hover:text-primary transition-colors group">
+                        <ChevronDown className="h-5 w-5 transition-transform group-data-[state=open]:rotate-180" />
+                        Datos Generales
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3">
+                        <div className="grid md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Nombre del Período</p>
+                            <p className="font-medium">{planInfo?.period_name}</p>
                           </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Presidente</p>
+                            <p className="font-medium">{planInfo?.president_name}</p>
+                          </div>
+                          
+                          {/* Meeting Schedule */}
+                          {meetingSchedule && meetingSchedule.length > 0 && (
+                            <div className="md:col-span-2">
+                              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                                <CalendarClock className="h-3 w-3" />
+                                Reuniones Programadas
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {meetingSchedule.map((meeting, idx) => (
+                                  <Badge key={idx} variant="secondary" className="text-xs">
+                                    {format(new Date(meeting.date), "dd/MM/yyyy", { locale: es })} - {meeting.time}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Drive Link */}
+                          {planInfo?.drive_link && (
+                            <div className="md:col-span-2">
+                              <p className="text-xs text-muted-foreground mb-1">Enlace de Drive</p>
+                              <a 
+                                href={planInfo.drive_link} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
+                              >
+                                <LinkIcon className="h-3 w-3" />
+                                {planInfo.drive_link}
+                              </a>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )}
+                      </CollapsibleContent>
+                    </Collapsible>
 
-                    {/* Admin Observations */}
-                    {task.status === "observado" && task.admin_observations && (
-                      <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>
-                          <strong>Observaciones del Administrador:</strong>
-                          <p className="mt-1">{task.admin_observations}</p>
-                        </AlertDescription>
-                      </Alert>
+                    {/* Team Section */}
+                    {members && (members.coordinators?.length > 0 || members.members?.length > 0) && (
+                      <Collapsible defaultOpen>
+                        <CollapsibleTrigger className="flex items-center gap-2 w-full text-left font-semibold text-lg hover:text-primary transition-colors group">
+                          <ChevronDown className="h-5 w-5 transition-transform group-data-[state=open]:rotate-180" />
+                          Conformación del Equipo
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-3">
+                          <div className="p-4 bg-muted/50 rounded-lg space-y-4">
+                            {members.coordinators?.length > 0 && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-2">Coordinadores</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {members.coordinators.map((c: any, idx: number) => (
+                                    <Badge key={idx} className="bg-primary/20 text-primary hover:bg-primary/30">
+                                      {c.full_name}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {members.members?.length > 0 && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-2">Miembros</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {members.members.map((m: any, idx: number) => (
+                                    <Badge key={idx} variant="outline">
+                                      {m.full_name}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
                     )}
-
-                    {/* Evidence Description */}
-                    {task.evidence_description && (
-                      <div className="p-3 bg-muted rounded-md">
-                        <p className="text-sm font-medium mb-1">Tu descripción de Evidencia:</p>
-                        <p className="text-sm">{task.evidence_description}</p>
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 pt-2 flex-wrap">
-                      {(task.status === "pending" || task.status === "observado") && (
-                        <Button 
-                          onClick={() => handleUploadEvidence(task)}
-                          className={deadlineStatus?.type === "overdue" ? "bg-destructive hover:bg-destructive/90" : ""}
-                        >
-                          <Upload className="mr-2 h-4 w-4" />
-                          {task.evidence_url ? "Actualizar Evidencia" : "Subir Evidencia"}
-                        </Button>
-                      )}
-                      
-                      {task.evidence_url && (
-                        <Button variant="outline" asChild>
-                          <a href={task.evidence_url} target="_blank" rel="noopener noreferrer">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Ver Archivo
-                          </a>
-                        </Button>
-                      )}
-                      
-                      {task.evidence_link && (
-                        <Button variant="outline" asChild>
-                          <a href={task.evidence_link} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Ver Enlace
-                          </a>
-                        </Button>
-                      )}
-                    </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+
+                {/* Tasks for this Plan */}
+                <div className="grid gap-4 pl-4 border-l-2 border-primary/20">
+                  <h3 className="text-lg font-semibold text-muted-foreground">
+                    Actividades Asignadas ({planTasks.length})
+                  </h3>
+                  {planTasks.map((task) => {
+                    const deadlineStatus = getDeadlineStatus(task.planning_activities.end_date, task.status);
+                    const responsibles = task.planning_activities.responsibles || [];
+                    
+                    return (
+                      <motion.div
+                        key={task.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={deadlineStatus?.type === "overdue" ? "ring-2 ring-destructive rounded-lg" : ""}
+                      >
+                        <Card className={deadlineStatus?.type === "overdue" ? "border-destructive" : ""}>
+                          <CardHeader>
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 flex-wrap mb-2">
+                                  {deadlineStatus && (
+                                    <Badge className={deadlineStatus.className}>
+                                      {deadlineStatus.type === "overdue" ? <AlertTriangle className="h-3 w-3 mr-1" /> : <Clock className="h-3 w-3 mr-1" />}
+                                      {deadlineStatus.message}
+                                    </Badge>
+                                  )}
+                                  {getStatusBadge(task.status)}
+                                </div>
+                                <CardTitle className="text-xl">{task.planning_activities.activity}</CardTitle>
+                                <CardDescription className="mt-2 flex items-start gap-2">
+                                  <Target className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                  <span>{task.planning_activities.objective}</span>
+                                </CardDescription>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            {/* Dates and Details Grid */}
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Fecha Inicio</p>
+                                  <p className="font-medium">
+                                    {format(new Date(task.planning_activities.start_date), "dd 'de' MMMM, yyyy", { locale: es })}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Fecha Fin</p>
+                                  <p className={`font-medium ${deadlineStatus?.type === "overdue" ? "text-destructive" : ""}`}>
+                                    {format(new Date(task.planning_activities.end_date), "dd 'de' MMMM, yyyy", { locale: es })}
+                                    {deadlineStatus && (
+                                      <span className={`ml-2 text-xs ${deadlineStatus.type === "overdue" ? "text-destructive" : "text-orange-500"}`}>
+                                        ({deadlineStatus.daysText})
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-2 md:col-span-2 lg:col-span-1">
+                                <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Medio de Verificación</p>
+                                  <p className="font-medium">{task.planning_activities.verification_means}</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Responsibles */}
+                            {Array.isArray(responsibles) && responsibles.length > 0 && (
+                              <div className="flex items-start gap-2">
+                                <Users className="h-4 w-4 text-muted-foreground mt-1" />
+                                <div>
+                                  <p className="text-sm text-muted-foreground mb-1">Responsables:</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {responsibles.map((name: unknown, idx: number) => (
+                                      <Badge key={idx} variant="outline" className="text-xs">
+                                        {String(name)}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Admin Observations */}
+                            {task.status === "observado" && task.admin_observations && (
+                              <Alert variant="destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>
+                                  <strong>Observaciones del Administrador:</strong>
+                                  <p className="mt-1">{task.admin_observations}</p>
+                                </AlertDescription>
+                              </Alert>
+                            )}
+
+                            {/* Evidence Description */}
+                            {task.evidence_description && (
+                              <div className="p-3 bg-muted rounded-md">
+                                <p className="text-sm font-medium mb-1">Tu descripción de Evidencia:</p>
+                                <p className="text-sm">{task.evidence_description}</p>
+                              </div>
+                            )}
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-2 pt-2 flex-wrap">
+                              {(task.status === "pending" || task.status === "observado") && (
+                                <Button 
+                                  onClick={() => handleUploadEvidence(task)}
+                                  className={deadlineStatus?.type === "overdue" ? "bg-destructive hover:bg-destructive/90" : ""}
+                                >
+                                  <Upload className="mr-2 h-4 w-4" />
+                                  {task.evidence_url ? "Actualizar Evidencia" : "Subir Evidencia"}
+                                </Button>
+                              )}
+                              
+                              {task.evidence_url && (
+                                <Button variant="outline" asChild>
+                                  <a href={task.evidence_url} target="_blank" rel="noopener noreferrer">
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    Ver Archivo
+                                  </a>
+                                </Button>
+                              )}
+                              
+                              {task.evidence_link && (
+                                <Button variant="outline" asChild>
+                                  <a href={task.evidence_link} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="mr-2 h-4 w-4" />
+                                    Ver Enlace
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </div>
