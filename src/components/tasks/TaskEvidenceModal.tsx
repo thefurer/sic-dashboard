@@ -24,13 +24,10 @@ export function TaskEvidenceModal({ open, onOpenChange, task, onSuccess }: TaskE
 
   const handleFileUpload = async (file: File) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
-
       const fileExt = file.name.split(".").pop();
       const fileName = `${task.id}_${Date.now()}.${fileExt}`;
-      // Path must start with user_id to satisfy RLS policy
-      const filePath = `${user.id}/${fileName}`;
+      // Use the task owner's user_id for the path to satisfy RLS policy
+      const filePath = `${task.user_id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("evaluation-evidence")
