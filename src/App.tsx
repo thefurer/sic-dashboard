@@ -52,12 +52,12 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/admin/pending-approvals" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <MainLayout><PendingApprovals /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/admin/users" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <MainLayout><UserDirectory /></MainLayout>
               </ProtectedRoute>
             } />
@@ -72,37 +72,37 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/admin/planning" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <MainLayout><Planning /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/admin/planning/new" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <MainLayout><PlanningBuilder /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/admin/planning/:id" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <MainLayout><PlanningBuilder /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/admin/settings" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <MainLayout><Settings /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/admin/projects-list" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <MainLayout><OfficialProjectsList /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/admin/evaluations" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <MainLayout><EvaluationReviews /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/admin/task-reviews" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <MainLayout><TaskReviews /></MainLayout>
               </ProtectedRoute>
             } />
