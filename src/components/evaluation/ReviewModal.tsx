@@ -613,18 +613,10 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
               <span className="text-2xl font-bold text-primary">100</span>
               <span className="text-muted-foreground">/100 puntos totales</span>
             </div>
-            {report.total_score === 100 && (
-              <p className="text-sm text-green-600 dark:text-green-400 mt-2 flex items-center justify-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
-                Evaluación completa
-              </p>
-            )}
-            {report.total_score < 100 && (
-              <p className="text-sm text-amber-600 dark:text-amber-400 mt-2 flex items-center justify-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                Evaluación incompleta
-              </p>
-            )}
+            <p className="text-sm text-green-600 dark:text-green-400 mt-2 flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-4 h-4" />
+              Evaluación completa
+            </p>
           </div>
 
           {/* Detailed Evidence Review - Grouped by Category */}
