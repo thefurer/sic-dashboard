@@ -381,10 +381,10 @@ export default function TaskReviews() {
         const startDate = format(new Date(activity.start_date), "dd/MM/yyyy", { locale: es });
         const endDate = format(new Date(activity.end_date), "dd/MM/yyyy", { locale: es });
         const statusMap: Record<string, string> = {
-          approved: "✓ Aprobado",
-          observado: "⚠ Observado",
-          submitted: "📤 Enviado",
-          pending: "⏳ Pendiente"
+          approved: "Aprobado",
+          observado: "Observado",
+          submitted: "Enviado",
+          pending: "Pendiente",
         };
         
         return [
