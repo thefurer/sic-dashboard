@@ -5,7 +5,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requiredRole?: 'admin' | 'researcher' | 'student';
+}
+
+export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { user, loading, signOut } = useAuth();
 
   const { data: userRole, isLoading: roleLoading } = useQuery({
@@ -84,6 +89,11 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     );
+  }
+
+  // Check role-based access for protected routes
+  if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
