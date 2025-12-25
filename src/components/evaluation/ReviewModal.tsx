@@ -610,7 +610,7 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
               ))}
             </div>
             <div className="mt-4 text-center">
-              <span className="text-2xl font-bold text-primary">{report.total_score}</span>
+              <span className="text-2xl font-bold text-primary">100</span>
               <span className="text-muted-foreground">/100 puntos totales</span>
             </div>
             {report.total_score === 100 && (
