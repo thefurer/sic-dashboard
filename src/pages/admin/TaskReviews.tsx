@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, XCircle, FileText, ExternalLink, Download, Bell, AlertTriangle, Clock, Send, Users } from "lucide-react";
+import { CheckCircle, XCircle, FileText, ExternalLink, Download, Bell, AlertTriangle, Clock, Send, Users, Pencil, Trash2, RotateCcw } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format, differenceInDays, isPast, isToday } from "date-fns";
@@ -30,6 +31,11 @@ export default function TaskReviews() {
   const [alertMessage, setAlertMessage] = useState("");
   const [selectedTasksForAlert, setSelectedTasksForAlert] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("submitted");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editObservations, setEditObservations] = useState("");
+  const [editStatus, setEditStatus] = useState<string>("");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
 
   // Fetch all tasks with different statuses
   const { data: allTasks, isLoading } = useQuery({
@@ -144,6 +150,105 @@ export default function TaskReviews() {
       });
     },
   });
+
+  // Update task mutation (for editing reviewed tasks)
+  const updateTaskMutation = useMutation({
+    mutationFn: async ({ taskId, status, obs }: { taskId: string; status: string; obs?: string }) => {
+      const { data: user } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from("assigned_tasks")
+        .update({
+          status,
+          admin_observations: obs || null,
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: user.user?.id,
+        })
+        .eq("id", taskId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-assigned-tasks"] });
+      toast({
+        title: "Tarea actualizada",
+        description: "El estado de la tarea ha sido actualizado correctamente",
+      });
+      setIsEditDialogOpen(false);
+      setSelectedTask(null);
+      setEditObservations("");
+      setEditStatus("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete task mutation
+  const deleteTaskMutation = useMutation({
+    mutationFn: async (taskId: string) => {
+      const { error } = await supabase
+        .from("assigned_tasks")
+        .delete()
+        .eq("id", taskId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-assigned-tasks"] });
+      toast({
+        title: "Tarea eliminada",
+        description: "La asignación ha sido eliminada correctamente",
+      });
+      setIsDeleteDialogOpen(false);
+      setTaskToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditTask = (task: any) => {
+    setSelectedTask(task);
+    setEditObservations(task.admin_observations || "");
+    setEditStatus(task.status);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateTask = () => {
+    if (!selectedTask) return;
+    updateTaskMutation.mutate({
+      taskId: selectedTask.id,
+      status: editStatus,
+      obs: editObservations.trim() || undefined,
+    });
+  };
+
+  const handleDeleteTask = (task: any) => {
+    setTaskToDelete(task);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteTask = () => {
+    if (!taskToDelete) return;
+    deleteTaskMutation.mutate(taskToDelete.id);
+  };
+
+  const handleResetToPending = (task: any) => {
+    updateTaskMutation.mutate({
+      taskId: task.id,
+      status: "pending",
+      obs: undefined,
+    });
+  };
 
   const handleReview = (task: any, approve: boolean) => {
     setSelectedTask(task);
@@ -604,6 +709,7 @@ export default function TaskReviews() {
                     <TableHead>Fecha Revisión</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Evidencia</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -621,11 +727,13 @@ export default function TaskReviews() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {task.evidence_url && (
-                              <Button variant="ghost" size="sm" asChild>
-                                <a href={task.evidence_url} target="_blank" rel="noopener noreferrer">
-                                  <FileText className="h-4 w-4 mr-1" />
-                                  Ver
-                                </a>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => openSignedUrl('evaluation-evidence', task.evidence_url)}
+                              >
+                                <FileText className="h-4 w-4 mr-1" />
+                                Ver
                               </Button>
                             )}
                             {task.evidence_link && (
@@ -638,11 +746,40 @@ export default function TaskReviews() {
                             )}
                           </div>
                         </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditTask(task)}
+                              title="Editar estado"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleResetToPending(task)}
+                              title="Devolver a pendiente"
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteTask(task)}
+                              title="Eliminar asignación"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         No hay actividades revisadas
                       </TableCell>
                     </TableRow>
@@ -738,6 +875,78 @@ export default function TaskReviews() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Task Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5" />
+              Editar Estado de Tarea
+            </DialogTitle>
+            <DialogDescription>
+              Modifica el estado y observaciones de esta actividad
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="editStatus">Estado</Label>
+              <select
+                id="editStatus"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                value={editStatus}
+                onChange={(e) => setEditStatus(e.target.value)}
+              >
+                <option value="approved">Aprobado</option>
+                <option value="observado">Observado</option>
+                <option value="submitted">Enviado (sin revisar)</option>
+                <option value="pending">Pendiente</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editObservations">Observaciones (opcional)</Label>
+              <Textarea
+                id="editObservations"
+                value={editObservations}
+                onChange={(e) => setEditObservations(e.target.value)}
+                placeholder="Observaciones para el usuario..."
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateTask} disabled={updateTaskMutation.isPending}>
+              Guardar Cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar esta asignación?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción eliminará permanentemente la asignación de la actividad 
+              "{taskToDelete?.planning_activities?.activity}" del usuario {taskToDelete?.user_profile?.full_name}.
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteTask}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
