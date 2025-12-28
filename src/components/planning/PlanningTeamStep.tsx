@@ -19,7 +19,6 @@ interface PlanningTeamStepProps {
 interface Profile {
   id: string;
   full_name: string;
-  email: string;
 }
 
 export function PlanningTeamStep({
@@ -42,7 +41,7 @@ export function PlanningTeamStep({
   const loadProfiles = async () => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, full_name, email")
+      .select("id, full_name")
       .eq("is_approved", true)
       .order("full_name");
 

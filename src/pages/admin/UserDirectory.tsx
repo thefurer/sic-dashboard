@@ -18,12 +18,15 @@ import { getSignedUrl } from "@/hooks/useSignedUrl";
 
 const ITEMS_PER_PAGE = 5;
 
+interface ProfileContact {
+  email: string | null;
+  phone: string | null;
+}
+
 interface Profile {
   id: string;
   full_name: string;
-  email: string | null;
   avatar_url: string | null;
-  phone: string | null;
   researcher_code: string | null;
   bio: string | null;
   cv_url: string | null;
@@ -31,6 +34,7 @@ interface Profile {
   created_at: string;
   research_role: string | null;
   last_login_at: string | null;
+  contact?: ProfileContact | null;
 }
 
 const RESEARCH_ROLES = [
@@ -52,13 +56,26 @@ export default function UserDirectory() {
   const { data: users, isLoading } = useQuery({
     queryKey: ["all-users"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data as Profile[];
+      if (profilesError) throw profilesError;
+
+      // Fetch contacts for all users (admin has access)
+      const { data: contactsData } = await supabase
+        .from("profile_contacts")
+        .select("user_id, email, phone");
+
+      // Merge contacts into profiles
+      const usersWithContacts = profilesData?.map(profile => ({
+        ...profile,
+        contact: contactsData?.find(c => c.user_id === profile.id) || null
+      })) || [];
+
+      return usersWithContacts as Profile[];
     },
   });
 
@@ -335,14 +352,14 @@ export default function UserDirectory() {
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Email:</span>
-                  <span className="font-medium">{selectedUser.email || selectedUser.id}</span>
+                  <span className="font-medium">{selectedUser.contact?.email || selectedUser.id}</span>
                 </div>
 
-                {selectedUser.phone && (
+                {selectedUser.contact?.phone && (
                   <div className="flex items-center gap-2 text-sm">
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     <span className="text-muted-foreground">Teléfono:</span>
-                    <span className="font-medium">{selectedUser.phone}</span>
+                    <span className="font-medium">{selectedUser.contact.phone}</span>
                   </div>
                 )}
 

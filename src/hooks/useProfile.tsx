@@ -6,9 +6,7 @@ interface Profile {
   id: string;
   full_name: string;
   avatar_url: string | null;
-  phone: string | null;
   researcher_code: string | null;
-  email: string | null;
 }
 
 export function useProfile() {
@@ -25,7 +23,7 @@ export function useProfile() {
     const loadProfile = async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, avatar_url, researcher_code')
         .eq('id', user.id)
         .single();
       
