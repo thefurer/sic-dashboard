@@ -3,69 +3,84 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FolderKanban, BookOpen, Users, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-
 const heroTextVariant = {
-  hidden: { opacity: 0, x: -40 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.6 } },
+  hidden: {
+    opacity: 0,
+    x: -40
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.6
+    }
+  }
 };
-
 const heroImageVariant = {
-  hidden: { opacity: 0, x: 40, scale: 0.98 },
-  visible: { opacity: 1, x: 0, scale: 1, transition: { duration: 0.7 } },
+  hidden: {
+    opacity: 0,
+    x: 40,
+    scale: 0.98
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: {
+      duration: 0.7
+    }
+  }
 };
-
 const cardsContainer = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.12 } },
+  visible: {
+    transition: {
+      staggerChildren: 0.12
+    }
+  }
 };
-
 const cardVariant = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  hover: { y: -8, boxShadow: "0 20px 40px rgba(2, 50, 32, 0.18)" },
+  hidden: {
+    opacity: 0,
+    y: 18
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5
+    }
+  },
+  hover: {
+    y: -8,
+    boxShadow: "0 20px 40px rgba(2, 50, 32, 0.18)"
+  }
 };
-
 export default function Landing() {
-  return (
-    <div
-      className="min-h-screen relative"
-      style={{
-        // subtle dot grid + mesh gradient background to imply connectivity/data
-        background:
-          "radial-gradient(circle at 10% 10%, rgba(0,122,51,0.03), transparent 8%), radial-gradient(circle at 90% 90%, rgba(6,182,212,0.02), transparent 8%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
-      }}
-    >
+  return <div className="min-h-screen relative" style={{
+    // subtle dot grid + mesh gradient background to imply connectivity/data
+    background: "radial-gradient(circle at 10% 10%, rgba(0,122,51,0.03), transparent 8%), radial-gradient(circle at 90% 90%, rgba(6,182,212,0.02), transparent 8%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)"
+  }}>
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 md:py-28">
-        <motion.div
-          className="max-w-6xl mx-auto flex flex-col-reverse md:flex-row items-center gap-10"
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div
-            variants={heroTextVariant}
-            className="w-full md:w-1/2 text-center md:text-left"
-          >
+        <motion.div className="max-w-6xl mx-auto flex flex-col-reverse md:flex-row items-center gap-10" initial="hidden" animate="visible">
+          <motion.div variants={heroTextVariant} className="w-full md:w-1/2 text-center md:text-left">
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
               <span className="inline-block mr-3">
-                <span
-                  style={{
-                    background: "linear-gradient(90deg,#007A33,#06b6d4)",
-                    WebkitBackgroundClip: "text",
-                    color: "transparent",
-                  }}
-                >
+                <span style={{
+                background: "linear-gradient(90deg,#007A33,#06b6d4)",
+                WebkitBackgroundClip: "text",
+                color: "transparent"
+              }}>
                   Innovación
                 </span>
                 {" y tecnología al servicio de la "}
               </span>
-              <span
-                style={{
-                  background: "linear-gradient(90deg,#007A33,#06b6d4)",
-                  WebkitBackgroundClip: "text",
-                  color: "transparent",
-                }}
-              >
+              <span style={{
+              background: "linear-gradient(90deg,#007A33,#06b6d4)",
+              WebkitBackgroundClip: "text",
+              color: "transparent"
+            }}>
                 Sociedad
               </span>
             </h1>
@@ -76,69 +91,49 @@ export default function Landing() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
               <Link to="/auth" aria-label="Acceder a la plataforma" className="relative">
-                <Button
-                  size="lg"
-                  className="gap-2 relative z-10"
-                  style={{
-                    // glow + primary green brand color
-                    backgroundColor: "#007A33",
-                    color: "white",
-                    boxShadow: "0 8px 30px rgba(0,122,51,0.18)",
-                  }}
-                >
+                <Button size="lg" className="gap-2 relative z-10" style={{
+                // glow + primary green brand color
+                backgroundColor: "#007A33",
+                color: "white",
+                boxShadow: "0 8px 30px rgba(0,122,51,0.18)"
+              }}>
                   Acceder a la plataforma
                   <ArrowRight className="h-5 w-5" />
                 </Button>
                 {/* soft glow ring */}
-                <span
-                  aria-hidden
-                  style={{
-                    position: "absolute",
-                    left: -6,
-                    right: -6,
-                    top: -6,
-                    bottom: -6,
-                    borderRadius: 12,
-                    boxShadow: "0 10px 30px rgba(0,122,51,0.08)",
-                    zIndex: 0,
-                  }}
-                />
+                <span aria-hidden style={{
+                position: "absolute",
+                left: -6,
+                right: -6,
+                top: -6,
+                bottom: -6,
+                borderRadius: 12,
+                boxShadow: "0 10px 30px rgba(0,122,51,0.08)",
+                zIndex: 0
+              }} />
               </Link>
 
-              <Link
-                to="/projects"
-                aria-label="Explorar proyectos"
-                className="inline-flex group"
-              >
+              <Link to="/projects" aria-label="Explorar proyectos" className="inline-flex group">
                 <span className="relative inline-block text-sm text-slate-800">
                   <span className="relative z-10">Explorar proyectos</span>
-                  <span
-                    className="absolute left-0 -bottom-0.5 h-0.5 bg-[#007A33] origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100"
-                    style={{ width: "100%" }}
-                  />
+                  <span className="absolute left-0 -bottom-0.5 h-0.5 bg-[#007A33] origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100" style={{
+                  width: "100%"
+                }} />
                 </span>
               </Link>
             </div>
           </motion.div>
 
-          <motion.div
-            variants={heroImageVariant}
-            className="w-full md:w-1/2 flex justify-center md:justify-end"
-            aria-hidden={true}
-          >
+          <motion.div variants={heroImageVariant} className="w-full md:w-1/2 flex justify-center md:justify-end" aria-hidden={true}>
             {/* Decorative tech visualization - connected nodes / glass panels */}
-            <div
-              className="relative rounded-2xl p-6"
-              style={{
-                width: 420,
-                maxWidth: "100%",
-                background:
-                  "linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.42))",
-                boxShadow: "0 20px 50px rgba(2,8,23,0.12)",
-                backdropFilter: "blur(8px)",
-                border: "1px solid rgba(0,0,0,0.06)",
-              }}
-            >
+            <div className="relative rounded-2xl p-6" style={{
+            width: 420,
+            maxWidth: "100%",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.42))",
+            boxShadow: "0 20px 50px rgba(2,8,23,0.12)",
+            backdropFilter: "blur(8px)",
+            border: "1px solid rgba(0,0,0,0.06)"
+          }}>
               {/* Simple connected nodes SVG - modernized */}
               <svg viewBox="0 0 420 260" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
                 <defs>
@@ -188,35 +183,28 @@ export default function Landing() {
           Plataforma integral de gestión de investigación
         </h2>
 
-        <motion.div
-          variants={cardsContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.12 }}
-          className="grid md:grid-cols-3 gap-6"
-        >
+        <motion.div variants={cardsContainer} initial="hidden" whileInView="visible" viewport={{
+        once: true,
+        amount: 0.12
+      }} className="grid md:grid-cols-3 gap-6">
           <motion.div variants={cardVariant} whileHover="hover">
-            <Card
-              className="transition-shadow rounded-xl"
-              style={{
-                background: "rgba(255,255,255,0.7)",
-                border: "1px solid rgba(255,255,255,0.18)",
-                backdropFilter: "blur(8px)",
-                padding: "1.25rem",
-              }}
-            >
+            <Card className="transition-shadow rounded-xl" style={{
+            background: "rgba(255,255,255,0.7)",
+            border: "1px solid rgba(255,255,255,0.18)",
+            backdropFilter: "blur(8px)",
+            padding: "1.25rem"
+          }}>
               <CardHeader className="flex items-start gap-4">
-                <div
-                  className="flex items-center justify-center rounded-full"
-                  style={{
-                    width: 64,
-                    height: 64,
-                    background: "#eafaf0",
-                    border: "1px solid rgba(0,122,51,0.06)",
-                    flexShrink: 0,
-                  }}
-                >
-                  <FolderKanban className="h-7 w-7" style={{ color: "#007A33" }} />
+                <div className="flex items-center justify-center rounded-full" style={{
+                width: 64,
+                height: 64,
+                background: "#eafaf0",
+                border: "1px solid rgba(0,122,51,0.06)",
+                flexShrink: 0
+              }}>
+                  <FolderKanban className="h-7 w-7" style={{
+                  color: "#007A33"
+                }} />
                 </div>
 
                 <div>
@@ -230,27 +218,23 @@ export default function Landing() {
           </motion.div>
 
           <motion.div variants={cardVariant} whileHover="hover">
-            <Card
-              className="transition-shadow rounded-xl"
-              style={{
-                background: "rgba(255,255,255,0.7)",
-                border: "1px solid rgba(255,255,255,0.18)",
-                backdropFilter: "blur(8px)",
-                padding: "1.25rem",
-              }}
-            >
+            <Card className="transition-shadow rounded-xl" style={{
+            background: "rgba(255,255,255,0.7)",
+            border: "1px solid rgba(255,255,255,0.18)",
+            backdropFilter: "blur(8px)",
+            padding: "1.25rem"
+          }}>
               <CardHeader className="flex items-start gap-4">
-                <div
-                  className="flex items-center justify-center rounded-full"
-                  style={{
-                    width: 64,
-                    height: 64,
-                    background: "#e9f8ff",
-                    border: "1px solid rgba(6,182,212,0.06)",
-                    flexShrink: 0,
-                  }}
-                >
-                  <BookOpen className="h-7 w-7" style={{ color: "#0f766e" }} />
+                <div className="flex items-center justify-center rounded-full" style={{
+                width: 64,
+                height: 64,
+                background: "#e9f8ff",
+                border: "1px solid rgba(6,182,212,0.06)",
+                flexShrink: 0
+              }}>
+                  <BookOpen className="h-7 w-7" style={{
+                  color: "#0f766e"
+                }} />
                 </div>
 
                 <div>
@@ -264,27 +248,23 @@ export default function Landing() {
           </motion.div>
 
           <motion.div variants={cardVariant} whileHover="hover">
-            <Card
-              className="transition-shadow rounded-xl"
-              style={{
-                background: "rgba(255,255,255,0.7)",
-                border: "1px solid rgba(255,255,255,0.18)",
-                backdropFilter: "blur(8px)",
-                padding: "1.25rem",
-              }}
-            >
+            <Card className="transition-shadow rounded-xl" style={{
+            background: "rgba(255,255,255,0.7)",
+            border: "1px solid rgba(255,255,255,0.18)",
+            backdropFilter: "blur(8px)",
+            padding: "1.25rem"
+          }}>
               <CardHeader className="flex items-start gap-4">
-                <div
-                  className="flex items-center justify-center rounded-full"
-                  style={{
-                    width: 64,
-                    height: 64,
-                    background: "#f0fdf4",
-                    border: "1px solid rgba(0,122,51,0.06)",
-                    flexShrink: 0,
-                  }}
-                >
-                  <Users className="h-7 w-7" style={{ color: "#007A33" }} />
+                <div className="flex items-center justify-center rounded-full" style={{
+                width: 64,
+                height: 64,
+                background: "#f0fdf4",
+                border: "1px solid rgba(0,122,51,0.06)",
+                flexShrink: 0
+              }}>
+                  <Users className="h-7 w-7" style={{
+                  color: "#007A33"
+                }} />
                 </div>
 
                 <div>
@@ -305,9 +285,7 @@ export default function Landing() {
           <div className="container mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="text-center md:text-left">
-                <p className="text-sm opacity-90">
-                  © 2025 UNESUM - Grupo GISICF. Todos los derechos reservados.
-                </p>
+                <p className="text-sm opacity-90">© 2025 UNESUM - Grupo GISICF. Todos los derechos reservados. Hecho por Madelin Chancay Baque</p>
                 <p className="text-xs opacity-70 mt-2">
                   Plataforma de gestión diseñada para transparencia, trazabilidad e impacto académico.
                 </p>
@@ -323,6 +301,5 @@ export default function Landing() {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 }
