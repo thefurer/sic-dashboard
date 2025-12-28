@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { PasswordStrength } from "@/components/ui/password-strength";
+import { AccessibilityMenu } from "@/components/accessibility/AccessibilityMenu";
 
 /**
  * Lightweight particle background (no extra deps).
@@ -748,6 +749,7 @@ export default function Auth() {
           </div>
         </Card>
       </motion.div>
+      <AccessibilityMenu />
     </div>
   );
 }

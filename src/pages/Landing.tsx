@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FolderKanban, BookOpen, Users, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { AccessibilityMenu } from "@/components/accessibility/AccessibilityMenu";
 const heroTextVariant = {
   hidden: {
     opacity: 0,
@@ -301,5 +302,6 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+      <AccessibilityMenu />
     </div>;
 }
