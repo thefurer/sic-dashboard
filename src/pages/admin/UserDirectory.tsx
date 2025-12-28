@@ -8,13 +8,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter, Clock } from "lucide-react";
+import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getSignedUrl } from "@/hooks/useSignedUrl";
+
+const ITEMS_PER_PAGE = 5;
 
 interface Profile {
   id: string;
@@ -44,6 +46,7 @@ export default function UserDirectory() {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
@@ -111,6 +114,17 @@ export default function UserDirectory() {
     return user.research_role === roleFilter;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil((filteredUsers?.length || 0) / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedUsers = filteredUsers?.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  // Reset to page 1 when filter changes
+  const handleFilterChange = (value: string) => {
+    setRoleFilter(value);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -125,7 +139,7 @@ export default function UserDirectory() {
           <div className="flex items-center gap-4">
             <Filter className="h-5 w-5 text-muted-foreground" />
             <Label>Filtrar por Rol:</Label>
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <Select value={roleFilter} onValueChange={handleFilterChange}>
               <SelectTrigger className="w-[280px]">
                 <SelectValue placeholder="Todos los roles" />
               </SelectTrigger>
@@ -155,91 +169,135 @@ export default function UserDirectory() {
             <div className="flex justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : filteredUsers && filteredUsers.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Rol de Investigación</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Último acceso</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => setSelectedUser(user)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.avatar_url || undefined} />
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            {getInitials(user.full_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{user.full_name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
-                      {user.researcher_code || "N/A"}
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Select
-                        value={user.research_role || "none"}
-                        onValueChange={(value) =>
-                          updateRoleMutation.mutate({ userId: user.id, role: value === "none" ? "" : value })
-                        }
-                      >
-                        <SelectTrigger className="w-[200px]">
-                          <SelectValue placeholder="Sin rol" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Sin rol</SelectItem>
-                          {RESEARCH_ROLES.map((role) => (
-                            <SelectItem key={role} value={role}>
-                              {role}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
-                      {user.is_approved ? (
-                        <Badge className="bg-primary">Aprobado</Badge>
-                      ) : (
-                        <Badge variant="secondary">Pendiente</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
-                      <div className="flex items-center gap-1 text-sm">
-                        <Clock className="h-3 w-3 text-muted-foreground" />
-                        {user.last_login_at 
-                          ? format(new Date(user.last_login_at), "dd/MM/yyyy HH:mm", { locale: es })
-                          : "Nunca"
-                        }
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setUserToDelete(user);
-                        }}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+          ) : paginatedUsers && paginatedUsers.length > 0 ? (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuario</TableHead>
+                    <TableHead>Código</TableHead>
+                    <TableHead>Rol de Investigación</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Último acceso</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell 
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => setSelectedUser(user)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={user.avatar_url || undefined} />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {getInitials(user.full_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{user.full_name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
+                        {user.researcher_code || "N/A"}
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Select
+                          value={user.research_role || "none"}
+                          onValueChange={(value) =>
+                            updateRoleMutation.mutate({ userId: user.id, role: value === "none" ? "" : value })
+                          }
+                        >
+                          <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Sin rol" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Sin rol</SelectItem>
+                            {RESEARCH_ROLES.map((role) => (
+                              <SelectItem key={role} value={role}>
+                                {role}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
+                        {user.is_approved ? (
+                          <Badge className="bg-primary">Aprobado</Badge>
+                        ) : (
+                          <Badge variant="secondary">Pendiente</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
+                        <div className="flex items-center gap-1 text-sm">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          {user.last_login_at 
+                            ? format(new Date(user.last_login_at), "dd/MM/yyyy HH:mm", { locale: es })
+                            : "Nunca"
+                          }
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setUserToDelete(user);
+                          }}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between border-t pt-4 mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredUsers?.length || 0)} de {filteredUsers?.length || 0} usuarios
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Anterior
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          className="w-8 h-8 p-0"
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Siguiente
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               No hay usuarios registrados
