@@ -7,6 +7,7 @@ import { NewsCard } from "@/components/news/NewsCard";
 import { NewsDetailModal } from "@/components/news/NewsDetailModal";
 import { NewsManager } from "@/components/news/NewsManager";
 import { useProfile } from "@/hooks/useProfile";
+import { useUserRole } from "@/hooks/useUserRole";
 import {
   Carousel,
   CarouselContent,
@@ -19,10 +20,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 const Dashboard = () => {
   const { data: newsPosts, isLoading } = useNewsPosts();
   const { profile } = useProfile();
+  const { data: userRole } = useUserRole();
   const [selectedNews, setSelectedNews] = useState<NewsPost | null>(null);
   const [showManager, setShowManager] = useState(false);
-
-  const isSuperAdmin = profile?.email === "christian.caicedo@unesum.edu.ec";
+  
+  // Super admin check - only admin role gets news management
+  const isSuperAdmin = userRole === "admin";
 
   return (
     <div className="min-h-[70vh] font-sans grid grid-cols-1 sm:grid-cols-12 gap-6">

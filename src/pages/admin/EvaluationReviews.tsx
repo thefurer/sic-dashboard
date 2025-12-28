@@ -46,8 +46,7 @@ export default function EvaluationReviews() {
         .select(`
           *,
           profiles (
-            full_name,
-            email
+            full_name
           )
         `)
         .eq("year", parseInt(selectedYear))

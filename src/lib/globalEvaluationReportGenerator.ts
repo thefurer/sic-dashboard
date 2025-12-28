@@ -11,7 +11,6 @@ interface ApprovedReport {
   reviewed_at: string | null;
   profiles?: {
     full_name: string;
-    email: string;
   };
 }
 

@@ -54,13 +54,13 @@ export default function TaskReviews() {
         const userIds = [...new Set(data.map(t => t.user_id))];
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("id, full_name, email")
+          .select("id, full_name")
           .in("id", userIds);
 
         // Map profiles to tasks
         const tasksWithProfiles = data.map(task => ({
           ...task,
-          user_profile: profilesData?.find(p => p.id === task.user_id) || { full_name: "Usuario desconocido", email: "" }
+          user_profile: profilesData?.find(p => p.id === task.user_id) || { full_name: "Usuario desconocido" }
         }));
 
         return tasksWithProfiles;

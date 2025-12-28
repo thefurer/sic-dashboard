@@ -13,14 +13,27 @@ export default function PendingApprovals() {
   const { data: pendingUsers, isLoading } = useQuery({
     queryKey: ["pending-approvals"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
         .eq("is_approved", false)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (profilesError) throw profilesError;
+      
+      // Fetch contacts for pending users (admin has access)
+      const userIds = profilesData?.map(p => p.id) || [];
+      const { data: contactsData } = await supabase
+        .from("profile_contacts")
+        .select("user_id, email")
+        .in("user_id", userIds);
+      
+      // Merge contacts into profiles
+      return profilesData?.map(profile => ({
+        ...profile,
+        email: contactsData?.find(c => c.user_id === profile.id)?.email || null
+      })) || [];
     },
   });
 

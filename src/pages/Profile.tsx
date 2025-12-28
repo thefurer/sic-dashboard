@@ -31,18 +31,29 @@ export default function Profile() {
     const loadProfile = async () => {
       if (!user?.id) return;
       
-      const { data } = await supabase
+      // Fetch profile data (no longer has email/phone)
+      const { data: profileData } = await supabase
         .from('profiles')
-        .select('*')
+        .select('full_name, researcher_code, avatar_url, cv_url')
         .eq('id', user.id)
         .single();
       
-      if (data) {
-        setFullName(data.full_name ?? "");
-        setPhone(data.phone ?? "");
-        setResearcherCode(data.researcher_code ?? "");
-        setAvatarPreview(data.avatar_url ?? null);
-        setCvUrl(data.cv_url ?? null);
+      // Fetch contact info from profile_contacts (user's own data)
+      const { data: contactData } = await supabase
+        .from('profile_contacts')
+        .select('phone')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (profileData) {
+        setFullName(profileData.full_name ?? "");
+        setResearcherCode(profileData.researcher_code ?? "");
+        setAvatarPreview(profileData.avatar_url ?? null);
+        setCvUrl(profileData.cv_url ?? null);
+      }
+      
+      if (contactData) {
+        setPhone(contactData.phone ?? "");
       }
     };
     
@@ -121,26 +132,42 @@ export default function Profile() {
         newCvUrl = await uploadCV(cvFile, user.id);
       }
 
-      const { error } = await supabase
+      // Update profile (no longer has phone)
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: fullName,
-          phone: phone,
           researcher_code: researcherCode,
           avatar_url: avatarUrl,
           cv_url: newCvUrl,
         })
         .eq('id', user.id);
 
-      if (error) {
-        toast.error(error.message || 'Error al actualizar el perfil');
-      } else {
-        toast.success('Perfil actualizado correctamente');
-        setCvFile(null);
-        setAvatarFile(null);
-        setAvatarPreview(avatarUrl);
-        setCvUrl(newCvUrl);
+      if (profileError) {
+        toast.error(profileError.message || 'Error al actualizar el perfil');
+        setSaving(false);
+        return;
       }
+
+      // Update contact info (phone is now in profile_contacts)
+      const { error: contactError } = await supabase
+        .from('profile_contacts')
+        .upsert({
+          user_id: user.id,
+          phone: phone,
+        }, { onConflict: 'user_id' });
+
+      if (contactError) {
+        toast.error(contactError.message || 'Error al actualizar información de contacto');
+        setSaving(false);
+        return;
+      }
+
+      toast.success('Perfil actualizado correctamente');
+      setCvFile(null);
+      setAvatarFile(null);
+      setAvatarPreview(avatarUrl);
+      setCvUrl(newCvUrl);
     } catch (err: any) {
       toast.error(err?.message || 'Error al guardar los archivos');
     } finally {

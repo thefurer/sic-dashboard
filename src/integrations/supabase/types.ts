@@ -504,18 +504,48 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
           created_at: string
           cv_url: string | null
-          email: string | null
           full_name: string
           id: string
           is_approved: boolean
           last_login_at: string | null
-          phone: string | null
           research_role: string | null
           researcher_code: string | null
           updated_at: string
@@ -525,12 +555,10 @@ export type Database = {
           bio?: string | null
           created_at?: string
           cv_url?: string | null
-          email?: string | null
           full_name: string
           id: string
           is_approved?: boolean
           last_login_at?: string | null
-          phone?: string | null
           research_role?: string | null
           researcher_code?: string | null
           updated_at?: string
@@ -540,12 +568,10 @@ export type Database = {
           bio?: string | null
           created_at?: string
           cv_url?: string | null
-          email?: string | null
           full_name?: string
           id?: string
           is_approved?: boolean
           last_login_at?: string | null
-          phone?: string | null
           research_role?: string | null
           researcher_code?: string | null
           updated_at?: string
