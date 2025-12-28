@@ -9,7 +9,9 @@ import {
   addParagraph,
   addBulletList,
   addInfoBox,
+  addScreenshot,
   ManualCoverData,
+  CONTACT_EMAIL,
 } from "./manualCoverGenerator";
 
 export async function generateTechnicalSheetPDF() {
@@ -418,7 +420,7 @@ export async function generateTechnicalSheetPDF() {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(60, 60, 60);
-  doc.text("Email: ingenieria.ti@unesum.edu.ec", 20, y);
+  doc.text(`Email: ${CONTACT_EMAIL}`, 20, y);
   y += 6;
   doc.text("Dirección: Complejo Deportivo – UNESUM – Km. 1 vía Noboa", 20, y);
   y += 15;
