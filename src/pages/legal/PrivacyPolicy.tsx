@@ -228,7 +228,7 @@ export default function PrivacyPolicy() {
             </section>
 
             <div className="border-t pt-6 mt-8 text-center text-sm text-muted-foreground">
-              <p>© 2024 GISICF - Universidad Estatal del Sur de Manabí</p>
+              <p>© 2026 GISICF - Universidad Estatal del Sur de Manabí</p>
               <p className="mt-1">Proyecto de Tesis - MADELIN CHANCAY BAQUE</p>
             </div>
           </CardContent>
