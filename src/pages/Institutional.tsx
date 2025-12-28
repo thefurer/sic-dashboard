@@ -19,7 +19,11 @@ import {
   Briefcase,
   CalendarRange,
   Eye,
-  ListTree
+  ListTree,
+  FileText,
+  Users,
+  Shield,
+  Cpu
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { ResearchLinesManager } from "@/components/institutional/ResearchLinesManager";
@@ -29,6 +33,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { generateUserManualPDF } from "@/lib/userManualPdfGenerator";
+import { generateAdminManualPDF } from "@/lib/adminManualPdfGenerator";
+import { generateTechnicalSheetPDF } from "@/lib/technicalSheetPdfGenerator";
 
 export default function Institutional() {
   const queryClient = useQueryClient();
@@ -382,48 +389,106 @@ export default function Institutional() {
           </CardContent>
         </Card>
 
-        {/* Instructions PDF */}
-        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
+        {/* Instructivo - Manuales PDF */}
+        <Card className="glass-card group hover:shadow-2xl transition-all duration-500 md:col-span-2">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <div className="relative">
                 <div className="absolute inset-0 bg-blue-500/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 <BookOpen className="h-5 w-5 text-blue-500 relative" />
               </div>
-              Instructivo
+              Instructivo y Manuales
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {settings?.instructions_pdf_url ? (
-              <Button asChild size="sm" className="w-full bg-gradient-to-r from-primary to-primary/80">
-                <a
-                  href={settings.instructions_pdf_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Descargar
-                </a>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Descargue los manuales de uso de la plataforma GISICF
+            </p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Manual de Usuario */}
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                onClick={async () => {
+                  toast.info("Generando Manual de Usuario...");
+                  try {
+                    await generateUserManualPDF();
+                    toast.success("Manual de Usuario descargado");
+                  } catch (error) {
+                    toast.error("Error al generar el manual");
+                  }
+                }}
+              >
+                <Users className="h-4 w-4 mr-2 text-blue-500" />
+                <span className="text-xs">Manual Usuario</span>
               </Button>
-            ) : (
-              <p className="text-xs text-center text-muted-foreground py-2">
-                No disponible
-              </p>
+
+              {/* Manual de Administrador */}
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                onClick={async () => {
+                  toast.info("Generando Manual de Administrador...");
+                  try {
+                    await generateAdminManualPDF();
+                    toast.success("Manual de Administrador descargado");
+                  } catch (error) {
+                    toast.error("Error al generar el manual");
+                  }
+                }}
+              >
+                <Shield className="h-4 w-4 mr-2 text-purple-500" />
+                <span className="text-xs">Manual Admin</span>
+              </Button>
+
+              {/* Ficha Técnica */}
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                onClick={async () => {
+                  toast.info("Generando Ficha Técnica...");
+                  try {
+                    await generateTechnicalSheetPDF();
+                    toast.success("Ficha Técnica descargada");
+                  } catch (error) {
+                    toast.error("Error al generar la ficha");
+                  }
+                }}
+              >
+                <Cpu className="h-4 w-4 mr-2 text-emerald-500" />
+                <span className="text-xs">Ficha Técnica</span>
+              </Button>
+            </div>
+
+            {/* Instructivo PDF upload for admin */}
+            {isAdmin && settings?.instructions_pdf_url && (
+              <div className="pt-2 border-t border-border/50">
+                <p className="text-xs text-muted-foreground mb-2">Instructivo adicional (PDF):</p>
+                <Button asChild size="sm" variant="secondary" className="w-full">
+                  <a href={settings.instructions_pdf_url} target="_blank" rel="noopener noreferrer">
+                    <Download className="h-4 w-4 mr-2" />
+                    Descargar Instructivo PDF
+                  </a>
+                </Button>
+              </div>
             )}
 
             {isAdmin && (
-              <div className="space-y-2">
+              <div className="pt-2 border-t border-border/50">
+                <p className="text-xs text-muted-foreground mb-2">Subir instructivo personalizado:</p>
                 <Input
                   type="file"
                   accept=".pdf"
-                  onChange={(e) =>
-                    handlePdfUpload(e, "instructions_pdf_url", "Instructivo")
-                  }
+                  onChange={(e) => handlePdfUpload(e, "instructions_pdf_url", "Instructivo")}
                   disabled={uploading === "instructions_pdf_url"}
                   className="text-xs bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
                 />
                 {uploading === "instructions_pdf_url" && (
-                  <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
+                  <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary mt-2" />
                 )}
               </div>
             )}
