@@ -155,7 +155,7 @@ export default function Auth() {
     phoneNumber: "",
     researcherCode: "",
   });
-  
+
   // Password reset state
   const [isResetMode, setIsResetMode] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -165,10 +165,10 @@ export default function Auth() {
   // Check if user came from password reset link
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get('access_token');
-    const type = hashParams.get('type');
-    
-    if (accessToken && type === 'recovery') {
+    const accessToken = hashParams.get("access_token");
+    const type = hashParams.get("type");
+
+    if (accessToken && type === "recovery") {
       setIsResetMode(true);
     }
   }, []);
@@ -209,28 +209,28 @@ export default function Auth() {
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmPassword) {
       toast.error("Las contraseñas no coinciden");
       return;
     }
-    
+
     if (newPassword.length < 6) {
       toast.error("La contraseña debe tener al menos 6 caracteres");
       return;
     }
-    
+
     setLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
-      
+
       if (error) {
         toast.error("Error al actualizar la contraseña: " + error.message);
       } else {
         setResetSuccess(true);
         toast.success("Contraseña actualizada correctamente");
         // Clear the hash from URL
-        window.history.replaceState(null, '', window.location.pathname);
+        window.history.replaceState(null, "", window.location.pathname);
         setTimeout(() => {
           setIsResetMode(false);
           setResetSuccess(false);
@@ -247,7 +247,7 @@ export default function Auth() {
   if (isResetMode) {
     return (
       <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(0,122,51,0.9);stop-opacity:1" /><stop offset="100%" style="stop-color:rgba(10,20,40,0.95);stop-opacity:1" /></linearGradient></defs><rect width="1200" height="800" fill="url(%23grad)"/></svg>')`,
@@ -265,7 +265,8 @@ export default function Auth() {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="relative z-20 w-full px-4 sm:px-6"
         >
-          <Card className="w-full max-w-[450px] mx-auto border-0 shadow-2xl"
+          <Card
+            className="w-full max-w-[450px] mx-auto border-0 shadow-2xl"
             style={{
               backdropFilter: "blur(16px)",
               backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -292,9 +293,7 @@ export default function Auth() {
                 {resetSuccess ? "¡Contraseña Actualizada!" : "Nueva Contraseña"}
               </CardTitle>
               <CardDescription className="text-slate-600">
-                {resetSuccess 
-                  ? "Redirigiendo al panel principal..." 
-                  : "Ingresa tu nueva contraseña para continuar"}
+                {resetSuccess ? "Redirigiendo al panel principal..." : "Ingresa tu nueva contraseña para continuar"}
               </CardDescription>
             </CardHeader>
 
@@ -386,7 +385,7 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Premium Background */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(0,122,51,0.9);stop-opacity:1" /><stop offset="100%" style="stop-color:rgba(10,20,40,0.95);stop-opacity:1" /></linearGradient></defs><rect width="1200" height="800" fill="url(%23grad)"/></svg>')`,
@@ -406,7 +405,8 @@ export default function Auth() {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative z-20 w-full px-4 sm:px-6"
       >
-        <Card className="w-full max-w-[450px] mx-auto border-0 shadow-2xl"
+        <Card
+          className="w-full max-w-[450px] mx-auto border-0 shadow-2xl"
           style={{
             backdropFilter: "blur(16px)",
             backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -421,11 +421,7 @@ export default function Auth() {
                 transition={{ delay: 0.2, duration: 0.6 }}
                 className="flex justify-center mb-4"
               >
-                <img
-                  src={gisicfLogo}
-                  alt="GISICF Logo"
-                  className="w-20 h-20 object-contain rounded-full"
-                />
+                <img src={gisicfLogo} alt="GISICF Logo" className="w-20 h-20 object-contain rounded-full" />
               </motion.div>
               <CardTitle className="text-3xl font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent mb-2">
                 Bienvenido Investigador
@@ -439,13 +435,13 @@ export default function Auth() {
               <Tabs defaultValue="login" className="w-full">
                 {/* Tab Navigation */}
                 <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-100 p-1 rounded-lg">
-                  <TabsTrigger 
+                  <TabsTrigger
                     value="login"
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white rounded-md font-medium transition-all duration-200 hover:scale-105"
                   >
                     Iniciar Sesión
                   </TabsTrigger>
-                  <TabsTrigger 
+                  <TabsTrigger
                     value="register"
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white rounded-md font-medium transition-all duration-200 hover:scale-105"
                   >
@@ -455,8 +451,8 @@ export default function Auth() {
 
                 {/* Login Tab */}
                 <TabsContent value="login" className="mt-0">
-                  <motion.form 
-                    onSubmit={handleLogin} 
+                  <motion.form
+                    onSubmit={handleLogin}
                     className="space-y-4"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -528,7 +524,7 @@ export default function Auth() {
                           "Ingresar"
                         )}
                       </Button>
-                      
+
                       <Button
                         type="button"
                         variant="link"
@@ -554,9 +550,7 @@ export default function Auth() {
                         className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <h3 className="text-xl font-bold text-slate-800 mb-2">
-                          Recuperar Contraseña
-                        </h3>
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Recuperar Contraseña</h3>
                         <p className="text-sm text-slate-600 mb-4">
                           Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
                         </p>
@@ -586,11 +580,7 @@ export default function Auth() {
                               className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
                               disabled={loading}
                             >
-                              {loading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                "Enviar"
-                              )}
+                              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enviar"}
                             </Button>
                           </div>
                         </form>
@@ -601,8 +591,8 @@ export default function Auth() {
 
                 {/* Register Tab */}
                 <TabsContent value="register" className="mt-0">
-                  <motion.form 
-                    onSubmit={handleRegister} 
+                  <motion.form
+                    onSubmit={handleRegister}
                     className="space-y-4"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -670,7 +660,7 @@ export default function Auth() {
                         <Input
                           id="register-phone"
                           type="tel"
-                          placeholder="0991234567"
+                          placeholder="0987654321"
                           value={registerData.phoneNumber}
                           onChange={(e) => setRegisterData({ ...registerData, phoneNumber: e.target.value })}
                           required
@@ -724,7 +714,7 @@ export default function Auth() {
                       </Button>
                     </motion.div>
 
-                    <motion.p 
+                    <motion.p
                       className="text-xs text-slate-500 text-center mt-4"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -744,7 +734,7 @@ export default function Auth() {
               transition={{ delay: 0.5, duration: 0.6 }}
               className="border-t border-slate-200 px-6 py-4 text-center text-xs text-slate-500 bg-slate-50/50 rounded-b-2xl"
             >
-              © 2025 UNESUM - GISICF
+              © 2026 UNESUM - GISICF
             </motion.div>
           </div>
         </Card>
