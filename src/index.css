@@ -199,3 +199,53 @@ All colors MUST be HSL.
     @apply bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-md;
   }
 }
+
+/* Accessibility Styles */
+@layer utilities {
+  /* High Contrast Mode */
+  .high-contrast {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 20%;
+    --border: 0 0% 0%;
+  }
+  
+  .high-contrast.dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 80%;
+    --border: 0 0% 100%;
+  }
+  
+  /* Highlight Links Mode */
+  .highlight-links a,
+  .highlight-links button {
+    outline: 2px solid hsl(45 100% 50%) !important;
+    outline-offset: 2px;
+  }
+  
+  .highlight-links a:focus,
+  .highlight-links button:focus {
+    outline: 3px solid hsl(45 100% 50%) !important;
+    outline-offset: 2px;
+  }
+  
+  /* Reduce Motion Mode */
+  .reduce-motion,
+  .reduce-motion * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

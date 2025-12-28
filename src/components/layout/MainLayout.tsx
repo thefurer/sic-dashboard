@@ -22,6 +22,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { Badge } from "@/components/ui/badge";
 import { TourGuideButton } from "@/components/tour/TourGuideButton";
 import { useTour } from "@/components/tour/TourProvider";
+import { AccessibilityMenu } from "@/components/accessibility/AccessibilityMenu";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -170,6 +171,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             </div>
           </div>
         </main>
+        <AccessibilityMenu />
       </div>
     </SidebarProvider>
   );
