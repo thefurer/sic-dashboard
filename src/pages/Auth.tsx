@@ -139,9 +139,11 @@ function ParticleBackground({ count = 60 }: { count?: number }) {
 }
 
 export default function Auth() {
-  const { signIn, signUp, signInWithGoogle, user } = useAuth();
+  const { signIn, signUp, signInWithGoogle, user, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
     email: "",
@@ -165,6 +167,16 @@ export default function Auth() {
       navigate("/dashboard");
     }
     setLoading(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotPasswordEmail) return;
+    setLoading(true);
+    await resetPassword(forgotPasswordEmail);
+    setLoading(false);
+    setShowForgotPassword(false);
+    setForgotPasswordEmail("");
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -303,7 +315,7 @@ export default function Auth() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.45 }}
-                      className="pt-2"
+                      className="pt-2 space-y-3"
                     >
                       <Button
                         type="submit"
@@ -319,8 +331,75 @@ export default function Auth() {
                           "Ingresar"
                         )}
                       </Button>
+                      
+                      <Button
+                        type="button"
+                        variant="link"
+                        onClick={() => setShowForgotPassword(true)}
+                        className="w-full text-sm text-green-700 hover:text-green-800"
+                      >
+                        ¿Olvidaste tu contraseña?
+                      </Button>
                     </motion.div>
                   </motion.form>
+
+                  {/* Forgot Password Modal */}
+                  {showForgotPassword && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                      onClick={() => setShowForgotPassword(false)}
+                    >
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">
+                          Recuperar Contraseña
+                        </h3>
+                        <p className="text-sm text-slate-600 mb-4">
+                          Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                        </p>
+                        <form onSubmit={handleForgotPassword} className="space-y-4">
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-3 h-5 w-5 text-green-600" />
+                            <Input
+                              type="email"
+                              placeholder="tu-email@unesum.edu.ec"
+                              value={forgotPasswordEmail}
+                              onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                              required
+                              className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setShowForgotPassword(false)}
+                              className="flex-1"
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              type="submit"
+                              className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
+                              disabled={loading}
+                            >
+                              {loading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                "Enviar"
+                              )}
+                            </Button>
+                          </div>
+                        </form>
+                      </motion.div>
+                    </motion.div>
+                  )}
                 </TabsContent>
 
                 {/* Register Tab */}
