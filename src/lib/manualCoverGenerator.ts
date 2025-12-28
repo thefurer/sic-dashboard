@@ -5,6 +5,9 @@ const LOGO_UNESUM = "/logos/logo_unesum.png";
 const LOGO_CARRERA = "/logos/logo_carrera_unesum.png";
 const LOGO_GISICF = "/src/assets/gisicf-logo.png";
 
+// Contact email
+export const CONTACT_EMAIL = "grupo.gisicf@unesum.edu.ec";
+
 export interface ManualCoverData {
   title: string;
   subtitle: string;
@@ -13,7 +16,7 @@ export interface ManualCoverData {
   documentType: "manual_usuario" | "manual_admin" | "ficha_tecnica";
 }
 
-async function loadImage(src: string): Promise<HTMLImageElement> {
+export async function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -21,6 +24,65 @@ async function loadImage(src: string): Promise<HTMLImageElement> {
     img.onerror = reject;
     img.src = src;
   });
+}
+
+export async function addScreenshot(
+  doc: jsPDF,
+  imagePath: string,
+  y: number,
+  caption: string,
+  maxWidth: number = 160,
+  maxHeight: number = 90
+): Promise<number> {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  try {
+    const img = await loadImage(imagePath);
+    
+    // Calculate aspect ratio and dimensions
+    let imgWidth = maxWidth;
+    let imgHeight = (img.height / img.width) * imgWidth;
+    
+    if (imgHeight > maxHeight) {
+      imgHeight = maxHeight;
+      imgWidth = (img.width / img.height) * imgHeight;
+    }
+    
+    // Center the image
+    const x = (pageWidth - imgWidth) / 2;
+    
+    // Check if we need a new page
+    if (y + imgHeight + 20 > 270) {
+      doc.addPage();
+      y = 35;
+    }
+    
+    // Add border around image
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.rect(x - 2, y - 2, imgWidth + 4, imgHeight + 4);
+    
+    // Add the image
+    doc.addImage(img, "PNG", x, y, imgWidth, imgHeight);
+    
+    y += imgHeight + 5;
+    
+    // Add caption
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text(caption, pageWidth / 2, y, { align: "center" });
+    
+    return y + 10;
+  } catch (error) {
+    console.error("Error loading screenshot:", error);
+    // Add placeholder text if image fails to load
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`[Imagen: ${caption}]`, pageWidth / 2, y + 10, { align: "center" });
+    return y + 25;
+  }
 }
 
 export async function drawManualCover(doc: jsPDF, data: ManualCoverData): Promise<number> {

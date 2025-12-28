@@ -10,8 +10,17 @@ import {
   addBulletList,
   addNumberedList,
   addInfoBox,
+  addScreenshot,
   ManualCoverData,
+  CONTACT_EMAIL,
 } from "./manualCoverGenerator";
+
+// Screenshot paths
+const SCREENSHOTS = {
+  dashboard: "/manual-screenshots/dashboard.png",
+  infoGeneral: "/manual-screenshots/info-general.png",
+  perfil: "/manual-screenshots/perfil.png",
+};
 
 export async function generateUserManualPDF() {
   const doc = new jsPDF();
@@ -42,13 +51,13 @@ export async function generateUserManualPDF() {
     { section: "1", title: "Introducción a la Plataforma GISICF", page: 3 },
     { section: "2", title: "Acceso al Sistema", page: 4 },
     { section: "3", title: "Panel de Control (Dashboard)", page: 5 },
-    { section: "4", title: "Gestión de Proyectos", page: 6 },
-    { section: "5", title: "Producción Científica", page: 7 },
-    { section: "6", title: "Evaluación Anual", page: 8 },
-    { section: "7", title: "Mis Tareas", page: 10 },
-    { section: "8", title: "Impactos y Vinculación", page: 11 },
-    { section: "9", title: "Perfil de Usuario", page: 12 },
-    { section: "10", title: "Preguntas Frecuentes", page: 13 },
+    { section: "4", title: "Gestión de Proyectos", page: 7 },
+    { section: "5", title: "Producción Científica", page: 8 },
+    { section: "6", title: "Evaluación Anual", page: 9 },
+    { section: "7", title: "Mis Tareas", page: 11 },
+    { section: "8", title: "Impactos y Vinculación", page: 12 },
+    { section: "9", title: "Perfil de Usuario", page: 13 },
+    { section: "10", title: "Preguntas Frecuentes", page: 15 },
   ];
 
   autoTable(doc, {
@@ -191,6 +200,9 @@ export async function generateUserManualPDF() {
     y
   );
 
+  // Add dashboard screenshot
+  y = await addScreenshot(doc, SCREENSHOTS.dashboard, y + 5, "Figura 3.1: Vista del Dashboard principal");
+
   y = addSubsectionTitle(doc, "Elementos del Dashboard", y + 5, "3.1");
 
   y = addBulletList(doc, [
@@ -200,7 +212,10 @@ export async function generateUserManualPDF() {
     "Barra superior: Acceso al perfil, notificaciones y configuración",
   ], y);
 
-  y = addSubsectionTitle(doc, "Navegación Principal", y + 5, "3.2");
+  doc.addPage();
+  y = drawManualPageHeader(doc, "MANUAL DE USUARIO - GISICF");
+
+  y = addSubsectionTitle(doc, "Navegación Principal", y, "3.2");
 
   autoTable(doc, {
     startY: y,
@@ -458,6 +473,9 @@ export async function generateUserManualPDF() {
     "Alianzas con instituciones externas",
   ], y);
 
+  // Add institutional info screenshot
+  y = await addScreenshot(doc, SCREENSHOTS.infoGeneral, y + 5, "Figura 8.1: Información General del Grupo GISICF");
+
   // Section 9: Profile
   doc.addPage();
   y = drawManualPageHeader(doc, "MANUAL DE USUARIO - GISICF");
@@ -470,7 +488,13 @@ export async function generateUserManualPDF() {
     y
   );
 
-  y = addSubsectionTitle(doc, "Información Personal", y + 5, "9.1");
+  // Add profile screenshot
+  y = await addScreenshot(doc, SCREENSHOTS.perfil, y + 5, "Figura 9.1: Vista del perfil de usuario");
+
+  doc.addPage();
+  y = drawManualPageHeader(doc, "MANUAL DE USUARIO - GISICF");
+
+  y = addSubsectionTitle(doc, "Información Personal", y, "9.1");
 
   y = addBulletList(doc, [
     "Nombre completo",
@@ -542,6 +566,39 @@ export async function generateUserManualPDF() {
     });
     y += 8;
   });
+
+  // Contact page
+  doc.addPage();
+  y = drawManualPageHeader(doc, "MANUAL DE USUARIO - GISICF");
+
+  y = addSectionTitle(doc, "SOPORTE Y CONTACTO", y);
+
+  y = addParagraph(
+    doc,
+    "Para soporte técnico o consultas sobre el uso de la plataforma GISICF, puede contactar a:",
+    y
+  );
+
+  y += 10;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(31, 78, 121);
+  doc.text("Grupo de Investigación GISICF", pageWidth / 2, y, { align: "center" });
+  y += 8;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(60, 60, 60);
+  doc.text("Universidad Estatal del Sur de Manabí", pageWidth / 2, y, { align: "center" });
+  y += 6;
+  doc.text("Carrera de Tecnologías de la Información", pageWidth / 2, y, { align: "center" });
+  y += 10;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(31, 78, 121);
+  doc.text(`Email: ${CONTACT_EMAIL}`, pageWidth / 2, y, { align: "center" });
 
   // Add page numbers
   const totalPages = doc.getNumberOfPages();

@@ -10,8 +10,22 @@ import {
   addBulletList,
   addNumberedList,
   addInfoBox,
+  addScreenshot,
   ManualCoverData,
+  CONTACT_EMAIL,
 } from "./manualCoverGenerator";
+
+// Screenshot paths
+const SCREENSHOTS = {
+  dashboard: "/manual-screenshots/dashboard.png",
+  solicitudesPendientes: "/manual-screenshots/solicitudes-pendientes.png",
+  directorioUsuarios: "/manual-screenshots/directorio-usuarios.png",
+  planificacion: "/manual-screenshots/planificacion.png",
+  proyectosOficiales: "/manual-screenshots/proyectos-oficiales.png",
+  revisionEvaluaciones: "/manual-screenshots/revision-evaluaciones.png",
+  revisionActividades: "/manual-screenshots/revision-actividades.png",
+  configuracion: "/manual-screenshots/configuracion.png",
+};
 
 export async function generateAdminManualPDF() {
   const doc = new jsPDF();
@@ -41,14 +55,14 @@ export async function generateAdminManualPDF() {
   const tocItems = [
     { section: "1", title: "Panel de Administración", page: 3 },
     { section: "2", title: "Gestión de Usuarios", page: 4 },
-    { section: "3", title: "Aprobación de Usuarios Pendientes", page: 5 },
-    { section: "4", title: "Revisión de Evaluaciones", page: 6 },
-    { section: "5", title: "Revisión de Tareas", page: 8 },
-    { section: "6", title: "Planificación y Actividades", page: 9 },
-    { section: "7", title: "Proyectos Oficiales", page: 11 },
-    { section: "8", title: "Configuración Institucional", page: 12 },
-    { section: "9", title: "Gestión de Noticias", page: 13 },
-    { section: "10", title: "Configuración del Sistema", page: 14 },
+    { section: "3", title: "Aprobación de Usuarios Pendientes", page: 6 },
+    { section: "4", title: "Revisión de Evaluaciones", page: 8 },
+    { section: "5", title: "Revisión de Tareas", page: 10 },
+    { section: "6", title: "Planificación y Actividades", page: 12 },
+    { section: "7", title: "Proyectos Oficiales", page: 14 },
+    { section: "8", title: "Configuración Institucional", page: 15 },
+    { section: "9", title: "Gestión de Noticias", page: 16 },
+    { section: "10", title: "Configuración del Sistema", page: 17 },
   ];
 
   autoTable(doc, {
@@ -139,7 +153,13 @@ export async function generateAdminManualPDF() {
     y
   );
 
-  y = addSubsectionTitle(doc, "Información de Usuario", y + 5, "2.2");
+  // Add screenshot
+  y = await addScreenshot(doc, SCREENSHOTS.directorioUsuarios, y + 5, "Figura 2.1: Directorio de usuarios del sistema");
+
+  doc.addPage();
+  y = drawManualPageHeader(doc, "MANUAL DE ADMINISTRADOR - GISICF");
+
+  y = addSubsectionTitle(doc, "Información de Usuario", y, "2.2");
 
   y = addBulletList(doc, [
     "Nombre completo y correo electrónico",
@@ -180,6 +200,9 @@ export async function generateAdminManualPDF() {
     y
   );
 
+  // Add screenshot
+  y = await addScreenshot(doc, SCREENSHOTS.solicitudesPendientes, y + 5, "Figura 3.1: Panel de solicitudes pendientes");
+
   y = addSubsectionTitle(doc, "Proceso de Aprobación", y + 5, "3.1");
 
   y = addNumberedList(doc, [
@@ -190,7 +213,10 @@ export async function generateAdminManualPDF() {
     "El usuario recibirá una notificación del resultado",
   ], y);
 
-  y = addSubsectionTitle(doc, "Criterios de Aprobación", y + 5, "3.2");
+  doc.addPage();
+  y = drawManualPageHeader(doc, "MANUAL DE ADMINISTRADOR - GISICF");
+
+  y = addSubsectionTitle(doc, "Criterios de Aprobación", y, "3.2");
 
   y = addBulletList(doc, [
     "Verificar que el correo electrónico sea institucional (@unesum.edu.ec)",
@@ -219,6 +245,9 @@ export async function generateAdminManualPDF() {
     y
   );
 
+  // Add screenshot
+  y = await addScreenshot(doc, SCREENSHOTS.revisionEvaluaciones, y + 5, "Figura 4.1: Panel de revisión de evaluaciones");
+
   y = addSubsectionTitle(doc, "Panel de Revisión", y + 5, "4.1");
 
   y = addParagraph(
@@ -246,6 +275,9 @@ export async function generateAdminManualPDF() {
   });
 
   y = (doc as any).lastAutoTable.finalY + 10;
+
+  doc.addPage();
+  y = drawManualPageHeader(doc, "MANUAL DE ADMINISTRADOR - GISICF");
 
   y = addSubsectionTitle(doc, "Proceso de Revisión", y, "4.2");
 
@@ -294,6 +326,9 @@ export async function generateAdminManualPDF() {
     y
   );
 
+  // Add screenshot
+  y = await addScreenshot(doc, SCREENSHOTS.revisionActividades, y + 5, "Figura 5.1: Panel de revisión de actividades");
+
   y = addSubsectionTitle(doc, "Flujo de Revisión de Tareas", y + 5, "5.1");
 
   y = addBulletList(doc, [
@@ -303,7 +338,10 @@ export async function generateAdminManualPDF() {
     "Se aprueba la tarea o se devuelve con observaciones",
   ], y);
 
-  y = addSubsectionTitle(doc, "Criterios de Aprobación de Tareas", y + 5, "5.2");
+  doc.addPage();
+  y = drawManualPageHeader(doc, "MANUAL DE ADMINISTRADOR - GISICF");
+
+  y = addSubsectionTitle(doc, "Criterios de Aprobación de Tareas", y, "5.2");
 
   y = addBulletList(doc, [
     "La evidencia corresponde a la actividad asignada",
@@ -343,6 +381,9 @@ export async function generateAdminManualPDF() {
     y
   );
 
+  // Add screenshot
+  y = await addScreenshot(doc, SCREENSHOTS.planificacion, y + 5, "Figura 6.1: Vista de planificación estratégica");
+
   y = addSubsectionTitle(doc, "Crear Nueva Planificación", y + 5, "6.1");
 
   y = addNumberedList(doc, [
@@ -355,7 +396,10 @@ export async function generateAdminManualPDF() {
     "Guarde y active la planificación",
   ], y);
 
-  y = addSubsectionTitle(doc, "Estructura de una Actividad", y + 5, "6.2");
+  doc.addPage();
+  y = drawManualPageHeader(doc, "MANUAL DE ADMINISTRADOR - GISICF");
+
+  y = addSubsectionTitle(doc, "Estructura de una Actividad", y, "6.2");
 
   autoTable(doc, {
     startY: y,
@@ -406,6 +450,9 @@ export async function generateAdminManualPDF() {
     "Los proyectos oficiales son aquellos registrados institucionalmente y que aparecen como opciones para vincular en las evaluaciones de los investigadores.",
     y
   );
+
+  // Add screenshot
+  y = await addScreenshot(doc, SCREENSHOTS.proyectosOficiales, y + 5, "Figura 7.1: Gestión de proyectos oficiales");
 
   y = addSubsectionTitle(doc, "Gestionar Proyectos Oficiales", y + 5, "7.1");
 
@@ -513,6 +560,9 @@ export async function generateAdminManualPDF() {
     y
   );
 
+  // Add screenshot
+  y = await addScreenshot(doc, SCREENSHOTS.configuracion, y + 5, "Figura 10.1: Panel de configuración del sistema");
+
   y = addSubsectionTitle(doc, "Configuración de Encabezados PDF", y + 5, "10.1");
 
   y = addBulletList(doc, [
@@ -571,10 +621,12 @@ export async function generateAdminManualPDF() {
   doc.text("Universidad Estatal del Sur de Manabí", pageWidth / 2, y, { align: "center" });
   y += 6;
   doc.text("Carrera de Tecnologías de la Información", pageWidth / 2, y, { align: "center" });
-  y += 8;
-  doc.text("Email: ingenieria.ti@unesum.edu.ec", pageWidth / 2, y, { align: "center" });
-  y += 6;
-  doc.text("Dirección: Complejo Deportivo – UNESUM – Km. 1 vía Noboa", pageWidth / 2, y, { align: "center" });
+  y += 10;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(31, 78, 121);
+  doc.text(`Email: ${CONTACT_EMAIL}`, pageWidth / 2, y, { align: "center" });
 
   // Add page numbers
   const totalPages = doc.getNumberOfPages();
