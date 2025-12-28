@@ -8,10 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Mail, Phone, FileText, Trash2, Download, Filter } from "lucide-react";
+import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getSignedUrl } from "@/hooks/useSignedUrl";
 
 interface Profile {
   id: string;
@@ -298,11 +299,18 @@ export default function UserDirectory() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(selectedUser.cv_url!, '_blank')}
+                      onClick={async () => {
+                        const url = await getSignedUrl('cvs', selectedUser.cv_url!);
+                        if (url) {
+                          window.open(url, '_blank');
+                        } else {
+                          toast.error('Error al abrir el CV');
+                        }
+                      }}
                       className="w-full"
                     >
-                      <Download className="h-4 w-4 mr-2" />
-                      Descargar CV
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver CV
                     </Button>
                   </div>
                 )}
