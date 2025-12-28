@@ -11,6 +11,7 @@ import { MainLayout } from "./components/layout/MainLayout";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Profile from "./pages/Profile";
+import { TourProvider } from "./components/tour/TourProvider";
 import Evaluation from "./pages/Evaluation";
 import PendingApprovals from "./pages/admin/PendingApprovals";
 import UserDirectory from "./pages/admin/UserDirectory";
@@ -33,86 +34,88 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <MainLayout><Dashboard /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/evaluation" element={
-              <ProtectedRoute>
-                <MainLayout><Evaluation /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <MainLayout><Profile /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/pending-approvals" element={
-              <ProtectedRoute requiredRole="admin">
-                <MainLayout><PendingApprovals /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute requiredRole="admin">
-                <MainLayout><UserDirectory /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/tasks" element={
-              <ProtectedRoute>
-                <MainLayout><Tasks /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/institutional" element={
-              <ProtectedRoute>
-                <MainLayout><Institutional /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/planning" element={
-              <ProtectedRoute requiredRole="admin">
-                <MainLayout><Planning /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/planning/new" element={
-              <ProtectedRoute requiredRole="admin">
-                <MainLayout><PlanningBuilder /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/planning/:id" element={
-              <ProtectedRoute requiredRole="admin">
-                <MainLayout><PlanningBuilder /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/settings" element={
-              <ProtectedRoute requiredRole="admin">
-                <MainLayout><Settings /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/projects-list" element={
-              <ProtectedRoute requiredRole="admin">
-                <MainLayout><OfficialProjectsList /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/evaluations" element={
-              <ProtectedRoute requiredRole="admin">
-                <MainLayout><EvaluationReviews /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/task-reviews" element={
-              <ProtectedRoute requiredRole="admin">
-                <MainLayout><TaskReviews /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/my-tasks" element={
-              <ProtectedRoute>
-                <MainLayout><MyTasks /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <TourProvider>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <MainLayout><Dashboard /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/evaluation" element={
+                <ProtectedRoute>
+                  <MainLayout><Evaluation /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <MainLayout><Profile /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/pending-approvals" element={
+                <ProtectedRoute requiredRole="admin">
+                  <MainLayout><PendingApprovals /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute requiredRole="admin">
+                  <MainLayout><UserDirectory /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/tasks" element={
+                <ProtectedRoute>
+                  <MainLayout><Tasks /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/institutional" element={
+                <ProtectedRoute>
+                  <MainLayout><Institutional /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/planning" element={
+                <ProtectedRoute requiredRole="admin">
+                  <MainLayout><Planning /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/planning/new" element={
+                <ProtectedRoute requiredRole="admin">
+                  <MainLayout><PlanningBuilder /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/planning/:id" element={
+                <ProtectedRoute requiredRole="admin">
+                  <MainLayout><PlanningBuilder /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/settings" element={
+                <ProtectedRoute requiredRole="admin">
+                  <MainLayout><Settings /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/projects-list" element={
+                <ProtectedRoute requiredRole="admin">
+                  <MainLayout><OfficialProjectsList /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/evaluations" element={
+                <ProtectedRoute requiredRole="admin">
+                  <MainLayout><EvaluationReviews /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/task-reviews" element={
+                <ProtectedRoute requiredRole="admin">
+                  <MainLayout><TaskReviews /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/my-tasks" element={
+                <ProtectedRoute>
+                  <MainLayout><MyTasks /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TourProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
