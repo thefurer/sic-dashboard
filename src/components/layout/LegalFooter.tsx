@@ -6,7 +6,7 @@ export function LegalFooter() {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-muted-foreground text-center md:text-left">
-            <p>© 2024 GISICF - Universidad Estatal del Sur de Manabí</p>
+            <p>© 2026 GISICF - Universidad Estatal del Sur de Manabí</p>
             <p className="text-xs mt-1">Proyecto de Tesis - NAIDELIN CHANCAY BAQUE</p>
           </div>
           
