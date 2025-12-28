@@ -514,6 +514,7 @@ export type Database = {
           full_name: string
           id: string
           is_approved: boolean
+          last_login_at: string | null
           phone: string | null
           research_role: string | null
           researcher_code: string | null
@@ -528,6 +529,7 @@ export type Database = {
           full_name: string
           id: string
           is_approved?: boolean
+          last_login_at?: string | null
           phone?: string | null
           research_role?: string | null
           researcher_code?: string | null
@@ -542,6 +544,7 @@ export type Database = {
           full_name?: string
           id?: string
           is_approved?: boolean
+          last_login_at?: string | null
           phone?: string | null
           research_role?: string | null
           researcher_code?: string | null

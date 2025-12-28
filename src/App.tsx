@@ -24,6 +24,9 @@ import OfficialProjectsList from "./pages/admin/OfficialProjectsList";
 import EvaluationReviews from "./pages/admin/EvaluationReviews";
 import TaskReviews from "./pages/admin/TaskReviews";
 import MyTasks from "./pages/MyTasks";
+import TermsOfService from "./pages/legal/TermsOfService";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import LegalNotice from "./pages/legal/LegalNotice";
 
 const queryClient = new QueryClient();
 
@@ -113,6 +116,9 @@ const App = () => (
                   <MainLayout><MyTasks /></MainLayout>
                 </ProtectedRoute>
               } />
+              <Route path="/legal/terms" element={<TermsOfService />} />
+              <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+              <Route path="/legal/notice" element={<LegalNotice />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TourProvider>
