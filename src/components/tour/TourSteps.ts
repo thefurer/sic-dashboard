@@ -1,0 +1,175 @@
+export interface TourStep {
+  id: string;
+  title: string;
+  description: string;
+  target?: string; // CSS selector for highlighting
+  position: "center" | "top" | "bottom" | "left" | "right";
+  robotMessage: string;
+}
+
+export const userTourSteps: TourStep[] = [
+  {
+    id: "welcome",
+    title: "¡Bienvenido a GISICF!",
+    description: "Soy tu asistente virtual y te guiaré paso a paso por la plataforma del Grupo de Investigación en Sistemas de Información, Ciencias de la Computación y Formación.",
+    position: "center",
+    robotMessage: "¡Hola! 🤖 Me alegra tenerte aquí. Permíteme mostrarte cómo funciona todo.",
+  },
+  {
+    id: "sidebar",
+    title: "Menú de Navegación",
+    description: "Aquí encontrarás todas las secciones de la plataforma. Puedes acceder al Dashboard, tus Proyectos, Producción Científica, Evaluación, y mucho más.",
+    target: "[data-sidebar='sidebar']",
+    position: "right",
+    robotMessage: "Este menú lateral es tu centro de control. Desde aquí puedes navegar a cualquier sección.",
+  },
+  {
+    id: "dashboard",
+    title: "Dashboard Principal",
+    description: "El Dashboard te muestra un resumen de las noticias y actividades recientes del grupo de investigación.",
+    target: "[data-tour='dashboard']",
+    position: "center",
+    robotMessage: "El Dashboard es tu página de inicio. Aquí verás las últimas noticias y actualizaciones.",
+  },
+  {
+    id: "projects",
+    title: "Gestión de Proyectos",
+    description: "En la sección de Proyectos puedes registrar y dar seguimiento a tus proyectos de investigación.",
+    position: "center",
+    robotMessage: "¿Tienes proyectos de investigación? Esta sección te ayudará a organizarlos.",
+  },
+  {
+    id: "production",
+    title: "Producción Científica",
+    description: "Registra tus publicaciones científicas, artículos y libros. El sistema puede obtener metadatos automáticamente usando DOI o ISBN.",
+    position: "center",
+    robotMessage: "Aquí puedes registrar todas tus publicaciones. ¡Es muy fácil con la búsqueda automática por DOI!",
+  },
+  {
+    id: "evaluation",
+    title: "Evaluación Anual",
+    description: "Completa tu evaluación anual como investigador. Incluye indicadores de publicaciones, proyectos, recursos y más.",
+    position: "center",
+    robotMessage: "La evaluación anual es importante. Te ayudaré a completarla paso a paso.",
+  },
+  {
+    id: "tasks",
+    title: "Mis Tareas",
+    description: "Visualiza las tareas que te han sido asignadas desde la planificación del grupo y sube las evidencias correspondientes.",
+    position: "center",
+    robotMessage: "Aquí aparecerán las tareas que te asignen. No olvides subir tus evidencias.",
+  },
+  {
+    id: "profile",
+    title: "Tu Perfil",
+    description: "Puedes acceder a tu perfil desde el menú superior derecho para actualizar tu información, foto y CV.",
+    target: "[data-tour='profile-menu']",
+    position: "left",
+    robotMessage: "Mantén tu perfil actualizado. Es importante para el directorio del grupo.",
+  },
+  {
+    id: "notifications",
+    title: "Notificaciones",
+    description: "La campana de notificaciones te alertará sobre actividades importantes, como tareas nuevas o actualizaciones.",
+    target: "[data-tour='notifications']",
+    position: "bottom",
+    robotMessage: "¡No te pierdas nada! Las notificaciones te mantendrán al día.",
+  },
+  {
+    id: "tour-button",
+    title: "Volver a Ver el Tour",
+    description: "Puedes volver a iniciar este tour en cualquier momento haciendo clic en el botón del robot asistente.",
+    target: "[data-tour='tour-button']",
+    position: "bottom",
+    robotMessage: "Siempre estaré aquí para ayudarte. ¡Haz clic en mí cuando lo necesites!",
+  },
+  {
+    id: "finish",
+    title: "¡Listo para Comenzar!",
+    description: "Ya conoces lo básico de la plataforma. Explora las diferentes secciones y no dudes en consultar el tour nuevamente si lo necesitas.",
+    position: "center",
+    robotMessage: "¡Excelente! Ahora estás listo para usar GISICF. ¡Mucho éxito en tu investigación! 🎉",
+  },
+];
+
+export const adminTourSteps: TourStep[] = [
+  {
+    id: "welcome",
+    title: "¡Bienvenido Administrador!",
+    description: "Soy tu asistente virtual. Como administrador, tienes acceso a funciones especiales para gestionar el grupo de investigación.",
+    position: "center",
+    robotMessage: "¡Hola Admin! 🤖 Tienes superpoderes en esta plataforma. Déjame mostrártelos.",
+  },
+  {
+    id: "sidebar",
+    title: "Menú de Administración",
+    description: "Tu menú incluye secciones adicionales de administración: Solicitudes Pendientes, Directorio de Usuarios, Revisión de Evaluaciones, Tareas, Planificación y Configuración.",
+    target: "[data-sidebar='sidebar']",
+    position: "right",
+    robotMessage: "Como admin, tu menú tiene secciones especiales que los usuarios normales no ven.",
+  },
+  {
+    id: "pending-approvals",
+    title: "Solicitudes Pendientes",
+    description: "Aquí podrás aprobar o rechazar las solicitudes de nuevos usuarios que desean unirse al grupo.",
+    position: "center",
+    robotMessage: "Los nuevos usuarios esperan tu aprobación. Revisa las solicitudes pendientes regularmente.",
+  },
+  {
+    id: "user-directory",
+    title: "Directorio de Usuarios",
+    description: "Gestiona todos los usuarios del sistema: puedes ver sus perfiles, cambiar roles y administrar permisos.",
+    position: "center",
+    robotMessage: "El directorio te permite gestionar a todos los miembros del grupo.",
+  },
+  {
+    id: "evaluation-reviews",
+    title: "Revisión de Evaluaciones",
+    description: "Revisa y valida las evaluaciones anuales enviadas por los investigadores. Puedes aprobar, rechazar o solicitar correcciones.",
+    position: "center",
+    robotMessage: "Las evaluaciones de los investigadores requieren tu revisión. Sé justo pero riguroso.",
+  },
+  {
+    id: "task-reviews",
+    title: "Revisión de Tareas",
+    description: "Verifica las evidencias de las tareas completadas por los miembros del grupo y proporciona retroalimentación.",
+    position: "center",
+    robotMessage: "Revisa las evidencias que suben los investigadores para sus tareas asignadas.",
+  },
+  {
+    id: "planning",
+    title: "Planificación",
+    description: "Crea y gestiona las planificaciones del grupo, define actividades y asigna responsables.",
+    position: "center",
+    robotMessage: "La planificación es clave. Aquí defines las actividades y quién las ejecutará.",
+  },
+  {
+    id: "official-projects",
+    title: "Proyectos Oficiales",
+    description: "Registra los proyectos oficiales del grupo que aparecerán en las evaluaciones de los investigadores.",
+    position: "center",
+    robotMessage: "Los proyectos oficiales son los que cuentan para las evaluaciones.",
+  },
+  {
+    id: "settings",
+    title: "Configuración",
+    description: "Configura los parámetros institucionales: nombres de firmantes, logotipos, y otros ajustes del sistema.",
+    position: "center",
+    robotMessage: "Personaliza la plataforma según las necesidades de tu institución.",
+  },
+  {
+    id: "notifications-admin",
+    title: "Notificaciones de Admin",
+    description: "Como administrador, recibirás notificaciones sobre nuevos usuarios pendientes, evaluaciones por revisar y más.",
+    target: "[data-tour='notifications']",
+    position: "bottom",
+    robotMessage: "Tus notificaciones incluyen alertas administrativas importantes.",
+  },
+  {
+    id: "finish",
+    title: "¡Panel de Admin Listo!",
+    description: "Ya conoces todas las herramientas de administración. Gestiona el grupo de investigación de manera eficiente.",
+    position: "center",
+    robotMessage: "¡Listo! Ahora tienes el control total. Usa tus poderes sabiamente. 🚀",
+  },
+];

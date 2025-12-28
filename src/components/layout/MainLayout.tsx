@@ -20,6 +20,8 @@ import { UserNotificationBell } from "@/components/UserNotificationBell";
 import { UserActivityNotificationBell } from "@/components/UserActivityNotificationBell";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Badge } from "@/components/ui/badge";
+import { TourGuideButton } from "@/components/tour/TourGuideButton";
+import { useTour } from "@/components/tour/TourProvider";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -30,6 +32,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { profile } = useProfile();
   const { theme, setTheme } = useTheme();
   const { data: userRole } = useUserRole();
+  const { startTour, hasSeenTour } = useTour();
 
   const getInitials = (name: string) => {
     return name
@@ -75,13 +78,19 @@ export function MainLayout({ children }: MainLayoutProps) {
                 <span className="sr-only">Toggle theme</span>
               </Button>
               
-              <UserActivityNotificationBell />
-              {userRole === "admin" ? <NotificationBell /> : <UserNotificationBell />}
+              <div data-tour="tour-button">
+                <TourGuideButton onClick={startTour} hasSeenTour={hasSeenTour} />
+              </div>
+              
+              <div data-tour="notifications" className="flex items-center gap-1">
+                <UserActivityNotificationBell />
+                {userRole === "admin" ? <NotificationBell /> : <UserNotificationBell />}
+              </div>
               
               {/* Premium Profile Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-3 hover:opacity-90 transition-all duration-200 group p-1.5 rounded-xl hover:bg-white/5">
+                  <button data-tour="profile-menu" className="flex items-center gap-3 hover:opacity-90 transition-all duration-200 group p-1.5 rounded-xl hover:bg-white/5">
                     <div className="text-right max-w-[180px] hidden sm:block">
                       <p className="text-sm font-medium truncate">{displayName}</p>
                       <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
