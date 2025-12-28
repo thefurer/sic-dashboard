@@ -15,8 +15,13 @@ const TourContext = createContext<TourContextType | undefined>(undefined);
 
 export function useTour() {
   const context = useContext(TourContext);
+  // Return default values if context is not available yet
   if (!context) {
-    throw new Error("useTour must be used within a TourProvider");
+    return {
+      startTour: () => {},
+      hasSeenTour: true,
+      isTourActive: false,
+    };
   }
   return context;
 }
