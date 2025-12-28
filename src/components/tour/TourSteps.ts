@@ -5,6 +5,7 @@ export interface TourStep {
   target?: string; // CSS selector for highlighting
   position: "center" | "top" | "bottom" | "left" | "right";
   robotMessage: string;
+  route?: string; // Route to navigate to for this step
 }
 
 export const userTourSteps: TourStep[] = [
@@ -14,6 +15,7 @@ export const userTourSteps: TourStep[] = [
     description: "Soy tu asistente virtual y te guiaré paso a paso por la plataforma del Grupo de Investigación en Sistemas de Información, Ciencias de la Computación y Formación.",
     position: "center",
     robotMessage: "¡Hola! 🤖 Me alegra tenerte aquí. Permíteme mostrarte cómo funciona todo.",
+    route: "/dashboard",
   },
   {
     id: "sidebar",
@@ -22,28 +24,23 @@ export const userTourSteps: TourStep[] = [
     target: "[data-sidebar='sidebar']",
     position: "right",
     robotMessage: "Este menú lateral es tu centro de control. Desde aquí puedes navegar a cualquier sección.",
+    route: "/dashboard",
   },
   {
     id: "dashboard",
     title: "Dashboard Principal",
     description: "El Dashboard te muestra un resumen de las noticias y actividades recientes del grupo de investigación.",
-    target: "[data-tour='dashboard']",
     position: "center",
     robotMessage: "El Dashboard es tu página de inicio. Aquí verás las últimas noticias y actualizaciones.",
+    route: "/dashboard",
   },
   {
-    id: "projects",
-    title: "Gestión de Proyectos",
-    description: "En la sección de Proyectos puedes registrar y dar seguimiento a tus proyectos de investigación.",
+    id: "institutional",
+    title: "Información General",
+    description: "Consulta la misión, visión, objetivos del grupo, descarga documentos oficiales y manuales de usuario.",
     position: "center",
-    robotMessage: "¿Tienes proyectos de investigación? Esta sección te ayudará a organizarlos.",
-  },
-  {
-    id: "production",
-    title: "Producción Científica",
-    description: "Registra tus publicaciones científicas, artículos y libros. El sistema puede obtener metadatos automáticamente usando DOI o ISBN.",
-    position: "center",
-    robotMessage: "Aquí puedes registrar todas tus publicaciones. ¡Es muy fácil con la búsqueda automática por DOI!",
+    robotMessage: "Aquí encontrarás toda la información institucional y documentos importantes del grupo.",
+    route: "/institutional",
   },
   {
     id: "evaluation",
@@ -51,6 +48,7 @@ export const userTourSteps: TourStep[] = [
     description: "Completa tu evaluación anual como investigador. Incluye indicadores de publicaciones, proyectos, recursos y más.",
     position: "center",
     robotMessage: "La evaluación anual es importante. Te ayudaré a completarla paso a paso.",
+    route: "/evaluation",
   },
   {
     id: "tasks",
@@ -58,22 +56,24 @@ export const userTourSteps: TourStep[] = [
     description: "Visualiza las tareas que te han sido asignadas desde la planificación del grupo y sube las evidencias correspondientes.",
     position: "center",
     robotMessage: "Aquí aparecerán las tareas que te asignen. No olvides subir tus evidencias.",
+    route: "/my-tasks",
   },
   {
     id: "profile",
     title: "Tu Perfil",
-    description: "Puedes acceder a tu perfil desde el menú superior derecho para actualizar tu información, foto y CV.",
-    target: "[data-tour='profile-menu']",
-    position: "left",
+    description: "Actualiza tu información personal, foto de perfil, biografía y CV.",
+    position: "center",
     robotMessage: "Mantén tu perfil actualizado. Es importante para el directorio del grupo.",
+    route: "/profile",
   },
   {
-    id: "notifications",
-    title: "Notificaciones",
-    description: "La campana de notificaciones te alertará sobre actividades importantes, como tareas nuevas o actualizaciones.",
+    id: "header-elements",
+    title: "Barra Superior",
+    description: "Aquí tienes acceso rápido al tema oscuro/claro, el asistente de tour, notificaciones y tu perfil.",
     target: "[data-tour='notifications']",
     position: "bottom",
     robotMessage: "¡No te pierdas nada! Las notificaciones te mantendrán al día.",
+    route: "/dashboard",
   },
   {
     id: "tour-button",
@@ -82,6 +82,7 @@ export const userTourSteps: TourStep[] = [
     target: "[data-tour='tour-button']",
     position: "bottom",
     robotMessage: "Siempre estaré aquí para ayudarte. ¡Haz clic en mí cuando lo necesites!",
+    route: "/dashboard",
   },
   {
     id: "finish",
@@ -89,6 +90,7 @@ export const userTourSteps: TourStep[] = [
     description: "Ya conoces lo básico de la plataforma. Explora las diferentes secciones y no dudes en consultar el tour nuevamente si lo necesitas.",
     position: "center",
     robotMessage: "¡Excelente! Ahora estás listo para usar GISICF. ¡Mucho éxito en tu investigación! 🎉",
+    route: "/dashboard",
   },
 ];
 
@@ -99,6 +101,7 @@ export const adminTourSteps: TourStep[] = [
     description: "Soy tu asistente virtual. Como administrador, tienes acceso a funciones especiales para gestionar el grupo de investigación.",
     position: "center",
     robotMessage: "¡Hola Admin! 🤖 Tienes superpoderes en esta plataforma. Déjame mostrártelos.",
+    route: "/dashboard",
   },
   {
     id: "sidebar",
@@ -107,6 +110,15 @@ export const adminTourSteps: TourStep[] = [
     target: "[data-sidebar='sidebar']",
     position: "right",
     robotMessage: "Como admin, tu menú tiene secciones especiales que los usuarios normales no ven.",
+    route: "/dashboard",
+  },
+  {
+    id: "dashboard",
+    title: "Dashboard Principal",
+    description: "El Dashboard te muestra las noticias del grupo. Como admin, puedes gestionar las noticias publicadas.",
+    position: "center",
+    robotMessage: "Desde aquí puedes ver y gestionar las noticias del grupo de investigación.",
+    route: "/dashboard",
   },
   {
     id: "pending-approvals",
@@ -114,6 +126,7 @@ export const adminTourSteps: TourStep[] = [
     description: "Aquí podrás aprobar o rechazar las solicitudes de nuevos usuarios que desean unirse al grupo.",
     position: "center",
     robotMessage: "Los nuevos usuarios esperan tu aprobación. Revisa las solicitudes pendientes regularmente.",
+    route: "/admin/pending-approvals",
   },
   {
     id: "user-directory",
@@ -121,6 +134,7 @@ export const adminTourSteps: TourStep[] = [
     description: "Gestiona todos los usuarios del sistema: puedes ver sus perfiles, cambiar roles y administrar permisos.",
     position: "center",
     robotMessage: "El directorio te permite gestionar a todos los miembros del grupo.",
+    route: "/admin/users",
   },
   {
     id: "evaluation-reviews",
@@ -128,6 +142,7 @@ export const adminTourSteps: TourStep[] = [
     description: "Revisa y valida las evaluaciones anuales enviadas por los investigadores. Puedes aprobar, rechazar o solicitar correcciones.",
     position: "center",
     robotMessage: "Las evaluaciones de los investigadores requieren tu revisión. Sé justo pero riguroso.",
+    route: "/admin/evaluations",
   },
   {
     id: "task-reviews",
@@ -135,6 +150,7 @@ export const adminTourSteps: TourStep[] = [
     description: "Verifica las evidencias de las tareas completadas por los miembros del grupo y proporciona retroalimentación.",
     position: "center",
     robotMessage: "Revisa las evidencias que suben los investigadores para sus tareas asignadas.",
+    route: "/admin/task-reviews",
   },
   {
     id: "planning",
@@ -142,6 +158,7 @@ export const adminTourSteps: TourStep[] = [
     description: "Crea y gestiona las planificaciones del grupo, define actividades y asigna responsables.",
     position: "center",
     robotMessage: "La planificación es clave. Aquí defines las actividades y quién las ejecutará.",
+    route: "/admin/planning",
   },
   {
     id: "official-projects",
@@ -149,6 +166,7 @@ export const adminTourSteps: TourStep[] = [
     description: "Registra los proyectos oficiales del grupo que aparecerán en las evaluaciones de los investigadores.",
     position: "center",
     robotMessage: "Los proyectos oficiales son los que cuentan para las evaluaciones.",
+    route: "/admin/projects-list",
   },
   {
     id: "settings",
@@ -156,6 +174,7 @@ export const adminTourSteps: TourStep[] = [
     description: "Configura los parámetros institucionales: nombres de firmantes, logotipos, y otros ajustes del sistema.",
     position: "center",
     robotMessage: "Personaliza la plataforma según las necesidades de tu institución.",
+    route: "/admin/settings",
   },
   {
     id: "notifications-admin",
@@ -164,6 +183,7 @@ export const adminTourSteps: TourStep[] = [
     target: "[data-tour='notifications']",
     position: "bottom",
     robotMessage: "Tus notificaciones incluyen alertas administrativas importantes.",
+    route: "/dashboard",
   },
   {
     id: "finish",
@@ -171,5 +191,6 @@ export const adminTourSteps: TourStep[] = [
     description: "Ya conoces todas las herramientas de administración. Gestiona el grupo de investigación de manera eficiente.",
     position: "center",
     robotMessage: "¡Listo! Ahora tienes el control total. Usa tus poderes sabiamente. 🚀",
+    route: "/dashboard",
   },
 ];
