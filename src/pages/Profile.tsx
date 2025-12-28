@@ -7,9 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { User, Phone, FileText, Lock, BadgeCheck, Download, Upload } from "lucide-react";
+import { User, Phone, FileText, Lock, BadgeCheck, Download, Upload, Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import { getSignedUrl } from "@/hooks/useSignedUrl";
 export default function Profile() {
   const { user } = useAuth();
   const metadata: any = (user as any)?.user_metadata ?? {};
@@ -90,8 +90,18 @@ export default function Profile() {
     const { error } = await supabase.storage.from('cvs').upload(filePath, file, { cacheControl: '3600', upsert: true });
     if (error) throw error;
 
-    const { data } = supabase.storage.from('cvs').getPublicUrl(filePath);
-    return data.publicUrl;
+    // Store the path, not public URL, since bucket is private
+    return filePath;
+  };
+
+  const handleViewCV = async () => {
+    if (!cvUrl) return;
+    const url = await getSignedUrl('cvs', cvUrl);
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      toast.error('Error al abrir el CV');
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -314,11 +324,14 @@ export default function Profile() {
                       <p className="text-xs text-muted-foreground">Documento PDF</p>
                     </div>
                   </div>
-                  <Button asChild variant="outline" size="sm" className="border-primary/30 hover:bg-primary/10">
-                    <a href={cvUrl} target="_blank" rel="noopener noreferrer">
-                      <Download className="h-4 w-4 mr-2" />
-                      Ver
-                    </a>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border-primary/30 hover:bg-primary/10"
+                    onClick={handleViewCV}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver
                   </Button>
                 </div>
               ) : (
