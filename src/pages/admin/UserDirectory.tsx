@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter } from "lucide-react";
+import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,6 +28,7 @@ interface Profile {
   is_approved: boolean;
   created_at: string;
   research_role: string | null;
+  last_login_at: string | null;
 }
 
 const RESEARCH_ROLES = [
@@ -160,7 +163,7 @@ export default function UserDirectory() {
                   <TableHead>Código</TableHead>
                   <TableHead>Rol de Investigación</TableHead>
                   <TableHead>Estado</TableHead>
-                  <TableHead>Teléfono</TableHead>
+                  <TableHead>Último acceso</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -212,7 +215,13 @@ export default function UserDirectory() {
                       )}
                     </TableCell>
                     <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
-                      {user.phone || "N/A"}
+                      <div className="flex items-center gap-1 text-sm">
+                        <Clock className="h-3 w-3 text-muted-foreground" />
+                        {user.last_login_at 
+                          ? format(new Date(user.last_login_at), "dd/MM/yyyy HH:mm", { locale: es })
+                          : "Nunca"
+                        }
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -286,6 +295,17 @@ export default function UserDirectory() {
                     <span className="font-medium">{selectedUser.researcher_code}</span>
                   </div>
                 )}
+
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Último acceso:</span>
+                  <span className="font-medium">
+                    {selectedUser.last_login_at 
+                      ? format(new Date(selectedUser.last_login_at), "dd 'de' MMMM yyyy, HH:mm", { locale: es })
+                      : "Nunca ha iniciado sesión"
+                    }
+                  </span>
+                </div>
 
                 {selectedUser.bio && (
                   <div className="border-t pt-3">

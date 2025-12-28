@@ -284,19 +284,46 @@ export default function Landing() {
       <footer className="mt-16">
         <div className="w-full bg-slate-900 text-white">
           <div className="container mx-auto px-4 py-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="text-center md:text-left">
-                <p className="text-sm opacity-90">© 2025 UNESUM - Grupo GISICF. Todos los derechos reservados. Hecho por Madelin Chancay Baque</p>
-                <p className="text-xs opacity-70 mt-2">
-                  Plataforma de gestión diseñada para transparencia, trazabilidad e impacto académico.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#007A33] flex items-center justify-center text-white font-bold text-sm">
-                  U
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="text-center md:text-left">
+                  <p className="text-sm opacity-90">© 2025 UNESUM - Grupo GISICF. Todos los derechos reservados.</p>
+                  <p className="text-xs opacity-70 mt-2">
+                    Proyecto de Tesis - NAIDELIN CHANCAY BAQUE
+                  </p>
                 </div>
-                <span className="font-semibold">UNESUM</span>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#007A33] flex items-center justify-center text-white font-bold text-sm">
+                    U
+                  </div>
+                  <span className="font-semibold">UNESUM</span>
+                </div>
+              </div>
+              
+              <div className="border-t border-white/10 pt-4">
+                <nav className="flex flex-wrap justify-center gap-4 text-sm">
+                  <Link 
+                    to="/legal/terms" 
+                    className="opacity-70 hover:opacity-100 transition-opacity"
+                  >
+                    Términos de Uso
+                  </Link>
+                  <span className="opacity-30">|</span>
+                  <Link 
+                    to="/legal/privacy" 
+                    className="opacity-70 hover:opacity-100 transition-opacity"
+                  >
+                    Política de Privacidad
+                  </Link>
+                  <span className="opacity-30">|</span>
+                  <Link 
+                    to="/legal/notice" 
+                    className="opacity-70 hover:opacity-100 transition-opacity"
+                  >
+                    Aviso Legal
+                  </Link>
+                </nav>
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import { LegalFooter } from "./LegalFooter";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useTheme } from "@/components/theme-provider";
@@ -169,6 +170,8 @@ export function MainLayout({ children }: MainLayoutProps) {
             <div className="flex-1 p-6 overflow-auto bg-transparent">
               {children}
             </div>
+            
+            <LegalFooter />
           </div>
         </main>
         <AccessibilityMenu />

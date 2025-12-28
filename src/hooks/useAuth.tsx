@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -61,6 +61,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast.error(error.message);
     } else {
       toast.success('Logged in successfully!');
+      
+      // Update last_login_at in profiles
+      if (data.user) {
+        setTimeout(async () => {
+          await supabase
+            .from('profiles')
+            .update({ last_login_at: new Date().toISOString() })
+            .eq('id', data.user.id);
+        }, 0);
+      }
     }
     
     return { error };
