@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import { Loader2, Mail, Lock, Phone, Code } from "lucide-react";
+import { Loader2, Mail, Lock, Phone, Code, KeyRound, CheckCircle } from "lucide-react";
 import gisicfLogo from "@/assets/gisicf-logo.png";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 /**
@@ -151,13 +153,30 @@ export default function Auth() {
     phoneNumber: "",
     researcherCode: "",
   });
+  
+  // Password reset state
+  const [isResetMode, setIsResetMode] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetSuccess, setResetSuccess] = useState(false);
 
-  // Redirect to dashboard if already logged in
+  // Check if user came from password reset link
   useEffect(() => {
-    if (user) {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const type = hashParams.get('type');
+    
+    if (accessToken && type === 'recovery') {
+      setIsResetMode(true);
+    }
+  }, []);
+
+  // Redirect to dashboard if already logged in (but not in reset mode)
+  useEffect(() => {
+    if (user && !isResetMode) {
       navigate("/dashboard");
     }
-  }, [user, navigate]);
+  }, [user, navigate, isResetMode]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,6 +205,181 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast.error("Las contraseñas no coinciden");
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast.error("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      
+      if (error) {
+        toast.error("Error al actualizar la contraseña: " + error.message);
+      } else {
+        setResetSuccess(true);
+        toast.success("Contraseña actualizada correctamente");
+        // Clear the hash from URL
+        window.history.replaceState(null, '', window.location.pathname);
+        setTimeout(() => {
+          setIsResetMode(false);
+          setResetSuccess(false);
+          navigate("/dashboard");
+        }, 2000);
+      }
+    } catch (error) {
+      toast.error("Error inesperado al actualizar la contraseña");
+    }
+    setLoading(false);
+  };
+
+  // Password Reset Mode UI
+  if (isResetMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(0,122,51,0.9);stop-opacity:1" /><stop offset="100%" style="stop-color:rgba(10,20,40,0.95);stop-opacity:1" /></linearGradient></defs><rect width="1200" height="800" fill="url(%23grad)"/></svg>')`,
+            backgroundAttachment: "fixed",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-green-900/20 via-slate-900/40 to-blue-900/20"></div>
+        </div>
+
+        <ParticleBackground count={80} />
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="relative z-20 w-full px-4 sm:px-6"
+        >
+          <Card className="w-full max-w-[450px] mx-auto border-0 shadow-2xl"
+            style={{
+              backdropFilter: "blur(16px)",
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+            }}
+          >
+            <CardHeader className="text-center pb-4 pt-8">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+                className="flex justify-center mb-4"
+              >
+                {resetSuccess ? (
+                  <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+                    <CheckCircle className="w-12 h-12 text-green-600" />
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center">
+                    <KeyRound className="w-10 h-10 text-white" />
+                  </div>
+                )}
+              </motion.div>
+              <CardTitle className="text-2xl font-bold text-slate-800">
+                {resetSuccess ? "¡Contraseña Actualizada!" : "Nueva Contraseña"}
+              </CardTitle>
+              <CardDescription className="text-slate-600">
+                {resetSuccess 
+                  ? "Redirigiendo al panel principal..." 
+                  : "Ingresa tu nueva contraseña para continuar"}
+              </CardDescription>
+            </CardHeader>
+
+            {!resetSuccess && (
+              <CardContent>
+                <form onSubmit={handlePasswordReset} className="space-y-4">
+                  <motion.div
+                    className="space-y-2"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <Label htmlFor="new-password" className="text-sm font-medium text-slate-700">
+                      Nueva Contraseña
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-5 w-5 text-green-600" />
+                      <Input
+                        id="new-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                      />
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    className="space-y-2"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                  >
+                    <Label htmlFor="confirm-password" className="text-sm font-medium text-slate-700">
+                      Confirmar Contraseña
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-5 w-5 text-green-600" />
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                      />
+                    </div>
+                    {confirmPassword && newPassword !== confirmPassword && (
+                      <p className="text-xs text-red-500">Las contraseñas no coinciden</p>
+                    )}
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="pt-2"
+                  >
+                    <Button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-2 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                      disabled={loading || newPassword !== confirmPassword}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Actualizando...
+                        </>
+                      ) : (
+                        "Actualizar Contraseña"
+                      )}
+                    </Button>
+                  </motion.div>
+                </form>
+              </CardContent>
+            )}
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Premium Background */}
@@ -209,7 +403,7 @@ export default function Auth() {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative z-20 w-full px-4 sm:px-6"
       >
-        <Card className="w-full max-w-[450px] mx-auto border-0 shadow-2xl" 
+        <Card className="w-full max-w-[450px] mx-auto border-0 shadow-2xl"
           style={{
             backdropFilter: "blur(16px)",
             backgroundColor: "rgba(255, 255, 255, 0.95)",
