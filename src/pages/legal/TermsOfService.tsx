@@ -49,7 +49,7 @@ export default function TermsOfService() {
               </h2>
               <p className="text-foreground leading-relaxed">
                 Esta plataforma es un <strong>proyecto de tesis</strong> desarrollado por 
-                <strong> NAIDELIN CHANCAY BAQUE</strong>, estudiante de la Universidad Estatal 
+                <strong> MADELIN CHANCAY BAQUE</strong>, estudiante de la Universidad Estatal
                 del Sur de Manabí (UNESUM), como parte del requisito para la obtención del 
                 título profesional.
               </p>
@@ -67,7 +67,7 @@ export default function TermsOfService() {
               <p className="text-foreground leading-relaxed">
                 <strong>IMPORTANTE:</strong> Esta plataforma tiene un carácter temporal 
                 y está activa durante el periodo de presentación de la tesis de 
-                <strong> NAIDELIN CHANCAY BAQUE</strong>.
+                <strong> MADELIN CHANCAY BAQUE</strong>.
               </p>
               <ul className="list-disc pl-6 mt-2 space-y-1 text-foreground">
                 <li>
@@ -143,7 +143,7 @@ export default function TermsOfService() {
                 5. Responsabilidades
               </h2>
               <p className="text-foreground leading-relaxed">
-                La desarrolladora <strong>NAIDELIN CHANCAY BAQUE</strong> y la UNESUM:
+                La desarrolladora <strong>MADELIN CHANCAY BAQUE</strong> y la UNESUM:
               </p>
               <ul className="list-disc pl-6 mt-2 space-y-1 text-foreground">
                 <li>
@@ -183,7 +183,7 @@ export default function TermsOfService() {
 
             <div className="border-t pt-6 mt-8 text-center text-sm text-muted-foreground">
               <p>© 2024 GISICF - Universidad Estatal del Sur de Manabí</p>
-              <p className="mt-1">Proyecto de Tesis - NAIDELIN CHANCAY BAQUE</p>
+              <p className="mt-1">Proyecto de Tesis - MADELIN CHANCAY BAQUE</p>
             </div>
           </CardContent>
         </Card>

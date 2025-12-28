@@ -90,7 +90,7 @@ export default function PrivacyPolicy() {
                 </li>
                 <li>
                   Cumplir con los objetivos del proyecto de tesis de 
-                  <strong> NAIDELIN CHANCAY BAQUE</strong>.
+                  <strong> MADELIN CHANCAY BAQUE</strong>.
                 </li>
                 <li>
                   Facilitar la comunicación entre investigadores y administradores.
@@ -229,7 +229,7 @@ export default function PrivacyPolicy() {
 
             <div className="border-t pt-6 mt-8 text-center text-sm text-muted-foreground">
               <p>© 2024 GISICF - Universidad Estatal del Sur de Manabí</p>
-              <p className="mt-1">Proyecto de Tesis - NAIDELIN CHANCAY BAQUE</p>
+              <p className="mt-1">Proyecto de Tesis - MADELIN CHANCAY BAQUE</p>
             </div>
           </CardContent>
         </Card>

@@ -53,7 +53,7 @@ export default function LegalNotice() {
                   de Investigación para la Carrera de Tecnologías de la Información
                 </p>
                 <p className="text-foreground leading-relaxed mt-2">
-                  <strong>Desarrolladora:</strong> NAIDELIN CHANCAY BAQUE
+                  <strong>Desarrolladora:</strong> MADELIN CHANCAY BAQUE
                 </p>
                 <p className="text-foreground leading-relaxed mt-2">
                   <strong>Institución:</strong> Universidad Estatal del Sur de Manabí (UNESUM)
@@ -109,7 +109,7 @@ export default function LegalNotice() {
                 </p>
                 <p className="text-foreground leading-relaxed mt-2">
                   Esta plataforma está activa durante el periodo de desarrollo y 
-                  defensa de tesis de <strong>NAIDELIN CHANCAY BAQUE</strong>. 
+                  defensa de tesis de <strong>MADELIN CHANCAY BAQUE</strong>. 
                 </p>
                 <p className="text-foreground leading-relaxed mt-2">
                   Una vez culminado el proceso de titulación:
@@ -169,7 +169,7 @@ export default function LegalNotice() {
               </p>
               <ul className="list-disc pl-6 mt-2 space-y-1 text-foreground">
                 <li>
-                  <strong>NAIDELIN CHANCAY BAQUE</strong> - Como desarrolladora 
+                  <strong>MADELIN CHANCAY BAQUE</strong> - Como desarrolladora 
                   del proyecto.
                 </li>
                 <li>
@@ -244,7 +244,7 @@ export default function LegalNotice() {
 
             <div className="border-t pt-6 mt-8 text-center text-sm text-muted-foreground">
               <p>© 2024 GISICF - Universidad Estatal del Sur de Manabí</p>
-              <p className="mt-1">Proyecto de Tesis - NAIDELIN CHANCAY BAQUE</p>
+              <p className="mt-1">Proyecto de Tesis - MADELIN CHANCAY BAQUE</p>
             </div>
           </CardContent>
         </Card>
