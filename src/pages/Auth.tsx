@@ -11,6 +11,7 @@ import gisicfLogo from "@/assets/gisicf-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { PasswordStrength } from "@/components/ui/password-strength";
 
 /**
  * Lightweight particle background (no extra deps).
@@ -321,6 +322,7 @@ export default function Auth() {
                         className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                       />
                     </div>
+                    <PasswordStrength password={newPassword} />
                   </motion.div>
 
                   <motion.div
@@ -650,6 +652,7 @@ export default function Auth() {
                           className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                       </div>
+                      <PasswordStrength password={registerData.password} />
                     </motion.div>
 
                     <motion.div
