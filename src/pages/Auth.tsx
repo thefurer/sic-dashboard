@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { PasswordStrength } from "@/components/ui/password-strength";
 import { AccessibilityMenu } from "@/components/accessibility/AccessibilityMenu";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 /**
  * Lightweight particle background (no extra deps).
@@ -143,9 +144,10 @@ function ParticleBackground({ count = 60 }: { count?: number }) {
 }
 
 export default function Auth() {
-  const { signIn, signUp, signInWithGoogle, user, resetPassword } = useAuth();
+  const { signIn, signUp, signInWithGoogle, user, resetPassword, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -176,6 +178,7 @@ export default function Auth() {
   // Redirect to dashboard if already logged in (but not in reset mode)
   useEffect(() => {
     if (user && !isResetMode) {
+      setRedirecting(true);
       navigate("/dashboard");
     }
   }, [user, navigate, isResetMode]);
@@ -185,6 +188,7 @@ export default function Auth() {
     setLoading(true);
     const { error } = await signIn(loginData.email, loginData.password);
     if (!error) {
+      setRedirecting(true);
       navigate("/dashboard");
     }
     setLoading(false);
@@ -240,8 +244,12 @@ export default function Auth() {
     } catch (error) {
       toast.error("Error inesperado al actualizar la contraseña");
     }
-    setLoading(false);
   };
+
+  // Show loading screen during auth check or redirect
+  if (authLoading || redirecting) {
+    return <LoadingScreen message={redirecting ? "Iniciando sesión..." : "Verificando sesión..."} />;
+  }
 
   // Password Reset Mode UI
   if (isResetMode) {

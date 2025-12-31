@@ -1,9 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -56,11 +56,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   });
 
   if (loading || profileLoading || roleLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <LoadingScreen message="Verificando sesión..." />;
   }
 
   if (!user) {
