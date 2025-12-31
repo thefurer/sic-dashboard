@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,46 @@ interface ProtectedRouteProps {
   requiredRole?: 'admin' | 'researcher' | 'student';
 }
 
+// Mapa de rutas a mensajes personalizados
+const routeMessages: Record<string, string> = {
+  "/dashboard": "Cargando panel principal...",
+  "/profile": "Cargando tu perfil...",
+  "/projects": "Cargando proyectos...",
+  "/evaluation": "Cargando evaluación...",
+  "/impacts": "Cargando impactos...",
+  "/vinculacion": "Cargando vinculación...",
+  "/scientific-production": "Cargando producción científica...",
+  "/my-tasks": "Cargando tus tareas...",
+  "/institutional": "Cargando información GISICF...",
+  "/admin/pending-approvals": "Cargando solicitudes pendientes...",
+  "/admin/users": "Cargando directorio de usuarios...",
+  "/admin/settings": "Cargando configuración...",
+  "/admin/planning": "Cargando planificaciones...",
+  "/admin/planning-builder": "Cargando constructor de planificación...",
+  "/admin/evaluation-reviews": "Cargando revisión de evaluaciones...",
+  "/admin/task-reviews": "Cargando revisión de actividades...",
+  "/admin/official-projects": "Cargando proyectos oficiales...",
+};
+
+function getLoadingMessage(pathname: string): string {
+  // Buscar coincidencia exacta primero
+  if (routeMessages[pathname]) {
+    return routeMessages[pathname];
+  }
+  
+  // Buscar coincidencia parcial para rutas con parámetros
+  for (const route of Object.keys(routeMessages)) {
+    if (pathname.startsWith(route)) {
+      return routeMessages[route];
+    }
+  }
+  
+  return "Verificando sesión...";
+}
+
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { user, loading, signOut } = useAuth();
+  const location = useLocation();
 
   const { data: userRole, isLoading: roleLoading } = useQuery({
     queryKey: ["user-role", user?.id],
@@ -56,7 +94,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   });
 
   if (loading || profileLoading || roleLoading) {
-    return <LoadingScreen message="Verificando sesión..." />;
+    return <LoadingScreen message={getLoadingMessage(location.pathname)} />;
   }
 
   if (!user) {
