@@ -13,7 +13,7 @@ const baseMenuItems = [{
   url: "/dashboard",
   icon: LayoutDashboard
 }, {
-  title: "Información General",
+  title: "Información GISICF",
   url: "/institutional",
   icon: Landmark
 }];
