@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, BarChart3, Users, FileCheck, Calendar, Settings } from "lucide-react";
+import { ArrowRight, Shield, BarChart3, Users, FileCheck, Calendar, Settings, Search, Bell, Mail, BookOpen, Leaf, Cpu, Globe, Heart, Lightbulb, FlaskConical, Building, GraduationCap, Zap, Database, Cloud, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { AccessibilityMenu } from "@/components/accessibility/AccessibilityMenu";
 import gisicfLogo from "@/assets/gisicf-logo.png";
+import { useState, useEffect } from "react";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -54,7 +55,68 @@ const features = [
   },
 ];
 
+const researchLines = [
+  { name: "Salud Pública", icon: Heart },
+  { name: "Educación en Ciencias", icon: GraduationCap },
+  { name: "Biotecnología", icon: FlaskConical },
+  { name: "Ambiente y Biodiversidad", icon: Leaf },
+  { name: "Tecnología de la Información", icon: Cpu },
+  { name: "Inteligencia Artificial", icon: Zap },
+  { name: "Sistemas Ciberfísicos", icon: Database },
+  { name: "Innovación y Emprendimiento", icon: Lightbulb },
+  { name: "Turismo Sostenible", icon: Globe },
+  { name: "Infraestructura", icon: Building },
+  { name: "Cambio Climático", icon: Cloud },
+  { name: "Recursos Hídricos", icon: BookOpen },
+];
+
+const uniqueFeatures = [
+  {
+    icon: Search,
+    title: "Búsqueda Inteligente con DOI/ISBN",
+    description: "Ingresa un DOI o ISBN y el sistema detecta automáticamente metadatos como título, autores, revista, cuartil y base de datos indexada (Scopus, WOS, Scielo, etc.).",
+    highlight: "Agente de detección automática",
+  },
+  {
+    icon: Mail,
+    title: "Notificaciones por Correo",
+    description: "Recibe alertas automáticas sobre actividades asignadas, fechas límite próximas y cambios en el estado de tus evaluaciones directamente en tu email.",
+    highlight: "Integración con Resend",
+  },
+  {
+    icon: Bell,
+    title: "Sistema de Alertas en Tiempo Real",
+    description: "Notificaciones instantáneas cuando tu evaluación tiene observaciones, con indicador visual y detalles específicos de las correcciones requeridas.",
+    highlight: "Feedback inmediato",
+  },
+  {
+    icon: FileCheck,
+    title: "Evaluación 100/100 Automatizada",
+    description: "Sistema de puntuación inteligente que calcula automáticamente tu progreso y asegura que cumplas todos los indicadores antes de enviar.",
+    highlight: "Validación automática",
+  },
+];
+
 export default function Landing() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const itemsPerView = 4;
+  const totalSlides = Math.ceil(researchLines.length / itemsPerView);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [totalSlides]);
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % totalSlides);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+
+  const visibleLines = researchLines.slice(
+    currentSlide * itemsPerView,
+    currentSlide * itemsPerView + itemsPerView
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
       {/* Navigation Bar */}
@@ -66,8 +128,14 @@ export default function Landing() {
           </div>
           
           <div className="hidden md:flex items-center gap-8">
+            <a href="#research-lines" className="text-slate-600 dark:text-white/70 hover:text-[hsl(153,100%,24%)] transition-colors font-medium">
+              Líneas
+            </a>
             <a href="#features" className="text-slate-600 dark:text-white/70 hover:text-[hsl(153,100%,24%)] transition-colors font-medium">
               Características
+            </a>
+            <a href="#unique" className="text-slate-600 dark:text-white/70 hover:text-[hsl(153,100%,24%)] transition-colors font-medium">
+              Único
             </a>
             <a href="#about" className="text-slate-600 dark:text-white/70 hover:text-[hsl(153,100%,24%)] transition-colors font-medium">
               Acerca de
@@ -82,7 +150,7 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero Section - Inspired by Perspective */}
+      {/* Hero Section */}
       <section className="pt-32 pb-20 md:pt-40 md:pb-32 container mx-auto px-6">
         <motion.div 
           className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center"
@@ -96,7 +164,6 @@ export default function Landing() {
             className="relative order-2 lg:order-1"
           >
             <div className="relative">
-              {/* Main screenshot with overlay effect */}
               <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/20 dark:shadow-black/40">
                 <img 
                   src="/manual-screenshots/dashboard.png" 
@@ -106,7 +173,6 @@ export default function Landing() {
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent" />
               </div>
               
-              {/* Floating secondary screenshot */}
               <motion.div 
                 className="absolute -bottom-8 -right-8 w-2/3 rounded-xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800"
                 initial={{ opacity: 0, scale: 0.8, x: 20 }}
@@ -120,7 +186,6 @@ export default function Landing() {
                 />
               </motion.div>
 
-              {/* Decorative elements */}
               <div className="absolute -top-6 -left-6 w-24 h-24 bg-[hsl(153,100%,24%)]/10 rounded-full blur-2xl" />
               <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-[hsl(153,100%,35%)]/20 rounded-full blur-xl" />
             </div>
@@ -166,6 +231,147 @@ export default function Landing() {
         </motion.div>
       </section>
 
+      {/* Research Lines Carousel Section */}
+      <section id="research-lines" className="py-16 bg-white dark:bg-slate-900/50 border-y border-slate-200 dark:border-white/10">
+        <div className="container mx-auto px-6">
+          <motion.div 
+            className="text-center mb-10"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">
+              Líneas de <span className="text-[hsl(153,100%,24%)]">Investigación</span>
+            </h2>
+            <p className="text-slate-600 dark:text-white/60">
+              Áreas de enfoque del grupo GISICF
+            </p>
+          </motion.div>
+
+          <div className="relative">
+            <button 
+              onClick={prevSlide}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10 w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-white/10"
+            >
+              <ChevronLeft className="w-5 h-5 text-slate-600 dark:text-white" />
+            </button>
+
+            <div className="overflow-hidden mx-8">
+              <AnimatePresence mode="wait">
+                <motion.div 
+                  key={currentSlide}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                >
+                  {visibleLines.map((line, index) => (
+                    <motion.div
+                      key={line.name}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group flex flex-col items-center p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 hover:border-[hsl(153,100%,24%)]/50 hover:shadow-lg hover:shadow-[hsl(153,100%,24%)]/10 transition-all duration-300"
+                    >
+                      <div className="w-14 h-14 rounded-xl bg-[hsl(153,100%,24%)]/10 dark:bg-[hsl(153,100%,24%)]/20 flex items-center justify-center mb-3 group-hover:bg-[hsl(153,100%,24%)] transition-colors">
+                        <line.icon className="w-7 h-7 text-[hsl(153,100%,24%)] group-hover:text-white transition-colors" />
+                      </div>
+                      <span className="text-sm font-medium text-slate-700 dark:text-white/80 text-center">
+                        {line.name}
+                      </span>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            <button 
+              onClick={nextSlide}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-10 w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-white/10"
+            >
+              <ChevronRight className="w-5 h-5 text-slate-600 dark:text-white" />
+            </button>
+
+            {/* Carousel Indicators */}
+            <div className="flex justify-center gap-2 mt-6">
+              {Array.from({ length: totalSlides }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentSlide(i)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    i === currentSlide 
+                      ? 'w-8 bg-[hsl(153,100%,24%)]' 
+                      : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-400'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Unique Features Section - Smart Search, Notifications */}
+      <section id="unique" className="py-20 md:py-28">
+        <div className="container mx-auto px-6">
+          <motion.div 
+            className="text-center mb-14"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <span className="inline-block px-4 py-1 rounded-full bg-[hsl(153,100%,24%)]/10 text-[hsl(153,100%,24%)] text-sm font-semibold mb-4">
+              ¿Qué nos hace únicos?
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              Funciones <span className="text-[hsl(153,100%,24%)]">Inteligentes</span>
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-white/60 max-w-2xl mx-auto">
+              Automatización avanzada para maximizar tu productividad investigativa
+            </p>
+          </motion.div>
+
+          <motion.div 
+            className="grid md:grid-cols-2 gap-6"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+          >
+            {uniqueFeatures.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                variants={fadeInUp}
+                className="group relative p-8 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-white/10 hover:border-[hsl(153,100%,24%)]/40 transition-all duration-300 hover:shadow-xl"
+              >
+                {/* Highlight Badge */}
+                <span className="absolute top-4 right-4 px-3 py-1 rounded-full bg-[hsl(153,100%,24%)]/10 text-[hsl(153,100%,24%)] text-xs font-semibold">
+                  {feature.highlight}
+                </span>
+
+                <div className="flex items-start gap-5">
+                  <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-[hsl(153,100%,24%)] to-[hsl(153,100%,35%)] flex items-center justify-center shadow-lg shadow-[hsl(153,100%,24%)]/20">
+                    <feature.icon className="w-7 h-7 text-white" />
+                  </div>
+                  
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-[hsl(153,100%,24%)] transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-slate-600 dark:text-white/60 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Decorative corner */}
+                <div className="absolute bottom-0 right-0 w-24 h-24 bg-[hsl(153,100%,24%)]/5 rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section id="features" className="py-20 md:py-32 bg-white dark:bg-slate-900/50">
         <div className="container mx-auto px-6">
@@ -198,7 +404,6 @@ export default function Landing() {
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
                 className="group bg-slate-50 dark:bg-slate-800/50 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 hover:border-[hsl(153,100%,24%)]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[hsl(153,100%,24%)]/10"
               >
-                {/* Screenshot Preview */}
                 <div className="relative h-48 overflow-hidden">
                   <img 
                     src={feature.image} 
@@ -207,13 +412,11 @@ export default function Landing() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
                   
-                  {/* Icon Badge */}
                   <div className="absolute bottom-4 left-4 w-12 h-12 rounded-xl bg-[hsl(153,100%,24%)] flex items-center justify-center shadow-lg shadow-[hsl(153,100%,24%)]/30">
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
                 </div>
                 
-                {/* Content */}
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-[hsl(153,100%,24%)] transition-colors">
                     {feature.title}
@@ -299,7 +502,6 @@ export default function Landing() {
                 />
               </div>
               
-              {/* Decorative glow */}
               <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[hsl(153,100%,24%)]/10 rounded-full blur-3xl" />
             </motion.div>
           </div>
