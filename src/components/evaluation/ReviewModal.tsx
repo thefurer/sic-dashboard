@@ -318,11 +318,48 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
     );
   };
 
+  // Verification handlers for admin
+  const handleVerifyDOI = (doi: string) => {
+    if (!doi) {
+      toast.error("DOI no disponible");
+      return;
+    }
+    window.open(`https://doi.org/${doi}`, "_blank");
+  };
+
+  const handleVerifyISBN = (isbn: string) => {
+    if (!isbn) {
+      toast.error("ISBN no disponible");
+      return;
+    }
+    window.open(`https://www.google.com/search?q=ISBN+${encodeURIComponent(isbn)}`, "_blank");
+  };
+
+  const handleVerifyMIAR = (issn: string) => {
+    if (!issn) {
+      toast.error("ISSN no disponible");
+      return;
+    }
+    window.open(`https://miar.ub.edu/issn/${issn}`, "_blank");
+  };
+
+  const handleVerifyScimago = (issn: string) => {
+    if (!issn) {
+      toast.error("ISSN no disponible");
+      return;
+    }
+    window.open(`https://www.scimagojr.com/journalsearch.php?q=${issn}`, "_blank");
+  };
+
   // Render article/book/ponencia entries
   const renderArticleEntries = (entries: ArticleEntry[], indicatorName: string) => {
     if (!entries || entries.length === 0) {
       return <p className="text-xs text-muted-foreground italic">Sin entradas registradas</p>;
     }
+
+    const isRegionalArticle = indicatorName === "Artículos Regionales";
+    const isJCRArticle = indicatorName.includes("JCR") || indicatorName.includes("Scopus");
+    const isBook = indicatorName === "Libros Científicos";
 
     return (
       <div className="space-y-3">
@@ -356,6 +393,54 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
                 )}
               </div>
             )}
+            
+            {/* Verification buttons for admin */}
+            <div className="flex flex-wrap gap-2 mt-2">
+              {isJCRArticle && entry.metadata?.doi && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  onClick={() => handleVerifyDOI(entry.metadata!.doi!)}
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Verificar DOI
+                </Button>
+              )}
+              {isJCRArticle && entry.metadata?.issn && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  onClick={() => handleVerifyScimago(entry.metadata!.issn!)}
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Verificar Scimago
+                </Button>
+              )}
+              {isRegionalArticle && entry.metadata?.issn && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-1 border-amber-500 text-amber-600 hover:bg-amber-50"
+                  onClick={() => handleVerifyMIAR(entry.metadata!.issn!)}
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Verificar en MIAR
+                </Button>
+              )}
+              {isBook && entry.metadata?.isbn && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-1 border-blue-500 text-blue-600 hover:bg-blue-50"
+                  onClick={() => handleVerifyISBN(entry.metadata!.isbn!)}
+                >
+                  <BookOpen className="w-3 h-3" />
+                  Verificar ISBN
+                </Button>
+              )}
+            </div>
             
             {entry.files && Object.keys(entry.files).length > 0 && (
               <div className="space-y-1 mt-2">
