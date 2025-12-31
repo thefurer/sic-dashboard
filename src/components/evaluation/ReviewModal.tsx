@@ -394,50 +394,102 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
               </div>
             )}
             
-            {/* Verification buttons for admin */}
-            <div className="flex flex-wrap gap-2 mt-2">
-              {isJCRArticle && entry.metadata?.doi && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs gap-1"
-                  onClick={() => handleVerifyDOI(entry.metadata!.doi!)}
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  Verificar DOI
-                </Button>
+            {/* Verification buttons for admin - Smart Search */}
+            <div className="flex flex-wrap gap-2 mt-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-800">
+              <span className="w-full text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">
+                Verificación Inteligente:
+              </span>
+              
+              {/* JCR/Scopus Articles */}
+              {isJCRArticle && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => {
+                      const doi = entry.metadata?.doi;
+                      if (doi) {
+                        handleVerifyDOI(doi);
+                      } else {
+                        // Search by title if no DOI
+                        const title = entry.metadata?.title;
+                        if (title) {
+                          window.open(`https://www.crossref.org/guestquery?queryType=1&search_type=article&auth2=&atitle2=${encodeURIComponent(title)}`, "_blank");
+                        } else {
+                          toast.error("No hay DOI ni título para buscar");
+                        }
+                      }
+                    }}
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    {entry.metadata?.doi ? "Verificar DOI" : "Buscar en Crossref"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => {
+                      const issn = entry.metadata?.issn;
+                      const journal = entry.metadata?.journal;
+                      if (issn) {
+                        handleVerifyScimago(issn);
+                      } else if (journal) {
+                        window.open(`https://www.scimagojr.com/journalsearch.php?q=${encodeURIComponent(journal)}`, "_blank");
+                      } else {
+                        toast.error("No hay ISSN ni revista para buscar");
+                      }
+                    }}
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Verificar Scimago
+                  </Button>
+                </>
               )}
-              {isJCRArticle && entry.metadata?.issn && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs gap-1"
-                  onClick={() => handleVerifyScimago(entry.metadata!.issn!)}
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  Verificar Scimago
-                </Button>
-              )}
-              {isRegionalArticle && entry.metadata?.issn && (
+              
+              {/* Regional Articles - MIAR */}
+              {isRegionalArticle && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="h-7 text-xs gap-1 border-amber-500 text-amber-600 hover:bg-amber-50"
-                  onClick={() => handleVerifyMIAR(entry.metadata!.issn!)}
+                  onClick={() => {
+                    const issn = entry.metadata?.issn;
+                    const journal = entry.metadata?.journal;
+                    if (issn) {
+                      handleVerifyMIAR(issn);
+                    } else if (journal) {
+                      window.open(`https://miar.ub.edu/search?q=${encodeURIComponent(journal)}`, "_blank");
+                    } else {
+                      toast.error("No hay ISSN ni revista para buscar en MIAR");
+                    }
+                  }}
                 >
                   <ExternalLink className="w-3 h-3" />
-                  Verificar en MIAR
+                  {entry.metadata?.issn ? "Verificar en MIAR" : "Buscar en MIAR"}
                 </Button>
               )}
-              {isBook && entry.metadata?.isbn && (
+              
+              {/* Books - ISBN */}
+              {isBook && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="h-7 text-xs gap-1 border-blue-500 text-blue-600 hover:bg-blue-50"
-                  onClick={() => handleVerifyISBN(entry.metadata!.isbn!)}
+                  onClick={() => {
+                    const isbn = entry.metadata?.isbn;
+                    const title = entry.metadata?.title;
+                    if (isbn) {
+                      handleVerifyISBN(isbn);
+                    } else if (title) {
+                      window.open(`https://www.google.com/search?q=${encodeURIComponent(title)}+libro`, "_blank");
+                    } else {
+                      toast.error("No hay ISBN ni título para buscar");
+                    }
+                  }}
                 >
                   <BookOpen className="w-3 h-3" />
-                  Verificar ISBN
+                  {entry.metadata?.isbn ? "Verificar ISBN" : "Buscar Libro"}
                 </Button>
               )}
             </div>
