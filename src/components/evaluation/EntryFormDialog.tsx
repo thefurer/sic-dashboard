@@ -179,18 +179,101 @@ export default function EntryFormDialog({
     }
 
     // Validate required metadata fields
-    if (!metadata.title || !metadata.authors || !metadata.year) {
+    if (!metadata.title?.trim() || !metadata.authors?.trim() || !metadata.year?.trim()) {
       toast.error("Campos requeridos", {
         description: "Complete Título, Autores y Año",
       });
       return;
     }
 
-    if (isArticle && !metadata.journal) {
+    // Validate title and authors are readable (at least 3 characters, not just random chars)
+    if (metadata.title.trim().length < 5) {
+      toast.error("Título inválido", {
+        description: "El título debe tener al menos 5 caracteres",
+      });
+      return;
+    }
+
+    if (metadata.authors.trim().length < 3) {
+      toast.error("Autores inválido", {
+        description: "El campo de autores debe tener al menos 3 caracteres",
+      });
+      return;
+    }
+
+    // Validate year is numeric and valid
+    const yearValue = metadata.year.trim();
+    if (!/^\d{4}$/.test(yearValue)) {
+      toast.error("Año inválido", {
+        description: "El año debe ser un número de 4 dígitos (ej: 2024)",
+      });
+      return;
+    }
+
+    const yearNum = parseInt(yearValue, 10);
+    const currentYear = new Date().getFullYear();
+    if (yearNum < 1900 || yearNum > currentYear + 1) {
+      toast.error("Año inválido", {
+        description: `El año debe estar entre 1900 y ${currentYear + 1}`,
+      });
+      return;
+    }
+
+    if (isArticle && !metadata.journal?.trim()) {
       toast.error("Campo requerido", {
         description: "Complete el nombre de la Revista",
       });
       return;
+    }
+
+    // Validate search verification was performed based on indicator type
+    if (indicatorType === "Artículos JCR/Scopus") {
+      if (!metadata.doi?.trim()) {
+        toast.error("DOI requerido", {
+          description: "Debe ingresar el DOI y realizar la búsqueda inteligente para verificar el artículo",
+        });
+        return;
+      }
+      if (!metadata.repository) {
+        toast.error("Base de datos requerida", {
+          description: "Seleccione en qué base de datos está indizado el artículo",
+        });
+        return;
+      }
+    }
+
+    if (indicatorType === "Libros Científicos") {
+      if (!metadata.isbn?.trim()) {
+        toast.error("ISBN requerido", {
+          description: "Debe ingresar el ISBN para verificar el libro",
+        });
+        return;
+      }
+      // Validate ISBN format (basic check for ISBN-10 or ISBN-13)
+      const isbnClean = metadata.isbn.replace(/[-\s]/g, '');
+      if (!/^(\d{10}|\d{13})$/.test(isbnClean)) {
+        toast.error("ISBN inválido", {
+          description: "El ISBN debe tener 10 o 13 dígitos",
+        });
+        return;
+      }
+    }
+
+    if (indicatorType === "Artículos Regionales") {
+      if (!metadata.issn?.trim()) {
+        toast.error("ISSN requerido", {
+          description: "Debe ingresar el ISSN y verificar en MIAR para artículos regionales",
+        });
+        return;
+      }
+      // Validate ISSN format (XXXX-XXXX)
+      const issnClean = metadata.issn.replace(/[-\s]/g, '');
+      if (!/^\d{7}[\dXx]$/.test(issnClean)) {
+        toast.error("ISSN inválido", {
+          description: "El ISSN debe tener el formato XXXX-XXXX (8 caracteres)",
+        });
+        return;
+      }
     }
 
     // At least one evidence file must be uploaded
@@ -222,18 +305,26 @@ export default function EntryFormDialog({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Smart Search - Optional (DOI for JCR/Scopus, ISBN for Books, MIAR ISSN for Regional Articles) */}
+          {/* Smart Search - REQUIRED for JCR/Scopus (DOI) and Books (ISBN) */}
           {(isArticle || isBook) && indicatorType !== "Artículos Regionales" && (
             <>
               <div className="border border-primary/20 rounded-lg p-4 bg-primary/5">
                 <Label className="text-sm font-medium mb-2 block">
-                  {isBook ? "Búsqueda Inteligente ISBN (Opcional)" : "Búsqueda Inteligente DOI (Opcional)"}
+                  {isBook ? "Búsqueda Inteligente ISBN *" : "Búsqueda Inteligente DOI *"}
                 </Label>
                 <div className="flex gap-2">
                   <Input
                     placeholder={isBook ? "978-84-1234-567-8" : "10.1234/example.2024"}
                     value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
+                    onChange={(e) => {
+                      setSearchValue(e.target.value);
+                      // Auto-save the DOI/ISBN when user types
+                      if (isBook) {
+                        setMetadata({ ...metadata, isbn: e.target.value });
+                      } else {
+                        setMetadata({ ...metadata, doi: e.target.value });
+                      }
+                    }}
                     className="flex-1"
                   />
                   <Button
@@ -246,6 +337,12 @@ export default function EntryFormDialog({
                     Buscar
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {isBook 
+                    ? "Ingrese el ISBN del libro. Este campo es obligatorio."
+                    : "Ingrese el DOI del artículo. Este campo es obligatorio para verificar la publicación."
+                  }
+                </p>
                 {metadata.title && (
                   <div className="mt-3 p-3 bg-background rounded text-xs space-y-1">
                     <p><strong>Título:</strong> {metadata.title}</p>
@@ -259,29 +356,32 @@ export default function EntryFormDialog({
             </>
           )}
 
-          {/* MIAR ISSN Search for Regional Articles */}
+          {/* MIAR ISSN Search for Regional Articles - REQUIRED */}
           {indicatorType === "Artículos Regionales" && (
             <>
               <div className="border border-amber-500/20 rounded-lg p-4 bg-amber-500/5">
                 <Label className="text-sm font-medium mb-2 block">
-                  Verificación MIAR por ISSN (Opcional)
+                  Verificación MIAR por ISSN *
                 </Label>
                 <div className="flex gap-2">
                   <Input
                     placeholder="1234-5678"
-                    value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
+                    value={metadata.issn || searchValue}
+                    onChange={(e) => {
+                      setSearchValue(e.target.value);
+                      setMetadata({ ...metadata, issn: e.target.value });
+                    }}
                     className="flex-1"
                   />
                   <Button
                     variant="secondary"
                     onClick={() => {
-                      if (!searchValue.trim()) {
+                      const issn = metadata.issn || searchValue;
+                      if (!issn.trim()) {
                         toast.error("Ingrese un ISSN para buscar");
                         return;
                       }
-                      setMetadata({ ...metadata, issn: searchValue.trim() });
-                      window.open(`https://miar.ub.edu/issn/${searchValue.trim()}`, "_blank");
+                      window.open(`https://miar.ub.edu/issn/${issn.trim()}`, "_blank");
                     }}
                     size="sm"
                   >
@@ -290,7 +390,7 @@ export default function EntryFormDialog({
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Ingrese el ISSN de la revista para verificar su indexación en MIAR
+                  <strong>Obligatorio:</strong> Ingrese el ISSN de la revista (formato XXXX-XXXX) y verifique su indexación en MIAR antes de guardar.
                 </p>
               </div>
               <div className="border-t border-border" />

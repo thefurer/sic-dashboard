@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, FileText } from "lucide-react";
+import { Upload, FileText, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { openSignedUrl } from "@/hooks/useSignedUrl";
 
 interface EvaluationItem {
   id?: string;
@@ -40,7 +41,30 @@ const INDICATORS = [
 
 export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnly = false }: ImpactosStepProps) {
   const [uploading, setUploading] = useState<string | null>(null);
+  // Local state for justifications to prevent textarea from losing focus
+  const [localJustifications, setLocalJustifications] = useState<Record<string, string>>({});
+  const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
   const queryClient = useQueryClient();
+
+  // Initialize local justifications from items
+  useEffect(() => {
+    const justifications: Record<string, string> = {};
+    items.forEach(item => {
+      if (item.justification) {
+        justifications[item.indicator_name] = item.justification;
+      }
+    });
+    setLocalJustifications(prev => {
+      // Only update if we don't have local values (to not override user typing)
+      const merged = { ...prev };
+      Object.keys(justifications).forEach(key => {
+        if (!(key in merged)) {
+          merged[key] = justifications[key];
+        }
+      });
+      return merged;
+    });
+  }, [items]);
 
   const saveItemMutation = useMutation({
     mutationFn: async (item: EvaluationItem) => {
@@ -126,15 +150,31 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
     onItemsChange([...updatedItems, item]);
   };
 
-  const handleJustificationChange = async (indicatorName: string, justification: string) => {
+  // Handle local justification change (immediate UI update)
+  const handleLocalJustificationChange = (indicatorName: string, value: string) => {
+    setLocalJustifications(prev => ({ ...prev, [indicatorName]: value }));
+    
+    // Clear existing debounce timer
+    if (debounceTimers.current[indicatorName]) {
+      clearTimeout(debounceTimers.current[indicatorName]);
+    }
+    
+    // Set new debounce timer to save after 1 second of no typing
+    debounceTimers.current[indicatorName] = setTimeout(() => {
+      saveJustification(indicatorName, value);
+    }, 1000);
+  };
+
+  // Actually save justification to database
+  const saveJustification = async (indicatorName: string, justification: string) => {
     if (!reportId) return;
 
     const existingItem = items.find((i) => i.indicator_name === indicatorName);
     const hasEvidence = existingItem?.evidence_url ? true : false;
-    const hasJustification = justification.trim().length > 0;
+    const hasJustification = justification.trim().length >= 100;
 
     const indicator = INDICATORS.find((i) => i.name === indicatorName);
-    // For non-patent indicators, award MAX points if both evidence and justification are provided
+    // For non-patent indicators, award MAX points if both evidence and justification (min 100 chars) are provided
     const score = !indicator?.requiresExtraFields && hasEvidence && hasJustification 
       ? (indicator?.points || 0)
       : existingItem?.score_obtained || 0;
@@ -156,6 +196,15 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
 
     const updatedItems = items.filter((i) => i.indicator_name !== indicatorName);
     onItemsChange([...updatedItems, item]);
+  };
+
+  // Handle opening evidence files (using signed URLs for private bucket)
+  const handleOpenEvidence = async (filePath: string) => {
+    if (!filePath) {
+      toast.error("Archivo no encontrado");
+      return;
+    }
+    await openSignedUrl('evaluation-evidence', filePath);
   };
 
   const handleFileUpload = async (indicatorName: string, file: File, index: number) => {
@@ -380,9 +429,9 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
                                   variant="outline"
                                   size="sm"
                                   className="flex-1"
-                                  onClick={() => window.open(url, "_blank")}
+                                  onClick={() => handleOpenEvidence(url)}
                                 >
-                                  <FileText className="w-4 h-4 mr-2" />
+                                  <ExternalLink className="w-4 h-4 mr-2" />
                                   Ver PDF
                                 </Button>
                               ) : (
@@ -425,14 +474,14 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
                       </Label>
                       <Textarea
                         id={`justification-${indicator.name}`}
-                        value={itemData.justification}
-                        onChange={(e) => handleJustificationChange(indicator.name, e.target.value)}
+                        value={localJustifications[indicator.name] ?? itemData.justification ?? ""}
+                        onChange={(e) => handleLocalJustificationChange(indicator.name, e.target.value)}
                         placeholder="Describa el impacto generado, incluyendo evidencia cualitativa y cuantitativa..."
                         className="mt-1 min-h-[120px]"
                         disabled={isReadOnly}
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        Mínimo 100 caracteres para recibir puntuación
+                        Mínimo 100 caracteres para recibir puntuación ({(localJustifications[indicator.name] ?? itemData.justification ?? "").length}/100)
                       </p>
                     </div>
 
@@ -451,9 +500,9 @@ export default function ImpactosStep({ reportId, items, onItemsChange, isReadOnl
                                   variant="outline"
                                   size="sm"
                                   className="flex-1"
-                                  onClick={() => window.open(url, "_blank")}
+                                  onClick={() => handleOpenEvidence(url)}
                                 >
-                                  <FileText className="w-4 h-4 mr-2" />
+                                  <ExternalLink className="w-4 h-4 mr-2" />
                                   Ver evidencia
                                 </Button>
                               ) : (
