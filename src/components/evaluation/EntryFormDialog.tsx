@@ -222,8 +222,8 @@ export default function EntryFormDialog({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Smart Search - Optional */}
-          {(isArticle || isBook) && (
+          {/* Smart Search - Optional (DOI for JCR/Scopus, ISBN for Books, MIAR ISSN for Regional Articles) */}
+          {(isArticle || isBook) && indicatorType !== "Artículos Regionales" && (
             <>
               <div className="border border-primary/20 rounded-lg p-4 bg-primary/5">
                 <Label className="text-sm font-medium mb-2 block">
@@ -254,6 +254,44 @@ export default function EntryFormDialog({
                     {metadata.editorial && <p><strong>Editorial:</strong> {metadata.editorial}</p>}
                   </div>
                 )}
+              </div>
+              <div className="border-t border-border" />
+            </>
+          )}
+
+          {/* MIAR ISSN Search for Regional Articles */}
+          {indicatorType === "Artículos Regionales" && (
+            <>
+              <div className="border border-amber-500/20 rounded-lg p-4 bg-amber-500/5">
+                <Label className="text-sm font-medium mb-2 block">
+                  Verificación MIAR por ISSN (Opcional)
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="1234-5678"
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      if (!searchValue.trim()) {
+                        toast.error("Ingrese un ISSN para buscar");
+                        return;
+                      }
+                      setMetadata({ ...metadata, issn: searchValue.trim() });
+                      window.open(`https://miar.ub.edu/issn/${searchValue.trim()}`, "_blank");
+                    }}
+                    size="sm"
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    Buscar en MIAR
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Ingrese el ISSN de la revista para verificar su indexación en MIAR
+                </p>
               </div>
               <div className="border-t border-border" />
             </>

@@ -20,10 +20,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Search, Eye, Trash2, FileText } from "lucide-react";
+import { Search, Eye, Trash2, FileText, CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { ReviewModal } from "@/components/evaluation/ReviewModal";
 import { toast } from "sonner";
 import { generateGlobalEvaluationReport } from "@/lib/globalEvaluationReportGenerator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   submitted: { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", label: "🔴 Pendiente" },
@@ -36,6 +37,7 @@ export default function EvaluationReviews() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [reviewingReport, setReviewingReport] = useState<any>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "reviewed">("all");
   const queryClient = useQueryClient();
 
   const { data: reports, isLoading, refetch } = useQuery({
@@ -80,6 +82,41 @@ export default function EvaluationReviews() {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (!reports || reports.length === 0) {
+      toast.error("No hay evaluaciones para eliminar");
+      return;
+    }
+
+    const confirmText = `¿Estás seguro de eliminar TODAS las ${reports.length} evaluaciones del año ${selectedYear}? Esta acción no se puede deshacer.`;
+    if (!window.confirm(confirmText)) return;
+
+    // Second confirmation for safety
+    if (!window.confirm("⚠️ CONFIRMACIÓN FINAL: ¿Realmente deseas eliminar todas las evaluaciones?")) return;
+
+    try {
+      toast.loading("Eliminando todas las evaluaciones...");
+      
+      const { error } = await supabase
+        .from("evaluation_reports")
+        .delete()
+        .eq("year", parseInt(selectedYear));
+
+      if (error) throw error;
+      
+      toast.dismiss();
+      toast.success(`${reports.length} evaluaciones eliminadas exitosamente`);
+      await queryClient.invalidateQueries({ queryKey: ["evaluation-reports"] });
+      await queryClient.refetchQueries({ queryKey: ["evaluation-reports"] });
+    } catch (error: any) {
+      toast.dismiss();
+      console.error("Delete all error:", error);
+      toast.error("Error al eliminar", { 
+        description: error.message || "No se pudieron eliminar las evaluaciones" 
+      });
+    }
+  };
+
   const handleGenerateGlobalReport = async () => {
     try {
       const approvedReports = reports?.filter(r => r.status === 'approved') || [];
@@ -102,10 +139,22 @@ export default function EvaluationReviews() {
     }
   };
 
+  // Filter by search term and status
   const filteredReports = reports?.filter((report) => {
     const userName = (report.profiles as any)?.full_name?.toLowerCase() || "";
-    return userName.includes(searchTerm.toLowerCase());
+    const matchesSearch = userName.includes(searchTerm.toLowerCase());
+    
+    if (statusFilter === "pending") {
+      return matchesSearch && report.status === "submitted";
+    } else if (statusFilter === "reviewed") {
+      return matchesSearch && (report.status === "approved" || report.status === "needs_correction");
+    }
+    return matchesSearch;
   });
+
+  // Calculate counts for tabs
+  const pendingCount = reports?.filter(r => r.status === "submitted").length || 0;
+  const reviewedCount = reports?.filter(r => r.status === "approved" || r.status === "needs_correction").length || 0;
 
   // Generate year options (current year and 2 years back)
   const currentYear = new Date().getFullYear();
@@ -120,17 +169,46 @@ export default function EvaluationReviews() {
             Revisa y aprueba las evaluaciones anuales enviadas por los investigadores
           </p>
         </div>
-        <Button
-          onClick={handleGenerateGlobalReport}
-          size="lg"
-          className="gap-2"
-        >
-          <FileText className="w-4 h-4" />
-          Generar Informe General (PDF)
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="destructive"
+            onClick={handleDeleteAll}
+            disabled={!reports || reports.length === 0}
+            className="gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            Eliminar Todo
+          </Button>
+          <Button
+            onClick={handleGenerateGlobalReport}
+            size="lg"
+            className="gap-2"
+          >
+            <FileText className="w-4 h-4" />
+            Generar Informe General (PDF)
+          </Button>
+        </div>
       </div>
 
       <Card className="p-6">
+        {/* Status Filter Tabs */}
+        <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)} className="mb-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="all" className="gap-2">
+              <Clock className="w-4 h-4" />
+              Todos ({reports?.length || 0})
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="gap-2">
+              <AlertCircle className="w-4 h-4" />
+              Pendientes ({pendingCount})
+            </TabsTrigger>
+            <TabsTrigger value="reviewed" className="gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Revisados ({reviewedCount})
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
