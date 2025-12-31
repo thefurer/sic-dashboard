@@ -663,11 +663,66 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
     );
   };
 
+  // Render Section D evidences (stored in evidence_url as JSON array of paths)
+  const renderSectionDEvidences = (evidenceUrl: string | null | undefined) => {
+    if (!evidenceUrl) {
+      return <p className="text-xs text-muted-foreground italic">Sin evidencias cargadas</p>;
+    }
+
+    try {
+      const evidences = JSON.parse(evidenceUrl);
+      if (!Array.isArray(evidences) || evidences.length === 0) {
+        return <p className="text-xs text-muted-foreground italic">Sin evidencias cargadas</p>;
+      }
+
+      // Filter out empty/null values
+      const validEvidences = evidences.filter((ev: string) => ev && ev.trim() !== '');
+      
+      if (validEvidences.length === 0) {
+        return <p className="text-xs text-muted-foreground italic">Sin evidencias cargadas</p>;
+      }
+
+      return (
+        <div className="space-y-2">
+          {validEvidences.map((filePath: string, idx: number) => (
+            <div key={idx} className="flex items-center gap-2 p-2 bg-card border rounded text-xs">
+              <FileText className="w-3 h-3 text-primary" />
+              <span className="flex-1 truncate">Evidencia {idx + 1}</span>
+              <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => handleOpenEvidence(filePath)}>
+                <ExternalLink className="w-3 h-3 mr-1" />Ver
+              </Button>
+            </div>
+          ))}
+        </div>
+      );
+    } catch (e) {
+      // If parsing fails, it might be a single path string
+      if (typeof evidenceUrl === 'string' && evidenceUrl.trim() !== '') {
+        return (
+          <div className="flex items-center gap-2 p-2 bg-card border rounded text-xs">
+            <FileText className="w-3 h-3 text-primary" />
+            <span className="flex-1 truncate">Evidencia</span>
+            <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => handleOpenEvidence(evidenceUrl)}>
+              <ExternalLink className="w-3 h-3 mr-1" />Ver
+            </Button>
+          </div>
+        );
+      }
+      return <p className="text-xs text-muted-foreground italic">Sin evidencias cargadas</p>;
+    }
+  };
+
   // Parse evidence_details based on indicator type
   const parseAndRenderEvidenceDetails = (item: any) => {
     const evidenceDetails = item.evidence_details;
     const indicatorName = item.indicator_name;
     const relatedProject = item.related_project;
+    const category = item.category;
+
+    // For Section D (Impactos), evidences are stored in evidence_url as JSON array
+    if (category === 'D') {
+      return renderSectionDEvidences(item.evidence_url);
+    }
 
     // Handle null/undefined
     if (!evidenceDetails) {
