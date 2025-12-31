@@ -682,14 +682,23 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
         return <p className="text-xs text-muted-foreground italic">Sin evidencias cargadas</p>;
       }
 
+      // Extract filename from path
+      const getFileName = (path: string) => {
+        const parts = path.split('/');
+        const fullName = parts[parts.length - 1] || `Evidencia`;
+        // Remove UUID/timestamp prefix if present (format: indicator_index_timestamp.pdf)
+        const cleanName = fullName.replace(/_\d+\.pdf$/, '.pdf');
+        return cleanName.length > 40 ? cleanName.substring(0, 37) + '...' : cleanName;
+      };
+
       return (
-        <div className="space-y-2">
+        <div className="space-y-1">
           {validEvidences.map((filePath: string, idx: number) => (
-            <div key={idx} className="flex items-center gap-2 p-2 bg-card border rounded text-xs">
-              <FileText className="w-3 h-3 text-primary" />
-              <span className="flex-1 truncate">Evidencia {idx + 1}</span>
-              <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => handleOpenEvidence(filePath)}>
-                <ExternalLink className="w-3 h-3 mr-1" />Ver
+            <div key={idx} className="flex items-center gap-2 p-1.5 bg-card border rounded text-xs">
+              <FileText className="w-3 h-3 text-primary flex-shrink-0" />
+              <span className="flex-1 truncate text-muted-foreground">{getFileName(filePath)}</span>
+              <Button variant="ghost" size="sm" className="h-5 text-xs px-2" onClick={() => handleOpenEvidence(filePath)}>
+                <ExternalLink className="w-3 h-3" />
               </Button>
             </div>
           ))}
@@ -1042,45 +1051,49 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
             </div>
           )}
 
-          <div className="space-y-3">
-            <Label htmlFor="observations">Observaciones / Correcciones</Label>
-            <Textarea
-              id="observations"
-              placeholder="Ej: Falta evidencia en el indicador X. Por favor adjuntar certificado de publicación..."
-              value={observations}
-              onChange={(e) => setObservations(e.target.value)}
-              rows={5}
-              className="resize-none"
-            />
+          {/* Compact Action Panel */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-muted/50 rounded-lg border">
+            <div className="space-y-1.5">
+              <Label htmlFor="observations" className="text-xs font-medium">Observaciones</Label>
+              <Textarea
+                id="observations"
+                placeholder="Escribir observaciones o correcciones..."
+                value={observations}
+                onChange={(e) => setObservations(e.target.value)}
+                rows={2}
+                className="resize-none text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Fecha Límite (Opcional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "w-full justify-start text-left font-normal h-9",
+                      !deadline && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-3 w-3" />
+                    {deadline ? format(deadline, "dd/MM/yyyy", { locale: es }) : "Seleccionar"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-50 bg-popover" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={deadline}
+                    onSelect={setDeadline}
+                    initialFocus
+                    className="pointer-events-auto"
+                    disabled={(date) => date < new Date()}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
-          <div className="space-y-3">
-            <Label>Fecha Límite para Corrección (Opcional)</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !deadline && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {deadline ? format(deadline, "PPP", { locale: es }) : "Seleccionar fecha"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={deadline}
-                  onSelect={setDeadline}
-                  initialFocus
-                  className="pointer-events-auto"
-                  disabled={(date) => date < new Date()}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
         </div>
 
         <div className="flex gap-3 justify-end">
