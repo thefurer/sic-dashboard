@@ -154,8 +154,7 @@ All colors MUST be HSL.
 @layer components {
   /* Premium Dark Glass Card - THE standard container */
   .glass-card-premium {
-    @apply bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-[30px] shadow-2xl;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    @apply bg-white/90 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-[30px] shadow-xl dark:shadow-2xl;
   }
   
   /* Light mode: white glass with subtle shadow */
@@ -169,10 +168,8 @@ All colors MUST be HSL.
     @apply bg-slate-800/90 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 dark:border-white/10 rounded-[24px] shadow-2xl;
   }
   
-  /* Sidebar - floating glass capsule */
   .glass-sidebar {
-    @apply bg-slate-900/80 backdrop-blur-2xl border-r border-white/5;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    @apply bg-white/95 dark:bg-slate-900/80 backdrop-blur-2xl border-r border-slate-200/80 dark:border-white/5 shadow-lg dark:shadow-2xl;
   }
   
   /* Header - floating glass bar */
@@ -182,8 +179,7 @@ All colors MUST be HSL.
   
   /* Floating navbar capsule */
   .glass-navbar {
-    @apply bg-slate-900/70 backdrop-blur-2xl border border-white/10 rounded-[24px] shadow-2xl;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    @apply bg-white/90 dark:bg-slate-900/70 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-[24px] shadow-lg dark:shadow-2xl;
   }
   
   /* Green glow effects using institutional color */
@@ -208,21 +204,9 @@ All colors MUST be HSL.
     filter: drop-shadow(0 0 8px hsla(153, 100%, 24%, 0.6));
   }
   
-  /* Green icon container with glow */
   .icon-glow-container {
-    @apply relative w-14 h-14 rounded-2xl flex items-center justify-center;
-    background: hsla(153, 100%, 24%, 0.2);
-    box-shadow: 0 0 25px hsla(153, 100%, 24%, 0.3);
-  }
-  
-  .icon-glow-container::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, hsla(153, 100%, 24%, 0.4), transparent);
-    z-index: -1;
-    filter: blur(8px);
+    @apply relative w-14 h-14 rounded-2xl flex items-center justify-center bg-primary/10 dark:bg-primary/20;
+    box-shadow: 0 0 20px hsla(153, 100%, 24%, 0.2);
   }
   
   /* Active sidebar link - green glowing pill */
@@ -283,16 +267,14 @@ All colors MUST be HSL.
     }
   }
   
-  /* Metric card tile */
   .metric-tile {
-    @apply bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    @apply bg-white/90 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-[24px] p-6 shadow-lg dark:shadow-2xl;
     transition: all 0.3s ease;
   }
   
   .metric-tile:hover {
-    border-color: hsla(153, 100%, 24%, 0.3);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px hsla(153, 100%, 24%, 0.1);
+    @apply border-primary/30 dark:border-primary/30;
+    box-shadow: 0 15px 30px -10px rgba(0, 122, 51, 0.15);
     transform: translateY(-2px);
   }
 }
