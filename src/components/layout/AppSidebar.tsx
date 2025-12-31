@@ -19,8 +19,6 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -31,6 +29,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useState } from "react";
 
 // Base menu items visible to all users
@@ -80,27 +83,54 @@ export function AppSidebar() {
   const MenuItem = ({ item }: { item: { title: string; url: string; icon: React.ComponentType<{ className?: string }> } }) => {
     const active = isActive(item.url);
     
+    const linkContent = (
+      <NavLink
+        to={item.url}
+        className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 group ${
+          active 
+            ? 'sidebar-active-glow bg-[hsl(153,100%,24%)]/20 text-white' 
+            : 'text-white/70 hover:text-white hover:bg-white/10'
+        } ${!isExpanded ? 'justify-center px-3' : ''}`}
+        activeClassName=""
+      >
+        <item.icon className={`h-5 w-5 shrink-0 transition-all duration-300 ${
+          active 
+            ? 'text-[hsl(153,100%,35%)] drop-shadow-[0_0_10px_hsla(153,100%,35%,0.8)]' 
+            : 'group-hover:text-[hsl(153,100%,35%)] group-hover:drop-shadow-[0_0_8px_hsla(153,100%,35%,0.5)]'
+        }`} />
+        {isExpanded && (
+          <span className={`font-medium truncate ${active ? 'text-white' : ''}`}>
+            {item.title}
+          </span>
+        )}
+      </NavLink>
+    );
+
+    if (!isExpanded) {
+      return (
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                {linkContent}
+              </TooltipTrigger>
+              <TooltipContent 
+                side="right" 
+                className="bg-slate-900 text-white border-white/20 px-3 py-2 rounded-lg shadow-xl"
+                sideOffset={8}
+              >
+                <span className="font-medium">{item.title}</span>
+              </TooltipContent>
+            </Tooltip>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      );
+    }
+    
     return (
       <SidebarMenuItem>
         <SidebarMenuButton asChild>
-          <NavLink
-            to={item.url}
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-white/60 hover:text-white hover:bg-white/10 transition-all duration-300 group ${
-              active ? 'sidebar-active-glow text-white' : ''
-            }`}
-            activeClassName=""
-          >
-            <item.icon className={`h-5 w-5 shrink-0 transition-all duration-300 ${
-              active 
-                ? 'text-[hsl(153,100%,35%)] drop-shadow-[0_0_8px_hsla(153,100%,35%,0.6)]' 
-                : 'group-hover:text-[hsl(153,100%,35%)] group-hover:drop-shadow-[0_0_8px_hsla(153,100%,35%,0.5)]'
-            }`} />
-            {isExpanded && (
-              <span className={`font-medium ${active ? 'text-white' : ''}`}>
-                {item.title}
-              </span>
-            )}
-          </NavLink>
+          {linkContent}
         </SidebarMenuButton>
       </SidebarMenuItem>
     );
@@ -117,13 +147,18 @@ export function AppSidebar() {
     open: boolean; 
     onOpenChange: (open: boolean) => void;
   }) => (
-    <Collapsible open={open} onOpenChange={onOpenChange}>
-      <CollapsibleTrigger className={`flex items-center justify-between w-full px-4 py-2 text-xs font-semibold tracking-wider text-white/40 uppercase hover:text-white/60 transition-colors ${!isExpanded && 'justify-center'}`}>
-        {isExpanded && <span>{title}</span>}
-        {isExpanded && (
+    <Collapsible open={isExpanded ? open : true} onOpenChange={onOpenChange}>
+      {isExpanded && (
+        <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2 text-xs font-semibold tracking-wider text-white/40 uppercase hover:text-white/60 transition-colors">
+          <span>{title}</span>
           <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-        )}
-      </CollapsibleTrigger>
+        </CollapsibleTrigger>
+      )}
+      {!isExpanded && (
+        <div className="w-full flex justify-center py-2">
+          <div className="w-8 h-[1px] bg-white/20 rounded-full" />
+        </div>
+      )}
       <CollapsibleContent className="space-y-1 mt-1">
         <SidebarMenu>
           {items.map((item) => (
