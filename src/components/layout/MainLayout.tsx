@@ -38,10 +38,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { data: userRole } = useUserRole();
   const { startTour, hasSeenTour } = useTour();
 
-  // Force dark mode for the dashboard
-  useEffect(() => {
-    setTheme("dark");
-  }, [setTheme]);
+  // Theme is now user-controlled (no longer forced)
 
   const getInitials = (name: string) => {
     return name
@@ -66,14 +63,17 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <SidebarProvider>
-      {/* Main container with deep dark background and green gradient orbs */}
-      <div className="min-h-screen flex w-full bg-[hsl(222,47%,5%)] relative overflow-hidden">
-        {/* Background gradient orbs - institutional green */}
-        <div className="fixed inset-0 pointer-events-none">
+      {/* Main container with theme-aware background */}
+      <div className="min-h-screen flex w-full bg-background relative overflow-hidden">
+        {/* Background gradient orbs - institutional green (only visible in dark mode) */}
+        <div className="fixed inset-0 pointer-events-none dark:block hidden">
           <div className="absolute top-0 left-0 w-[800px] h-[600px] bg-[radial-gradient(ellipse_at_center,hsla(153,100%,24%,0.15),transparent_60%)]" />
           <div className="absolute bottom-0 right-0 w-[600px] h-[500px] bg-[radial-gradient(ellipse_at_center,hsla(153,100%,24%,0.1),transparent_60%)]" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] bg-[radial-gradient(ellipse_at_center,hsla(153,100%,24%,0.05),transparent_70%)]" />
         </div>
+        
+        {/* Light mode subtle gradient */}
+        <div className="fixed inset-0 pointer-events-none dark:hidden block bg-gradient-to-br from-primary/5 via-transparent to-primary/3" />
         
         {/* Floating Sidebar */}
         <div className="m-4 z-20">
@@ -83,12 +83,12 @@ export function MainLayout({ children }: MainLayoutProps) {
         <main className="flex-1 flex flex-col p-4 z-10">
           {/* Floating Glass Navbar */}
           <header className="glass-navbar h-16 flex items-center px-6 gap-4 mb-6">
-            <SidebarTrigger className="text-white/70 hover:text-white hover:bg-white/10 transition-colors rounded-xl" />
+            <SidebarTrigger className="text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-colors rounded-xl" />
             
             {/* Logo in navbar */}
             <div className="flex items-center gap-3">
               <img src={gisicfLogo} alt="GISICF" className="h-8 w-auto" />
-              <span className="text-white/90 font-semibold hidden sm:block">GISICF</span>
+              <span className="text-foreground/90 font-semibold hidden sm:block">GISICF</span>
             </div>
             
             <div className="flex-1" />
@@ -98,7 +98,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 hover:shadow-[0_0_15px_hsla(153,100%,24%,0.4)] rounded-xl"
+              className="text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-all duration-300 hover:shadow-[0_0_15px_hsla(153,100%,24%,0.4)] rounded-xl"
             >
               <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -117,16 +117,16 @@ export function MainLayout({ children }: MainLayoutProps) {
             {/* Premium Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button data-tour="profile-menu" className="flex items-center gap-3 hover:opacity-90 transition-all duration-200 group p-1.5 rounded-xl hover:bg-white/5">
+                <button data-tour="profile-menu" className="flex items-center gap-3 hover:opacity-90 transition-all duration-200 group p-1.5 rounded-xl hover:bg-foreground/5">
                   <div className="text-right max-w-[180px] hidden sm:block">
-                    <p className="text-sm font-medium text-white truncate">{displayName}</p>
-                    <p className="text-xs text-white/50 truncate">{user?.email}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   </div>
                   <div className="relative transform transition-transform group-hover:-translate-y-0.5">
-                    <div className="absolute inset-0 bg-[hsla(153,100%,24%,0.5)] blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Avatar className="w-10 h-10 ring-2 ring-[hsla(153,100%,24%,0.5)] group-hover:ring-[hsl(153,100%,24%)] transition-all">
+                    <div className="absolute inset-0 bg-primary/50 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Avatar className="w-10 h-10 ring-2 ring-primary/50 group-hover:ring-primary transition-all">
                       <AvatarImage src={avatarUrl || undefined} alt={displayName} />
-                      <AvatarFallback className="bg-gradient-to-br from-[hsl(153,100%,24%)] to-[hsl(153,100%,32%)] text-white font-semibold">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
                         {getInitials(displayName)}
                       </AvatarFallback>
                     </Avatar>
