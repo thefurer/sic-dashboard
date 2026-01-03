@@ -480,7 +480,7 @@ export default function Auth() {
                         <Input
                           id="login-email"
                           type="email"
-                          placeholder="tu-email@unesum.edu.ec"
+                          placeholder="tu-email@outlook.edu.ec"
                           value={loginData.email}
                           onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                           required
