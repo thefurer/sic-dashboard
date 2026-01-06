@@ -63,7 +63,7 @@ const stats = [
   { icon: Users, value: 50, label: "Investigadores Activos", suffix: "+" },
   { icon: FileText, value: 120, label: "Publicaciones Indexadas", suffix: "+" },
   { icon: FolderOpen, value: 35, label: "Proyectos Ejecutados", suffix: "+" },
-  { icon: BookOpen, value: 12, label: "Líneas de Investigación", suffix: "" },
+  { icon: BookOpen, value: 17, label: "Líneas de Investigación", suffix: "" },
 ];
 
 export function AnimatedStats() {
