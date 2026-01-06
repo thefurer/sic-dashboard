@@ -3,6 +3,8 @@ import { AppSidebar } from "./AppSidebar";
 import { LegalFooter } from "./LegalFooter";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { PageTransition } from "@/components/PageTransition";
+import { useLocation } from "react-router-dom";
 import { useTheme } from "@/components/theme-provider";
 import { useEffect } from "react";
 import {
@@ -37,7 +39,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { theme, setTheme } = useTheme();
   const { data: userRole } = useUserRole();
   const { startTour, hasSeenTour } = useTour();
-
+  const location = useLocation();
   // Theme is now user-controlled (no longer forced)
 
   const getInitials = (name: string) => {
@@ -194,7 +196,9 @@ export function MainLayout({ children }: MainLayoutProps) {
           
           {/* Main Content Area - Glass Container */}
           <div className="flex-1 glass-card-premium p-8 overflow-auto">
-            {children}
+            <PageTransition key={location.pathname}>
+              {children}
+            </PageTransition>
           </div>
           
           <div className="mt-4">
