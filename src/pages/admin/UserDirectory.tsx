@@ -195,7 +195,6 @@ export default function UserDirectory() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Usuario</TableHead>
-                    <TableHead>País</TableHead>
                     <TableHead>Código</TableHead>
                     <TableHead>Rol de Investigación</TableHead>
                     <TableHead>Estado</TableHead>
@@ -217,17 +216,14 @@ export default function UserDirectory() {
                               {getInitials(user.full_name)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="font-medium">{user.full_name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg" title={getCountryName(user.country_code)}>
-                            {getCountryFlag(user.country_code)}
-                          </span>
-                          <span className="text-xs text-muted-foreground hidden sm:inline">
-                            {getCountryName(user.country_code)}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{user.full_name}</span>
+                            {user.country_code && (
+                              <span className="text-sm" title={getCountryName(user.country_code)}>
+                                {getCountryFlag(user.country_code)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
