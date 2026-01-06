@@ -7,6 +7,8 @@ interface Profile {
   full_name: string;
   avatar_url: string | null;
   researcher_code: string | null;
+  orcid: string | null;
+  country_code: string | null;
 }
 
 export function useProfile() {
@@ -23,7 +25,7 @@ export function useProfile() {
     const loadProfile = async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, researcher_code')
+        .select('id, full_name, avatar_url, researcher_code, orcid, country_code')
         .eq('id', user.id)
         .single();
       

@@ -9,7 +9,7 @@ import { AnimatedStats } from "@/components/landing/AnimatedStats";
 import { LogoMarquee } from "@/components/landing/LogoMarquee";
 import { TestimonialsCarousel } from "@/components/landing/TestimonialsCarousel";
 import { FAQSection } from "@/components/landing/FAQSection";
-import { VideoModal } from "@/components/landing/VideoModal";
+
 import { FloatingBadge } from "@/components/landing/FloatingBadge";
 import { ScrollProgress } from "@/components/landing/ScrollProgress";
 const fadeInUp = {
@@ -280,8 +280,6 @@ export default function Landing() {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                
-                <VideoModal />
               </div>
 
               <div className="flex items-center justify-center lg:justify-start gap-3 mt-8 text-slate-500 dark:text-white/50">

@@ -8,13 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter, Clock, ChevronLeft, ChevronRight, Globe, Link as LinkIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getSignedUrl } from "@/hooks/useSignedUrl";
+import { getCountryFlag, getCountryName } from "@/lib/countryUtils";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -34,6 +35,8 @@ interface Profile {
   created_at: string;
   research_role: string | null;
   last_login_at: string | null;
+  orcid: string | null;
+  country_code: string | null;
   contact?: ProfileContact | null;
 }
 
@@ -192,6 +195,7 @@ export default function UserDirectory() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Usuario</TableHead>
+                    <TableHead>País</TableHead>
                     <TableHead>Código</TableHead>
                     <TableHead>Rol de Investigación</TableHead>
                     <TableHead>Estado</TableHead>
@@ -214,6 +218,16 @@ export default function UserDirectory() {
                             </AvatarFallback>
                           </Avatar>
                           <span className="font-medium">{user.full_name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg" title={getCountryName(user.country_code)}>
+                            {getCountryFlag(user.country_code)}
+                          </span>
+                          <span className="text-xs text-muted-foreground hidden sm:inline">
+                            {getCountryName(user.country_code)}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
@@ -363,11 +377,35 @@ export default function UserDirectory() {
                   </div>
                 )}
 
+                <div className="flex items-center gap-2 text-sm">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">País:</span>
+                  <span className="font-medium flex items-center gap-2">
+                    <span className="text-lg">{getCountryFlag(selectedUser.country_code)}</span>
+                    {getCountryName(selectedUser.country_code)}
+                  </span>
+                </div>
+
                 {selectedUser.researcher_code && (
                   <div className="flex items-center gap-2 text-sm">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     <span className="text-muted-foreground">Código Investigador:</span>
                     <span className="font-medium">{selectedUser.researcher_code}</span>
+                  </div>
+                )}
+
+                {selectedUser.orcid && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">ORCID:</span>
+                    <a 
+                      href={`https://orcid.org/${selectedUser.orcid}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-primary hover:underline font-mono"
+                    >
+                      {selectedUser.orcid}
+                    </a>
                   </div>
                 )}
 

@@ -7,9 +7,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { User, Phone, FileText, Lock, BadgeCheck, Download, Upload, Eye } from "lucide-react";
+import { User, Phone, FileText, Lock, BadgeCheck, Upload, Eye, Globe, Link as LinkIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getSignedUrl } from "@/hooks/useSignedUrl";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { COUNTRIES, getCountryByCode, detectCountryFromPhone } from "@/lib/countryUtils";
+
 export default function Profile() {
   const { user } = useAuth();
   const metadata: any = (user as any)?.user_metadata ?? {};
@@ -17,6 +20,8 @@ export default function Profile() {
   const [fullName, setFullName] = useState<string>(metadata.full_name ?? "");
   const [phone, setPhone] = useState<string>(metadata.phone_number ?? "");
   const [researcherCode, setResearcherCode] = useState<string>(metadata.researcher_code ?? "");
+  const [orcid, setOrcid] = useState<string>("");
+  const [countryCode, setCountryCode] = useState<string>("EC");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(metadata.avatar_url ?? null);
   const [cvFile, setCvFile] = useState<File | null>(null);
@@ -31,14 +36,14 @@ export default function Profile() {
     const loadProfile = async () => {
       if (!user?.id) return;
       
-      // Fetch profile data (no longer has email/phone)
+      // Fetch profile data
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('full_name, researcher_code, avatar_url, cv_url')
+        .select('full_name, researcher_code, avatar_url, cv_url, orcid, country_code')
         .eq('id', user.id)
         .single();
       
-      // Fetch contact info from profile_contacts (user's own data)
+      // Fetch contact info from profile_contacts
       const { data: contactData } = await supabase
         .from('profile_contacts')
         .select('phone')
@@ -50,10 +55,17 @@ export default function Profile() {
         setResearcherCode(profileData.researcher_code ?? "");
         setAvatarPreview(profileData.avatar_url ?? null);
         setCvUrl(profileData.cv_url ?? null);
+        setOrcid(profileData.orcid ?? "");
+        setCountryCode(profileData.country_code ?? "EC");
       }
       
       if (contactData) {
         setPhone(contactData.phone ?? "");
+        // Auto-detect country from phone if not set
+        if (contactData.phone && !profileData?.country_code) {
+          const detected = detectCountryFromPhone(contactData.phone);
+          setCountryCode(detected);
+        }
       }
     };
     
@@ -101,7 +113,6 @@ export default function Profile() {
     const { error } = await supabase.storage.from('cvs').upload(filePath, file, { cacheControl: '3600', upsert: true });
     if (error) throw error;
 
-    // Store the path, not public URL, since bucket is private
     return filePath;
   };
 
@@ -115,9 +126,23 @@ export default function Profile() {
     }
   };
 
+  const validateOrcid = (value: string): boolean => {
+    if (!value) return true; // Optional field
+    // ORCID format: 0000-0000-0000-0000 or 0000-0000-0000-000X
+    const orcidRegex = /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/;
+    return orcidRegex.test(value);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    // Validate ORCID format
+    if (orcid && !validateOrcid(orcid)) {
+      toast.error('Formato de ORCID inválido. Ejemplo: 0000-0002-7793-9871');
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -132,7 +157,7 @@ export default function Profile() {
         newCvUrl = await uploadCV(cvFile, user.id);
       }
 
-      // Update profile (no longer has phone)
+      // Update profile
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -140,6 +165,8 @@ export default function Profile() {
           researcher_code: researcherCode,
           avatar_url: avatarUrl,
           cv_url: newCvUrl,
+          orcid: orcid || null,
+          country_code: countryCode,
         })
         .eq('id', user.id);
 
@@ -149,7 +176,7 @@ export default function Profile() {
         return;
       }
 
-      // Update contact info (phone is now in profile_contacts)
+      // Update contact info
       const { error: contactError } = await supabase
         .from('profile_contacts')
         .upsert({
@@ -209,6 +236,8 @@ export default function Profile() {
     }
   };
 
+  const selectedCountry = getCountryByCode(countryCode);
+
   return (
     <div className="min-h-[70vh]">
       {/* Hero Header with Hexagonal Pattern */}
@@ -236,11 +265,27 @@ export default function Profile() {
             <div className="flex items-center justify-center sm:justify-start gap-2">
               <h1 className="text-2xl sm:text-3xl font-bold text-white">{fullName || "Usuario"}</h1>
               <BadgeCheck className="h-6 w-6 text-primary" />
+              {selectedCountry && (
+                <span className="text-2xl" title={selectedCountry.name}>{selectedCountry.flag}</span>
+              )}
             </div>
             <p className="text-slate-400 mt-1">{user?.email}</p>
-            {researcherCode && (
-              <p className="text-sm text-primary mt-2 font-mono">Código: {researcherCode}</p>
-            )}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-2">
+              {researcherCode && (
+                <p className="text-sm text-primary font-mono">Código: {researcherCode}</p>
+              )}
+              {orcid && (
+                <a 
+                  href={`https://orcid.org/${orcid}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-green-400 hover:text-green-300 font-mono flex items-center gap-1"
+                >
+                  <LinkIcon className="h-3 w-3" />
+                  ORCID: {orcid}
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </motion.div>
@@ -263,7 +308,7 @@ export default function Profile() {
             <CardContent>
               <form onSubmit={handleSave} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Nombre completo</Label>
+                  <Label htmlFor="fullName">Nombre completo *</Label>
                   <Input 
                     id="fullName" 
                     value={fullName} 
@@ -273,32 +318,84 @@ export default function Profile() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Número de celular
-                  </Label>
-                  <Input 
-                    id="phone" 
-                    type="tel" 
-                    value={phone} 
-                    onChange={(e) => setPhone(e.target.value)} 
-                    className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="country" className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      País *
+                    </Label>
+                    <Select value={countryCode} onValueChange={setCountryCode}>
+                      <SelectTrigger className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10">
+                        <SelectValue placeholder="Seleccionar país" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COUNTRIES.map((country) => (
+                          <SelectItem key={country.code} value={country.code}>
+                            <span className="flex items-center gap-2">
+                              <span>{country.flag}</span>
+                              <span>{country.name}</span>
+                              <span className="text-muted-foreground text-xs">{country.phoneCode}</span>
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      Número de celular *
+                    </Label>
+                    <div className="flex">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-background/30 text-sm text-muted-foreground">
+                        {selectedCountry?.phoneCode || '+593'}
+                      </span>
+                      <Input 
+                        id="phone" 
+                        type="tel" 
+                        value={phone.replace(/^\+\d{2,3}/, '')} 
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="999999999"
+                        className="rounded-l-none bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="researcher">Código de investigador</Label>
+                  <Label htmlFor="researcher">Código de investigador *</Label>
                   <Input 
                     id="researcher" 
                     value={researcherCode} 
                     onChange={(e) => setResearcherCode(e.target.value)} 
                     className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50 font-mono"
+                    placeholder="INV-001"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Foto de perfil</Label>
+                  <Label htmlFor="orcid" className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4" />
+                    Código ORCID *
+                  </Label>
+                  <Input 
+                    id="orcid" 
+                    value={orcid} 
+                    onChange={(e) => setOrcid(e.target.value)} 
+                    className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50 font-mono"
+                    placeholder="0000-0002-7793-9871"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Formato: 0000-0000-0000-0000. Obtén tu ORCID en{' '}
+                    <a href="https://orcid.org/register" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      orcid.org
+                    </a>
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Foto de perfil (opcional)</Label>
                   <div className="flex items-center gap-4">
                     <Avatar className="w-12 h-12">
                       <AvatarImage src={avatarPreview || undefined} />
