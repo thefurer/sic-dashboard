@@ -1,10 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, BarChart3, Users, FileCheck, Calendar, Settings, Search, Bell, Mail, BookOpen, Leaf, Cpu, Globe, Heart, Lightbulb, FlaskConical, Building, GraduationCap, Zap, Database, Cloud, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, Shield, BarChart3, Users, FileCheck, Calendar, Settings, Search, Bell, Mail, BookOpen, Leaf, Cpu, Globe, Heart, Lightbulb, FlaskConical, Building, GraduationCap, Zap, Database, Cloud, ChevronLeft, ChevronRight, MapPin, Phone, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { AccessibilityMenu } from "@/components/accessibility/AccessibilityMenu";
 import gisicfLogo from "@/assets/gisicf-logo.png";
 import { useState, useEffect } from "react";
+import { AnimatedStats } from "@/components/landing/AnimatedStats";
+import { LogoMarquee } from "@/components/landing/LogoMarquee";
+import { TestimonialsCarousel } from "@/components/landing/TestimonialsCarousel";
+import { FAQSection } from "@/components/landing/FAQSection";
+import { VideoModal } from "@/components/landing/VideoModal";
+import { FloatingBadge } from "@/components/landing/FloatingBadge";
+import { ScrollProgress } from "@/components/landing/ScrollProgress";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -97,6 +104,25 @@ const uniqueFeatures = [
   },
 ];
 
+const footerLinks = {
+  platform: [
+    { name: "Dashboard", href: "#" },
+    { name: "Evaluación", href: "#" },
+    { name: "Proyectos", href: "#" },
+    { name: "Planificación", href: "#" },
+  ],
+  resources: [
+    { name: "Manual de Usuario", href: "#" },
+    { name: "FAQ", href: "#faq" },
+    { name: "Soporte", href: "#" },
+  ],
+  legal: [
+    { name: "Política de Privacidad", href: "/privacy" },
+    { name: "Términos de Servicio", href: "/terms" },
+    { name: "Aviso Legal", href: "/legal" },
+  ],
+};
+
 export default function Landing() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerView = 4;
@@ -119,6 +145,9 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      {/* Scroll Progress Indicator */}
+      <ScrollProgress />
+
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-white/10">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -128,108 +157,138 @@ export default function Landing() {
           </div>
           
           <div className="hidden md:flex items-center gap-8">
-            <a href="#research-lines" className="text-slate-600 dark:text-white/70 hover:text-[hsl(153,100%,24%)] transition-colors font-medium">
+            <a href="#research-lines" className="text-slate-600 dark:text-white/70 hover:text-primary transition-colors font-medium">
               Líneas
             </a>
-            <a href="#features" className="text-slate-600 dark:text-white/70 hover:text-[hsl(153,100%,24%)] transition-colors font-medium">
+            <a href="#features" className="text-slate-600 dark:text-white/70 hover:text-primary transition-colors font-medium">
               Características
             </a>
-            <a href="#unique" className="text-slate-600 dark:text-white/70 hover:text-[hsl(153,100%,24%)] transition-colors font-medium">
+            <a href="#unique" className="text-slate-600 dark:text-white/70 hover:text-primary transition-colors font-medium">
               Único
             </a>
-            <a href="#about" className="text-slate-600 dark:text-white/70 hover:text-[hsl(153,100%,24%)] transition-colors font-medium">
+            <a href="#about" className="text-slate-600 dark:text-white/70 hover:text-primary transition-colors font-medium">
               Acerca de
             </a>
           </div>
 
           <Link to="/auth">
-            <Button className="bg-[hsl(153,100%,24%)] hover:bg-[hsl(153,100%,28%)] text-white shadow-lg shadow-[hsl(153,100%,24%)]/20">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
               Ingresar
             </Button>
           </Link>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 md:pt-40 md:pb-32 container mx-auto px-6">
-        <motion.div 
-          className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center"
-          initial="hidden"
-          animate="visible"
-          variants={staggerContainer}
-        >
-          {/* Left: Image Collage */}
+      {/* Hero Section with Mesh Gradient */}
+      <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
+        {/* Mesh Gradient Background */}
+        <div className="absolute inset-0 mesh-gradient-hero" />
+        <div className="absolute inset-0 dot-pattern opacity-30 dark:opacity-20" />
+        
+        {/* Floating Badge */}
+        <FloatingBadge text="Hecho en Ecuador" emoji="🇪🇨" position="top-right" />
+        
+        <div className="container mx-auto px-6 relative z-10">
           <motion.div 
-            variants={fadeInUp}
-            className="relative order-2 lg:order-1"
+            className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center"
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
           >
-            <div className="relative">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/20 dark:shadow-black/40">
-                <img 
-                  src="/manual-screenshots/dashboard.png" 
-                  alt="Dashboard GISICF"
-                  className="w-full h-auto"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent" />
-              </div>
-              
-              <motion.div 
-                className="absolute -bottom-8 -right-8 w-2/3 rounded-xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800"
-                initial={{ opacity: 0, scale: 0.8, x: 20 }}
-                animate={{ opacity: 1, scale: 1, x: 0 }}
-                transition={{ delay: 0.5, duration: 0.6 }}
-              >
-                <img 
-                  src="/manual-screenshots/revision-evaluaciones.png" 
-                  alt="Revisión de Evaluaciones"
-                  className="w-full h-auto"
-                />
-              </motion.div>
-
-              <div className="absolute -top-6 -left-6 w-24 h-24 bg-[hsl(153,100%,24%)]/10 rounded-full blur-2xl" />
-              <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-[hsl(153,100%,35%)]/20 rounded-full blur-xl" />
-            </div>
-          </motion.div>
-
-          {/* Right: Text Content */}
-          <motion.div 
-            variants={fadeInUp}
-            className="order-1 lg:order-2 text-center lg:text-left"
-          >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight mb-6">
-              Gestión de{" "}
-              <span className="italic font-serif text-[hsl(153,100%,24%)]">Investigación</span>{" "}
-              Inteligente
-            </h1>
-            
-            <p className="text-lg md:text-xl text-slate-600 dark:text-white/70 mb-8 max-w-lg mx-auto lg:mx-0">
-              Plataforma integral del Grupo de Investigación en Sistemas Inteligentes y Ciberfísicos. 
-              Donde la innovación y la tecnología se unen al servicio de la sociedad.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <Link to="/auth">
-                <Button 
-                  size="lg" 
-                  className="bg-[hsl(153,100%,24%)] hover:bg-[hsl(153,100%,28%)] text-white px-8 py-6 text-lg rounded-full shadow-xl shadow-[hsl(153,100%,24%)]/30 transition-all hover:shadow-2xl hover:shadow-[hsl(153,100%,24%)]/40 hover:scale-105"
+            {/* Left: Image Collage */}
+            <motion.div 
+              variants={fadeInUp}
+              className="relative order-2 lg:order-1"
+            >
+              <div className="relative">
+                {/* Glow behind main image */}
+                <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-90" />
+                
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/20 dark:shadow-black/40">
+                  <img 
+                    src="/manual-screenshots/dashboard.png" 
+                    alt="Dashboard GISICF"
+                    className="w-full h-auto"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent" />
+                </div>
+                
+                <motion.div 
+                  className="absolute -bottom-8 -right-8 w-2/3 rounded-xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800"
+                  initial={{ opacity: 0, scale: 0.8, x: 20 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  transition={{ delay: 0.5, duration: 0.6 }}
                 >
-                  Comenzar Ahora
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+                  <img 
+                    src="/manual-screenshots/revision-evaluaciones.png" 
+                    alt="Revisión de Evaluaciones"
+                    className="w-full h-auto"
+                  />
+                </motion.div>
+
+                <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
+                <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-primary/20 rounded-full blur-xl" />
+              </div>
+            </motion.div>
+
+            {/* Right: Text Content */}
+            <motion.div 
+              variants={fadeInUp}
+              className="order-1 lg:order-2 text-center lg:text-left"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6"
+              >
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                Plataforma de Gestión Científica
+              </motion.div>
               
-              <div className="flex items-center gap-3 text-slate-500 dark:text-white/50">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight mb-6">
+                Gestión de{" "}
+                <span className="italic font-serif text-primary">Investigación</span>{" "}
+                Inteligente
+              </h1>
+              
+              <p className="text-lg md:text-xl text-slate-600 dark:text-white/70 mb-8 max-w-lg mx-auto lg:mx-0">
+                Plataforma integral del Grupo de Investigación en Sistemas Inteligentes y Ciberfísicos. 
+                Donde la innovación y la tecnología se unen al servicio de la sociedad.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                <Link to="/auth">
+                  <Button 
+                    size="lg" 
+                    className="btn-shine bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg rounded-full shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40 hover:scale-105"
+                  >
+                    Comenzar Ahora
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                
+                <VideoModal />
+              </div>
+
+              <div className="flex items-center justify-center lg:justify-start gap-3 mt-8 text-slate-500 dark:text-white/50">
                 <div className="flex -space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-[hsl(153,100%,24%)] flex items-center justify-center text-white text-xs font-bold border-2 border-white dark:border-slate-800">U</div>
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold border-2 border-white dark:border-slate-800">U</div>
                   <div className="w-8 h-8 rounded-full bg-slate-300 dark:bg-slate-600 flex items-center justify-center text-slate-600 dark:text-white text-xs font-bold border-2 border-white dark:border-slate-800">G</div>
                   <div className="w-8 h-8 rounded-full bg-slate-400 dark:bg-slate-700 flex items-center justify-center text-white text-xs font-bold border-2 border-white dark:border-slate-800">I</div>
                 </div>
                 <span className="text-sm">UNESUM - Ecuador</span>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </section>
+
+      {/* Animated Stats Section */}
+      <AnimatedStats />
+
+      {/* Logo Marquee */}
+      <LogoMarquee />
 
       {/* Research Lines Carousel Section */}
       <section id="research-lines" className="py-16 bg-white dark:bg-slate-900/50 border-y border-slate-200 dark:border-white/10">
@@ -241,7 +300,7 @@ export default function Landing() {
             viewport={{ once: true }}
           >
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">
-              Líneas de <span className="text-[hsl(153,100%,24%)]">Investigación</span>
+              Líneas de <span className="text-primary">Investigación</span>
             </h2>
             <p className="text-slate-600 dark:text-white/60">
               Áreas de enfoque del grupo GISICF
@@ -272,10 +331,10 @@ export default function Landing() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="group flex flex-col items-center p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 hover:border-[hsl(153,100%,24%)]/50 hover:shadow-lg hover:shadow-[hsl(153,100%,24%)]/10 transition-all duration-300"
+                      className="group flex flex-col items-center p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
                     >
-                      <div className="w-14 h-14 rounded-xl bg-[hsl(153,100%,24%)]/10 dark:bg-[hsl(153,100%,24%)]/20 flex items-center justify-center mb-3 group-hover:bg-[hsl(153,100%,24%)] transition-colors">
-                        <line.icon className="w-7 h-7 text-[hsl(153,100%,24%)] group-hover:text-white transition-colors" />
+                      <div className="w-14 h-14 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3 group-hover:bg-primary transition-colors">
+                        <line.icon className="w-7 h-7 text-primary group-hover:text-white transition-colors" />
                       </div>
                       <span className="text-sm font-medium text-slate-700 dark:text-white/80 text-center">
                         {line.name}
@@ -301,7 +360,7 @@ export default function Landing() {
                   onClick={() => setCurrentSlide(i)}
                   className={`w-2 h-2 rounded-full transition-all duration-300 ${
                     i === currentSlide 
-                      ? 'w-8 bg-[hsl(153,100%,24%)]' 
+                      ? 'w-8 bg-primary' 
                       : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-400'
                   }`}
                 />
@@ -320,11 +379,11 @@ export default function Landing() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <span className="inline-block px-4 py-1 rounded-full bg-[hsl(153,100%,24%)]/10 text-[hsl(153,100%,24%)] text-sm font-semibold mb-4">
+            <span className="inline-block px-4 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
               ¿Qué nos hace únicos?
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-              Funciones <span className="text-[hsl(153,100%,24%)]">Inteligentes</span>
+              Funciones <span className="text-primary">Inteligentes</span>
             </h2>
             <p className="text-lg text-slate-600 dark:text-white/60 max-w-2xl mx-auto">
               Automatización avanzada para maximizar tu productividad investigativa
@@ -342,20 +401,20 @@ export default function Landing() {
               <motion.div
                 key={feature.title}
                 variants={fadeInUp}
-                className="group relative p-8 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-white/10 hover:border-[hsl(153,100%,24%)]/40 transition-all duration-300 hover:shadow-xl"
+                className="group relative p-8 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-white/10 hover:border-primary/40 transition-all duration-300 hover:shadow-xl"
               >
                 {/* Highlight Badge */}
-                <span className="absolute top-4 right-4 px-3 py-1 rounded-full bg-[hsl(153,100%,24%)]/10 text-[hsl(153,100%,24%)] text-xs font-semibold">
+                <span className="absolute top-4 right-4 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
                   {feature.highlight}
                 </span>
 
                 <div className="flex items-start gap-5">
-                  <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-[hsl(153,100%,24%)] to-[hsl(153,100%,35%)] flex items-center justify-center shadow-lg shadow-[hsl(153,100%,24%)]/20">
+                  <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
                     <feature.icon className="w-7 h-7 text-white" />
                   </div>
                   
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-[hsl(153,100%,24%)] transition-colors">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors">
                       {feature.title}
                     </h3>
                     <p className="text-slate-600 dark:text-white/60 leading-relaxed">
@@ -365,7 +424,7 @@ export default function Landing() {
                 </div>
 
                 {/* Decorative corner */}
-                <div className="absolute bottom-0 right-0 w-24 h-24 bg-[hsl(153,100%,24%)]/5 rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/5 rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity" />
               </motion.div>
             ))}
           </motion.div>
@@ -383,7 +442,7 @@ export default function Landing() {
           >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
               Todo lo que Necesitas para{" "}
-              <span className="text-[hsl(153,100%,24%)]">Investigar</span>
+              <span className="text-primary">Investigar</span>
             </h2>
             <p className="text-lg text-slate-600 dark:text-white/60 max-w-2xl mx-auto">
               Una plataforma completa para gestionar proyectos, evaluaciones, planificación y producción científica.
@@ -402,7 +461,7 @@ export default function Landing() {
                 key={feature.title}
                 variants={fadeInUp}
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                className="group bg-slate-50 dark:bg-slate-800/50 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 hover:border-[hsl(153,100%,24%)]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[hsl(153,100%,24%)]/10"
+                className="group bg-slate-50 dark:bg-slate-800/50 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10"
               >
                 <div className="relative h-48 overflow-hidden">
                   <img 
@@ -412,13 +471,13 @@ export default function Landing() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
                   
-                  <div className="absolute bottom-4 left-4 w-12 h-12 rounded-xl bg-[hsl(153,100%,24%)] flex items-center justify-center shadow-lg shadow-[hsl(153,100%,24%)]/30">
+                  <div className="absolute bottom-4 left-4 w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
                 </div>
                 
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-[hsl(153,100%,24%)] transition-colors">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors">
                     {feature.title}
                   </h3>
                   <p className="text-slate-600 dark:text-white/60">
@@ -442,7 +501,7 @@ export default function Landing() {
               transition={{ duration: 0.6 }}
             >
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">
-                ¿Por qué <span className="text-[hsl(153,100%,24%)]">GISICF</span>?
+                ¿Por qué <span className="text-primary">GISICF</span>?
               </h2>
               
               <div className="space-y-6 text-slate-600 dark:text-white/70">
@@ -464,7 +523,7 @@ export default function Landing() {
                     "Generación automática de informes PDF",
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-[hsl(153,100%,24%)]" />
+                      <div className="w-2 h-2 rounded-full bg-primary" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -502,11 +561,17 @@ export default function Landing() {
                 />
               </div>
               
-              <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[hsl(153,100%,24%)]/10 rounded-full blur-3xl" />
+              <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
             </motion.div>
           </div>
         </div>
       </section>
+
+      {/* Testimonials Section */}
+      <TestimonialsCarousel />
+
+      {/* FAQ Section */}
+      <FAQSection />
 
       {/* CTA Section */}
       <section className="py-20 bg-slate-900 dark:bg-slate-950">
@@ -525,7 +590,7 @@ export default function Landing() {
             <Link to="/auth">
               <Button 
                 size="lg"
-                className="bg-[hsl(153,100%,35%)] hover:bg-[hsl(153,100%,40%)] text-white px-10 py-6 text-lg rounded-full shadow-xl shadow-[hsl(153,100%,35%)]/30"
+                className="btn-shine bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-6 text-lg rounded-full shadow-xl shadow-primary/30"
               >
                 Acceder a la Plataforma
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -535,23 +600,110 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-950 text-white py-12 border-t border-white/10">
+      {/* Enhanced Footer */}
+      <footer className="bg-slate-950 text-white pt-16 pb-8 border-t border-white/10">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-3">
-              <img src={gisicfLogo} alt="GISICF" className="w-10 h-10 rounded-lg" />
-              <div>
-                <p className="font-bold">GISICF - UNESUM</p>
-                <p className="text-xs text-white/50">Sistemas Inteligentes y Ciberfísicos</p>
+          {/* Main Footer Content */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+            {/* Brand Column */}
+            <div className="lg:col-span-1">
+              <div className="flex items-center gap-3 mb-4">
+                <img src={gisicfLogo} alt="GISICF" className="w-12 h-12 rounded-lg" />
+                <div>
+                  <p className="font-bold text-lg">GISICF</p>
+                  <p className="text-xs text-white/50">UNESUM - Ecuador</p>
+                </div>
+              </div>
+              <p className="text-white/60 text-sm mb-6">
+                Grupo de Investigación en Sistemas Inteligentes y Ciberfísicos. 
+                Transformando la gestión de investigación académica.
+              </p>
+              
+              {/* Social Links */}
+              <div className="flex gap-3">
+                <a href="#" className="w-10 h-10 rounded-full bg-white/5 hover:bg-primary/20 flex items-center justify-center transition-colors">
+                  <Facebook className="w-5 h-5 text-white/70 hover:text-primary" />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white/5 hover:bg-primary/20 flex items-center justify-center transition-colors">
+                  <Twitter className="w-5 h-5 text-white/70 hover:text-primary" />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white/5 hover:bg-primary/20 flex items-center justify-center transition-colors">
+                  <Instagram className="w-5 h-5 text-white/70 hover:text-primary" />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white/5 hover:bg-primary/20 flex items-center justify-center transition-colors">
+                  <Linkedin className="w-5 h-5 text-white/70 hover:text-primary" />
+                </a>
               </div>
             </div>
-            
-            <div className="text-center md:text-right">
-              <p className="text-sm text-white/60">
-                © 2026 Universidad Estatal del Sur de Manabí
+
+            {/* Platform Links */}
+            <div>
+              <h4 className="font-semibold mb-4 text-white">Plataforma</h4>
+              <ul className="space-y-3">
+                {footerLinks.platform.map((link) => (
+                  <li key={link.name}>
+                    <a href={link.href} className="text-white/60 hover:text-primary transition-colors text-sm">
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h4 className="font-semibold mb-4 text-white">Recursos</h4>
+              <ul className="space-y-3">
+                {footerLinks.resources.map((link) => (
+                  <li key={link.name}>
+                    <a href={link.href} className="text-white/60 hover:text-primary transition-colors text-sm">
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Contact Info */}
+            <div>
+              <h4 className="font-semibold mb-4 text-white">Contacto</h4>
+              <ul className="space-y-3">
+                <li className="flex items-center gap-3 text-white/60 text-sm">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <span>Jipijapa, Manabí, Ecuador</span>
+                </li>
+                <li className="flex items-center gap-3 text-white/60 text-sm">
+                  <Mail className="w-4 h-4 text-primary" />
+                  <span>investigacion@unesum.edu.ec</span>
+                </li>
+                <li className="flex items-center gap-3 text-white/60 text-sm">
+                  <Phone className="w-4 h-4 text-primary" />
+                  <span>+593 5 123 4567</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-white/10 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-sm text-white/50">
+                © 2026 Universidad Estatal del Sur de Manabí. Todos los derechos reservados.
               </p>
-              <p className="text-xs text-white/40 mt-1">
+              
+              <div className="flex items-center gap-6">
+                {footerLinks.legal.map((link) => (
+                  <Link 
+                    key={link.name} 
+                    to={link.href}
+                    className="text-xs text-white/40 hover:text-primary transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
+              
+              <p className="text-xs text-white/40">
                 Desarrollado por Madelin Chancay Baque
               </p>
             </div>
