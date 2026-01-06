@@ -13,6 +13,7 @@ import { WelcomeGreeting } from "@/components/dashboard/WelcomeGreeting";
 import { QuickAccessWidgets } from "@/components/dashboard/QuickAccessWidgets";
 import { UserStatusPanel } from "@/components/dashboard/UserStatusPanel";
 import { QuickStatsRow } from "@/components/dashboard/QuickStatsRow";
+import { MonthlyProgressChart } from "@/components/dashboard/MonthlyProgressChart";
 import {
   Carousel,
   CarouselContent,
@@ -141,6 +142,9 @@ const Dashboard = () => {
             <UserStatusPanel stats={stats} isAdmin={isSuperAdmin} isLoading={statsLoading} />
           )}
         </div>
+
+        {/* Monthly Progress Chart - NEW */}
+        <MonthlyProgressChart />
 
         {/* Recent Activity Timeline - Full Width - EXISTING */}
         <div className="col-span-12">
