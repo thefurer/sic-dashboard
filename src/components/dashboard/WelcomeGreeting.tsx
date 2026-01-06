@@ -15,10 +15,45 @@ const getGreeting = () => {
 };
 
 const motivationalMessages = [
-  "¡Hagamos que hoy cuente!",
-  "Tu investigación marca la diferencia",
-  "Cada paso cuenta hacia el éxito",
-  "Construyendo conocimiento, transformando vidas",
+  // Científicos y pensadores
+  { quote: "La imaginación es más importante que el conocimiento.", author: "Albert Einstein" },
+  { quote: "La ciencia es el alma de la prosperidad de las naciones.", author: "Louis Pasteur" },
+  { quote: "Nada en la vida es de temer, solo hay que comprenderlo.", author: "Marie Curie" },
+  { quote: "El conocimiento habla, pero la sabiduría escucha.", author: "Jimi Hendrix" },
+  
+  // Filósofos clásicos
+  { quote: "Solo sé que no sé nada, y esto es saber.", author: "Sócrates" },
+  { quote: "La educación es el arma más poderosa para cambiar el mundo.", author: "Nelson Mandela" },
+  { quote: "El que aprende y aprende y no practica, es como el que ara y ara y no siembra.", author: "Platón" },
+  { quote: "La duda es el principio de la sabiduría.", author: "Aristóteles" },
+  
+  // Escritores y pensadores modernos
+  { quote: "El futuro pertenece a quienes creen en la belleza de sus sueños.", author: "Eleanor Roosevelt" },
+  { quote: "La mejor forma de predecir el futuro es creándolo.", author: "Peter Drucker" },
+  { quote: "El éxito es ir de fracaso en fracaso sin perder el entusiasmo.", author: "Winston Churchill" },
+  { quote: "Investigar es ver lo que todos han visto y pensar lo que nadie ha pensado.", author: "Albert Szent-Györgyi" },
+  
+  // Latinoamericanos
+  { quote: "Un pueblo ignorante es instrumento ciego de su propia destrucción.", author: "Simón Bolívar" },
+  { quote: "La ciencia es la estética de la inteligencia.", author: "Gastón Bachelard" },
+  { quote: "Solo el que sabe es libre.", author: "Miguel de Unamuno" },
+  
+  // Ciencia y tecnología
+  { quote: "La perseverancia no es una carrera larga, son muchas carreras cortas.", author: "Walter Elliot" },
+  { quote: "El progreso es imposible sin cambio.", author: "George Bernard Shaw" },
+  { quote: "La curiosidad es la mecha en la vela del aprendizaje.", author: "William Arthur Ward" },
+  { quote: "No hay enseñanza sin investigación ni investigación sin enseñanza.", author: "Paulo Freire" },
+  
+  // Inspiración general
+  { quote: "La mente que se abre a una nueva idea jamás vuelve a su tamaño original.", author: "Albert Einstein" },
+  { quote: "Aprende como si fueras a vivir para siempre.", author: "Mahatma Gandhi" },
+  { quote: "El genio es 1% inspiración y 99% transpiración.", author: "Thomas Edison" },
+  { quote: "Tu trabajo va a llenar gran parte de tu vida. La única forma de estar satisfecho es hacer lo que crees que es un gran trabajo.", author: "Steve Jobs" },
+  
+  // Motivación académica
+  { quote: "La excelencia no es un acto, sino un hábito.", author: "Aristóteles" },
+  { quote: "Cada día es una oportunidad para aprender algo nuevo.", author: "Anónimo" },
+  { quote: "El conocimiento es poder.", author: "Francis Bacon" },
 ];
 
 export const WelcomeGreeting = ({ userName }: WelcomeGreetingProps) => {
@@ -57,9 +92,11 @@ export const WelcomeGreeting = ({ userName }: WelcomeGreetingProps) => {
           </div>
         </div>
         
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Sparkles className="h-4 w-4 text-primary/70" />
-          <span className="text-sm italic">{motivationalMessage}</span>
+        <div className="flex items-center gap-2 text-muted-foreground max-w-md">
+          <Sparkles className="h-4 w-4 text-primary/70 flex-shrink-0" />
+          <span className="text-sm italic">
+            "{motivationalMessage.quote}" <span className="text-primary/80 font-medium">— {motivationalMessage.author}</span>
+          </span>
         </div>
       </div>
     </motion.div>
