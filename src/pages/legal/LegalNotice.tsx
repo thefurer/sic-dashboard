@@ -3,20 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AccessibilityMenu } from "@/components/accessibility/AccessibilityMenu";
-
 export default function LegalNotice() {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <AccessibilityMenu />
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6"
-        >
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver
         </Button>
@@ -24,23 +17,13 @@ export default function LegalNotice() {
         <Card>
           <CardHeader className="text-center border-b">
             <div className="flex justify-center gap-4 mb-4">
-              <img
-                src="/logos/logo_unesum.png"
-                alt="Logo UNESUM"
-                className="h-16 object-contain"
-              />
-              <img
-                src="/logos/logo_carrera_unesum.png"
-                alt="Logo Carrera"
-                className="h-16 object-contain"
-              />
+              <img src="/logos/logo_unesum.png" alt="Logo UNESUM" className="h-16 object-contain" />
+              <img src="/logos/logo_carrera_unesum.png" alt="Logo Carrera" className="h-16 object-contain" />
             </div>
             <CardTitle className="text-2xl font-bold text-primary">
               Aviso Legal
             </CardTitle>
-            <p className="text-muted-foreground text-sm mt-2">
-              Última actualización: Diciembre 2024
-            </p>
+            <p className="text-muted-foreground text-sm mt-2">Última actualización: Enero 2026</p>
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none p-6 space-y-6">
             <section>
@@ -53,7 +36,7 @@ export default function LegalNotice() {
                   de Investigación para la Carrera de Tecnologías de la Información
                 </p>
                 <p className="text-foreground leading-relaxed mt-2">
-                  <strong>Desarrolladora:</strong> MADELIN CHANCAY BAQUE
+                  <strong>Desarrolladora:</strong> MADELIN ALBA CHANCAY BAQUE
                 </p>
                 <p className="text-foreground leading-relaxed mt-2">
                   <strong>Institución:</strong> Universidad Estatal del Sur de Manabí (UNESUM)
@@ -109,7 +92,7 @@ export default function LegalNotice() {
                 </p>
                 <p className="text-foreground leading-relaxed mt-2">
                   Esta plataforma está activa durante el periodo de desarrollo y 
-                  defensa de tesis de <strong>MADELIN CHANCAY BAQUE</strong>. 
+                  defensa de tesis de <strong>MADELIN ALBA CHANCAY BAQUE</strong>. 
                 </p>
                 <p className="text-foreground leading-relaxed mt-2">
                   Una vez culminado el proceso de titulación:
@@ -169,7 +152,7 @@ export default function LegalNotice() {
               </p>
               <ul className="list-disc pl-6 mt-2 space-y-1 text-foreground">
                 <li>
-                  <strong>MADELIN CHANCAY BAQUE</strong> - Como desarrolladora 
+                  <strong>MADELIN ALBA CHANCAY BAQUE</strong> - Como desarrolladora 
                   del proyecto.
                 </li>
                 <li>
@@ -249,6 +232,5 @@ export default function LegalNotice() {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 }
