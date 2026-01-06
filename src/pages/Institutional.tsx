@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,22 +19,30 @@ import {
   CalendarRange,
   Eye,
   ListTree,
-  FileText,
   Users,
   Shield,
-  Cpu
+  Cpu,
+  ChevronDown
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { ResearchLinesManager } from "@/components/institutional/ResearchLinesManager";
+import { ExpandableCard } from "@/components/institutional/ExpandableCard";
+import { DocumentCard } from "@/components/institutional/DocumentCard";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { generateUserManualPDF } from "@/lib/userManualPdfGenerator";
 import { generateAdminManualPDF } from "@/lib/adminManualPdfGenerator";
 import { generateTechnicalSheetPDF } from "@/lib/technicalSheetPdfGenerator";
+import { motion } from "framer-motion";
 
 export default function Institutional() {
   const queryClient = useQueryClient();
@@ -50,6 +57,7 @@ export default function Institutional() {
   const [objectivesOpen, setObjectivesOpen] = useState(false);
   const [researchLinesOpen, setResearchLinesOpen] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [showResearchLines, setShowResearchLines] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["institutional-settings"],
@@ -142,498 +150,372 @@ export default function Institutional() {
 
   const researchLines = (settings?.research_lines as string[]) || [];
 
+  const EditDialog = ({ 
+    open, 
+    onOpenChange, 
+    title, 
+    value, 
+    onChange, 
+    field 
+  }: { 
+    open: boolean; 
+    onOpenChange: (open: boolean) => void; 
+    title: string; 
+    value: string; 
+    onChange: (value: string) => void;
+    field: string;
+  }) => (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="glass-card border-border">
+        <DialogHeader>
+          <DialogTitle>Editar {title}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label>Texto</Label>
+            <Textarea
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              rows={6}
+              className="mt-2 bg-muted/50 border-border"
+            />
+          </div>
+          <Button
+            onClick={() => updateMutation.mutate({ field, value })}
+            disabled={updateMutation.isPending}
+            className="w-full bg-gradient-to-r from-primary to-primary/80"
+          >
+            {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            Guardar Cambios
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <div className="space-y-6">
-      <div>
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <h1 className="text-3xl font-bold gradient-text">
           Información General del Grupo GISICF
         </h1>
         <p className="text-muted-foreground mt-2">
           Misión, Visión, Objetivos, Documentación y Líneas de Investigación
         </p>
-      </div>
+      </motion.div>
 
-      {/* Row 1: Strategic Text - Mission, Vision, Objectives */}
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Misión Card */}
-        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Building2 className="h-5 w-5 text-primary relative" />
-              </div>
-              Misión
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {settings?.mission_text || "No definida"}
-            </p>
-
-            {isAdmin && (
-              <Dialog open={missionOpen} onOpenChange={setMissionOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full border-slate-200 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10">
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Editar Misión
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="glass-card border-slate-200 dark:border-white/10">
-                  <DialogHeader>
-                    <DialogTitle>Editar Misión</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="mission">Texto de la Misión</Label>
-                      <Textarea
-                        id="mission"
-                        value={missionText}
-                        onChange={(e) => setMissionText(e.target.value)}
-                        rows={6}
-                        className="mt-2 bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
-                      />
-                    </div>
-                    <Button
-                      onClick={() =>
-                        updateMutation.mutate({
-                          field: "mission_text",
-                          value: missionText,
-                        })
-                      }
-                      disabled={updateMutation.isPending}
-                      className="w-full bg-gradient-to-r from-primary to-primary/80"
-                    >
-                      {updateMutation.isPending && (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      )}
-                      Guardar Cambios
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Visión Card */}
-        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Eye className="h-5 w-5 text-primary relative" />
-              </div>
-              Visión
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {settings?.vision_text || "No definida"}
-            </p>
-
-            {isAdmin && (
-              <Dialog open={visionOpen} onOpenChange={setVisionOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full border-slate-200 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10">
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Editar Visión
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="glass-card border-slate-200 dark:border-white/10">
-                  <DialogHeader>
-                    <DialogTitle>Editar Visión</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="vision">Texto de la Visión</Label>
-                      <Textarea
-                        id="vision"
-                        value={visionText}
-                        onChange={(e) => setVisionText(e.target.value)}
-                        rows={6}
-                        className="mt-2 bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
-                      />
-                    </div>
-                    <Button
-                      onClick={() =>
-                        updateMutation.mutate({
-                          field: "vision_text",
-                          value: visionText,
-                        })
-                      }
-                      disabled={updateMutation.isPending}
-                      className="w-full bg-gradient-to-r from-primary to-primary/80"
-                    >
-                      {updateMutation.isPending && (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      )}
-                      Guardar Cambios
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Objetivos Card */}
-        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Target className="h-5 w-5 text-primary relative" />
-              </div>
-              Objetivos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {settings?.objectives_text || "No definidos"}
-            </p>
-
-            {isAdmin && (
-              <Dialog open={objectivesOpen} onOpenChange={setObjectivesOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full border-slate-200 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10">
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Editar Objetivos
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="glass-card border-slate-200 dark:border-white/10">
-                  <DialogHeader>
-                    <DialogTitle>Editar Objetivos</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="objectives">Texto de los Objetivos</Label>
-                      <Textarea
-                        id="objectives"
-                        value={objectivesText}
-                        onChange={(e) => setObjectivesText(e.target.value)}
-                        rows={6}
-                        className="mt-2 bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
-                      />
-                    </div>
-                    <Button
-                      onClick={() =>
-                        updateMutation.mutate({
-                          field: "objectives_text",
-                          value: objectivesText,
-                        })
-                      }
-                      disabled={updateMutation.isPending}
-                      className="w-full bg-gradient-to-r from-primary to-primary/80"
-                    >
-                      {updateMutation.isPending && (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      )}
-                      Guardar Cambios
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Row 2: Documents */}
-      <div className="grid gap-6 md:grid-cols-4">
-        {/* Registry PDF */}
-        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <div className="relative">
-                <div className="absolute inset-0 bg-amber-500/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                <FileBadge className="h-5 w-5 text-amber-500 relative" />
-              </div>
-              Registro
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {settings?.registry_pdf_url ? (
-              <Button asChild size="sm" className="w-full bg-gradient-to-r from-primary to-primary/80">
-                <a
-                  href={settings.registry_pdf_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Descargar
-                </a>
-              </Button>
-            ) : (
-              <p className="text-xs text-center text-muted-foreground py-2">
-                No disponible
-              </p>
-            )}
-
-            {isAdmin && (
-              <div className="space-y-2">
-                <Input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) =>
-                    handlePdfUpload(e, "registry_pdf_url", "Registro")
-                  }
-                  disabled={uploading === "registry_pdf_url"}
-                  className="text-xs bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
-                />
-                {uploading === "registry_pdf_url" && (
-                  <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Instructivo - Manuales PDF */}
-        <Card className="glass-card group hover:shadow-2xl transition-all duration-500 md:col-span-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <div className="relative">
-                <div className="absolute inset-0 bg-blue-500/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                <BookOpen className="h-5 w-5 text-blue-500 relative" />
-              </div>
-              Instructivo y Manuales
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-xs text-muted-foreground">
-              Descargue los manuales de uso de la plataforma GISICF
-            </p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Manual de Usuario */}
+      {/* Strategic Content - Mission, Vision, Objectives */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="grid gap-4 md:grid-cols-3"
+      >
+        {/* Misión */}
+        <ExpandableCard
+          icon={<Building2 className="h-5 w-5 text-primary" />}
+          title="Misión"
+          content={settings?.mission_text || ""}
+          iconColorClass="bg-primary/30"
+          actions={
+            isAdmin && (
               <Button
-                size="sm"
                 variant="outline"
-                className="w-full border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                onClick={async () => {
-                  toast.info("Generando Manual de Usuario...");
-                  try {
-                    await generateUserManualPDF();
-                    toast.success("Manual de Usuario descargado");
-                  } catch (error) {
-                    toast.error("Error al generar el manual");
-                  }
-                }}
-              >
-                <Users className="h-4 w-4 mr-2 text-blue-500" />
-                <span className="text-xs">Manual Usuario</span>
-              </Button>
-
-              {/* Manual de Administrador */}
-              <Button
                 size="sm"
-                variant="outline"
-                className="w-full border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                onClick={async () => {
-                  toast.info("Generando Manual de Administrador...");
-                  try {
-                    await generateAdminManualPDF();
-                    toast.success("Manual de Administrador descargado");
-                  } catch (error) {
-                    toast.error("Error al generar el manual");
-                  }
-                }}
-              >
-                <Shield className="h-4 w-4 mr-2 text-purple-500" />
-                <span className="text-xs">Manual Admin</span>
-              </Button>
-
-              {/* Ficha Técnica */}
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                onClick={async () => {
-                  toast.info("Generando Ficha Técnica...");
-                  try {
-                    await generateTechnicalSheetPDF();
-                    toast.success("Ficha Técnica descargada");
-                  } catch (error) {
-                    toast.error("Error al generar la ficha");
-                  }
-                }}
-              >
-                <Cpu className="h-4 w-4 mr-2 text-emerald-500" />
-                <span className="text-xs">Ficha Técnica</span>
-              </Button>
-            </div>
-
-            {/* Instructivo PDF upload for admin */}
-            {isAdmin && settings?.instructions_pdf_url && (
-              <div className="pt-2 border-t border-border/50">
-                <p className="text-xs text-muted-foreground mb-2">Instructivo adicional (PDF):</p>
-                <Button asChild size="sm" variant="secondary" className="w-full">
-                  <a href={settings.instructions_pdf_url} target="_blank" rel="noopener noreferrer">
-                    <Download className="h-4 w-4 mr-2" />
-                    Descargar Instructivo PDF
-                  </a>
-                </Button>
-              </div>
-            )}
-
-            {isAdmin && (
-              <div className="pt-2 border-t border-border/50">
-                <p className="text-xs text-muted-foreground mb-2">Subir instructivo personalizado:</p>
-                <Input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => handlePdfUpload(e, "instructions_pdf_url", "Instructivo")}
-                  disabled={uploading === "instructions_pdf_url"}
-                  className="text-xs bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
-                />
-                {uploading === "instructions_pdf_url" && (
-                  <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary mt-2" />
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Work Plan PDF */}
-        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <div className="relative">
-                <div className="absolute inset-0 bg-purple-500/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Briefcase className="h-5 w-5 text-purple-500 relative" />
-              </div>
-              Plan de Trabajo
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {settings?.work_plan_pdf_url ? (
-              <Button asChild size="sm" className="w-full bg-gradient-to-r from-primary to-primary/80">
-                <a
-                  href={settings.work_plan_pdf_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Descargar
-                </a>
-              </Button>
-            ) : (
-              <p className="text-xs text-center text-muted-foreground py-2">
-                No disponible
-              </p>
-            )}
-
-            {isAdmin && (
-              <div className="space-y-2">
-                <Input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) =>
-                    handlePdfUpload(e, "work_plan_pdf_url", "Plan de Trabajo")
-                  }
-                  disabled={uploading === "work_plan_pdf_url"}
-                  className="text-xs bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
-                />
-                {uploading === "work_plan_pdf_url" && (
-                  <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Operational Planning */}
-        <Card className="glass-card group hover:shadow-2xl transition-all duration-500">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <div className="relative">
-                <div className="absolute inset-0 bg-teal-500/30 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                <CalendarRange className="h-5 w-5 text-teal-500 relative" />
-              </div>
-              Planificación Semestral
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {settings?.planning_pdf_url ? (
-              <Button asChild size="sm" className="w-full bg-gradient-to-r from-primary to-primary/80">
-                <a
-                  href={settings.planning_pdf_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Descargar
-                </a>
-              </Button>
-            ) : (
-              <p className="text-xs text-center text-muted-foreground py-2">
-                No disponible
-              </p>
-            )}
-
-            {isAdmin && (
-              <div className="space-y-2">
-                <Input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) =>
-                    handlePdfUpload(e, "planning_pdf_url", "Planificación")
-                  }
-                  disabled={uploading === "planning_pdf_url"}
-                  className="text-xs bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10"
-                />
-                {uploading === "planning_pdf_url" && (
-                  <Loader2 className="h-4 w-4 animate-spin mx-auto text-primary" />
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Row 3: Research Lines */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ListTree className="h-5 w-5 text-primary" />
-              Líneas de Investigación
-            </div>
-            {isAdmin && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setResearchLinesOpen(true)}
-                className="border-white/20 hover:bg-white/10"
+                className="w-full"
+                onClick={() => setMissionOpen(true)}
               >
                 <Pencil className="h-4 w-4 mr-2" />
                 Editar
               </Button>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {researchLines.length > 0 ? (
-            <Accordion type="single" collapsible className="w-full">
-              {researchLines.map((line, idx) => (
-                <AccordionItem key={idx} value={`item-${idx}`} className="border-white/10">
-                  <AccordionTrigger className="text-sm hover:text-primary">
-                    {line}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground text-sm">
-                    Línea de investigación activa del grupo GISICF.
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No hay líneas de investigación definidas
-            </p>
+            )
+          }
+        />
+
+        {/* Visión */}
+        <ExpandableCard
+          icon={<Eye className="h-5 w-5 text-blue-500" />}
+          title="Visión"
+          content={settings?.vision_text || ""}
+          iconColorClass="bg-blue-500/30"
+          actions={
+            isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => setVisionOpen(true)}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            )
+          }
+        />
+
+        {/* Objetivos */}
+        <ExpandableCard
+          icon={<Target className="h-5 w-5 text-amber-500" />}
+          title="Objetivos"
+          content={settings?.objectives_text || ""}
+          iconColorClass="bg-amber-500/30"
+          actions={
+            isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => setObjectivesOpen(true)}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            )
+          }
+        />
+      </motion.div>
+
+      {/* Documents Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="glass-card p-5 rounded-2xl"
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-xl bg-muted/50">
+            <BookOpen className="h-5 w-5 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground">Documentación</h3>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* Registro */}
+          <DocumentCard
+            icon={<FileBadge className="h-5 w-5 text-amber-500" />}
+            title="Registro"
+            downloadUrl={settings?.registry_pdf_url}
+            isAdmin={isAdmin}
+            uploading={uploading === "registry_pdf_url"}
+            fieldName="registry_pdf_url"
+            onUpload={(e) => handlePdfUpload(e, "registry_pdf_url", "Registro")}
+            iconColorClass="bg-amber-500/30"
+          />
+
+          {/* Plan de Trabajo */}
+          <DocumentCard
+            icon={<Briefcase className="h-5 w-5 text-purple-500" />}
+            title="Plan de Trabajo"
+            downloadUrl={settings?.work_plan_pdf_url}
+            isAdmin={isAdmin}
+            uploading={uploading === "work_plan_pdf_url"}
+            fieldName="work_plan_pdf_url"
+            onUpload={(e) => handlePdfUpload(e, "work_plan_pdf_url", "Plan de Trabajo")}
+            iconColorClass="bg-purple-500/30"
+          />
+
+          {/* Planificación Semestral */}
+          <DocumentCard
+            icon={<CalendarRange className="h-5 w-5 text-teal-500" />}
+            title="Planificación Semestral"
+            downloadUrl={settings?.planning_pdf_url}
+            isAdmin={isAdmin}
+            uploading={uploading === "planning_pdf_url"}
+            fieldName="planning_pdf_url"
+            onUpload={(e) => handlePdfUpload(e, "planning_pdf_url", "Planificación")}
+            iconColorClass="bg-teal-500/30"
+          />
+
+          {/* Instructivo adicional (si existe) */}
+          {(settings?.instructions_pdf_url || isAdmin) && (
+            <DocumentCard
+              icon={<BookOpen className="h-5 w-5 text-blue-500" />}
+              title="Instructivo"
+              downloadUrl={settings?.instructions_pdf_url}
+              isAdmin={isAdmin}
+              uploading={uploading === "instructions_pdf_url"}
+              fieldName="instructions_pdf_url"
+              onUpload={(e) => handlePdfUpload(e, "instructions_pdf_url", "Instructivo")}
+              iconColorClass="bg-blue-500/30"
+            />
           )}
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Manuales generados */}
+        <div className="mt-4 pt-4 border-t border-border/50">
+          <p className="text-sm text-muted-foreground mb-3">Manuales de la Plataforma</p>
+          <div className="grid gap-3 md:grid-cols-3">
+            <Button
+              size="sm"
+              variant="outline"
+              className="justify-start border-blue-500/20 hover:bg-blue-500/10"
+              onClick={async () => {
+                toast.info("Generando Manual de Usuario...");
+                try {
+                  await generateUserManualPDF();
+                  toast.success("Manual descargado");
+                } catch { toast.error("Error al generar"); }
+              }}
+            >
+              <Users className="h-4 w-4 mr-2 text-blue-500" />
+              Manual Usuario
+            </Button>
+
+            <Button
+              size="sm"
+              variant="outline"
+              className="justify-start border-purple-500/20 hover:bg-purple-500/10"
+              onClick={async () => {
+                toast.info("Generando Manual de Administrador...");
+                try {
+                  await generateAdminManualPDF();
+                  toast.success("Manual descargado");
+                } catch { toast.error("Error al generar"); }
+              }}
+            >
+              <Shield className="h-4 w-4 mr-2 text-purple-500" />
+              Manual Admin
+            </Button>
+
+            <Button
+              size="sm"
+              variant="outline"
+              className="justify-start border-emerald-500/20 hover:bg-emerald-500/10"
+              onClick={async () => {
+                toast.info("Generando Ficha Técnica...");
+                try {
+                  await generateTechnicalSheetPDF();
+                  toast.success("Ficha descargada");
+                } catch { toast.error("Error al generar"); }
+              }}
+            >
+              <Cpu className="h-4 w-4 mr-2 text-emerald-500" />
+              Ficha Técnica
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Research Lines - Collapsible */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <Collapsible open={showResearchLines} onOpenChange={setShowResearchLines}>
+          <div className="glass-card p-5 rounded-2xl">
+            <CollapsibleTrigger asChild>
+              <div className="flex items-center justify-between cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-muted/50">
+                    <ListTree className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground">
+                      Líneas de Investigación
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {researchLines.length} líneas activas
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setResearchLinesOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Editar
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" className="text-primary">
+                    <ChevronDown className={`h-4 w-4 transition-transform ${showResearchLines ? "rotate-180" : ""}`} />
+                    {showResearchLines ? "Ocultar" : "Ver todas"}
+                  </Button>
+                </div>
+              </div>
+            </CollapsibleTrigger>
+
+            {/* Preview of first 5 lines when collapsed */}
+            {!showResearchLines && researchLines.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {researchLines.slice(0, 5).map((line, idx) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1 text-xs rounded-full bg-primary/10 text-primary border border-primary/20"
+                  >
+                    {line}
+                  </span>
+                ))}
+                {researchLines.length > 5 && (
+                  <span className="px-3 py-1 text-xs rounded-full bg-muted text-muted-foreground">
+                    +{researchLines.length - 5} más
+                  </span>
+                )}
+              </div>
+            )}
+
+            <CollapsibleContent>
+              <div className="mt-4 pt-4 border-t border-border/50">
+                {researchLines.length > 0 ? (
+                  <Accordion type="single" collapsible className="w-full">
+                    {researchLines.map((line, idx) => (
+                      <AccordionItem key={idx} value={`item-${idx}`} className="border-border/50">
+                        <AccordionTrigger className="text-sm hover:text-primary py-3">
+                          {line}
+                        </AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground text-sm">
+                          Línea de investigación activa del grupo GISICF.
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No hay líneas de investigación definidas
+                  </p>
+                )}
+              </div>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
+      </motion.div>
+
+      {/* Edit Dialogs */}
+      <EditDialog
+        open={missionOpen}
+        onOpenChange={setMissionOpen}
+        title="Misión"
+        value={missionText}
+        onChange={setMissionText}
+        field="mission_text"
+      />
+      <EditDialog
+        open={visionOpen}
+        onOpenChange={setVisionOpen}
+        title="Visión"
+        value={visionText}
+        onChange={setVisionText}
+        field="vision_text"
+      />
+      <EditDialog
+        open={objectivesOpen}
+        onOpenChange={setObjectivesOpen}
+        title="Objetivos"
+        value={objectivesText}
+        onChange={setObjectivesText}
+        field="objectives_text"
+      />
 
       {/* Research Lines Manager Dialog */}
       <ResearchLinesManager
