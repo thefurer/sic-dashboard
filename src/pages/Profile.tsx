@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getSignedUrl } from "@/hooks/useSignedUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { COUNTRIES, getCountryByCode, detectCountryFromPhone } from "@/lib/countryUtils";
+import { OrcidInput } from "@/components/ui/OrcidInput";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -374,25 +375,7 @@ export default function Profile() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="orcid" className="flex items-center gap-2">
-                    <LinkIcon className="h-4 w-4" />
-                    Código ORCID *
-                  </Label>
-                  <Input 
-                    id="orcid" 
-                    value={orcid} 
-                    onChange={(e) => setOrcid(e.target.value)} 
-                    className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50 font-mono"
-                    placeholder="0000-0002-7793-9871"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Formato: 0000-0000-0000-0000. Obtén tu ORCID en{' '}
-                    <a href="https://orcid.org/register" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      orcid.org
-                    </a>
-                  </p>
-                </div>
+                <OrcidInput value={orcid} onChange={setOrcid} />
 
                 <div className="space-y-2">
                   <Label>Foto de perfil (opcional)</Label>

@@ -1,11 +1,13 @@
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
-import { LayoutDashboard, ClipboardCheck, Users, UserPlus, FileText, CheckSquare, CalendarClock, Settings, Landmark, FolderOpen, ChevronDown } from "lucide-react";
+import { LayoutDashboard, ClipboardCheck, Users, UserPlus, FileText, CheckSquare, CalendarClock, Settings, Landmark, FolderOpen, ChevronDown, LogOut } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/hooks/useAuth";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 // Base menu items visible to all users
 const baseMenuItems = [{
@@ -69,6 +71,7 @@ export function AppSidebar() {
   const {
     data: userRole
   } = useUserRole();
+  const { signOut } = useAuth();
   const isAdmin = userRole === "admin";
   const isExpanded = state === "expanded";
   const [navOpen, setNavOpen] = useState(true);
@@ -182,6 +185,36 @@ export function AppSidebar() {
             </>}
         </div>
         
+        {/* Logout Button - Always visible */}
+        <div className="p-3 border-t border-white/10">
+          {isExpanded ? (
+            <Button
+              onClick={signOut}
+              variant="ghost"
+              className="w-full justify-start gap-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+            >
+              <LogOut className="h-5 w-5" />
+              Cerrar Sesión
+            </Button>
+          ) : (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={signOut}
+                  variant="ghost"
+                  size="icon"
+                  className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-slate-900 text-white border-white/20 px-3 py-2 rounded-lg shadow-xl" sideOffset={8}>
+                <span className="font-medium">Cerrar Sesión</span>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+
         {/* Bottom branding */}
         <div className="p-4 border-t border-white/10">
           {isExpanded ? <p className="text-[10px] text-white/30 text-center">© 2026 GISICF - UNESUM</p> : <div className="w-2 h-2 rounded-full bg-[hsl(153,100%,35%)] mx-auto glow-green" />}
