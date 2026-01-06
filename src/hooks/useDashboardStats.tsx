@@ -41,12 +41,12 @@ export const useDashboardStats = (isAdmin: boolean) => {
         .eq("investigator_id", user.id)
         .eq("status", "In Progress");
 
-      // Fetch user's pending tasks
+      // Fetch user's pending tasks (pending or observado)
       const { count: pendingTasks } = await supabase
         .from("assigned_tasks")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .eq("status", "pending");
+        .in("status", ["pending", "observado"]);
 
       // Fetch user's evaluation for current year
       const { data: evaluation } = await supabase
