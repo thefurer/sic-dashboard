@@ -14,6 +14,7 @@ import { QuickAccessWidgets } from "@/components/dashboard/QuickAccessWidgets";
 import { UserStatusPanel } from "@/components/dashboard/UserStatusPanel";
 import { QuickStatsRow } from "@/components/dashboard/QuickStatsRow";
 import { MonthlyProgressChart } from "@/components/dashboard/MonthlyProgressChart";
+import { CompleteProfileBanner } from "@/components/dashboard/CompleteProfileBanner";
 import {
   Carousel,
   CarouselContent,
@@ -39,6 +40,9 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-[70vh] font-sans space-y-6">
+      {/* Complete Profile Banner */}
+      <CompleteProfileBanner />
+
       {/* Welcome Greeting - NEW */}
       <WelcomeGreeting userName={profile?.full_name || "Investigador"} />
 

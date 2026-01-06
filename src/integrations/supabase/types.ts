@@ -540,12 +540,14 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          country_code: string | null
           created_at: string
           cv_url: string | null
           full_name: string
           id: string
           is_approved: boolean
           last_login_at: string | null
+          orcid: string | null
           research_role: string | null
           researcher_code: string | null
           updated_at: string
@@ -553,12 +555,14 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          country_code?: string | null
           created_at?: string
           cv_url?: string | null
           full_name: string
           id: string
           is_approved?: boolean
           last_login_at?: string | null
+          orcid?: string | null
           research_role?: string | null
           researcher_code?: string | null
           updated_at?: string
@@ -566,12 +570,14 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          country_code?: string | null
           created_at?: string
           cv_url?: string | null
           full_name?: string
           id?: string
           is_approved?: boolean
           last_login_at?: string | null
+          orcid?: string | null
           research_role?: string | null
           researcher_code?: string | null
           updated_at?: string
