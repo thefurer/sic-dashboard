@@ -3,20 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AccessibilityMenu } from "@/components/accessibility/AccessibilityMenu";
-
 export default function TermsOfService() {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <AccessibilityMenu />
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6"
-        >
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver
         </Button>
@@ -24,22 +17,14 @@ export default function TermsOfService() {
         <Card>
           <CardHeader className="text-center border-b">
             <div className="flex justify-center gap-4 mb-4">
-              <img
-                src="/logos/logo_unesum.png"
-                alt="Logo UNESUM"
-                className="h-16 object-contain"
-              />
-              <img
-                src="/logos/logo_carrera_unesum.png"
-                alt="Logo Carrera"
-                className="h-16 object-contain"
-              />
+              <img src="/logos/logo_unesum.png" alt="Logo UNESUM" className="h-16 object-contain" />
+              <img src="/logos/logo_carrera_unesum.png" alt="Logo Carrera" className="h-16 object-contain" />
             </div>
             <CardTitle className="text-2xl font-bold text-primary">
               Términos de Uso
             </CardTitle>
             <p className="text-muted-foreground text-sm mt-2">
-              Última actualización: Diciembre 2024
+              Última actualización: Enero 2026 
             </p>
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none p-6 space-y-6">
@@ -188,6 +173,5 @@ export default function TermsOfService() {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 }
