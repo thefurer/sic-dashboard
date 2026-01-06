@@ -8,6 +8,11 @@ import { NewsDetailModal } from "@/components/news/NewsDetailModal";
 import { NewsManager } from "@/components/news/NewsManager";
 import { useProfile } from "@/hooks/useProfile";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { WelcomeGreeting } from "@/components/dashboard/WelcomeGreeting";
+import { QuickAccessWidgets } from "@/components/dashboard/QuickAccessWidgets";
+import { UserStatusPanel } from "@/components/dashboard/UserStatusPanel";
+import { QuickStatsRow } from "@/components/dashboard/QuickStatsRow";
 import {
   Carousel,
   CarouselContent,
@@ -27,10 +32,24 @@ const Dashboard = () => {
   
   // Super admin check - only admin role gets news management
   const isSuperAdmin = userRole === "admin";
+  
+  // Dashboard stats
+  const { data: stats, isLoading: statsLoading } = useDashboardStats(isSuperAdmin);
 
   return (
-    <div className="min-h-[70vh] font-sans space-y-8">
-      {/* Header Section */}
+    <div className="min-h-[70vh] font-sans space-y-6">
+      {/* Welcome Greeting - NEW */}
+      <WelcomeGreeting userName={profile?.full_name || "Investigador"} />
+
+      {/* Quick Access Widgets - NEW */}
+      <QuickAccessWidgets isAdmin={isSuperAdmin} />
+
+      {/* Quick Stats Row - NEW */}
+      {stats && (
+        <QuickStatsRow stats={stats} isAdmin={isSuperAdmin} isLoading={statsLoading} />
+      )}
+
+      {/* Header Section - EXISTING */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="relative">
@@ -58,11 +77,11 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Bento Grid Layout */}
+      {/* Bento Grid Layout - EXISTING with UserStatusPanel added */}
       <div className="bento-grid">
         {/* Main News Section - spans 8 columns */}
-        <div className="col-span-12">
-          <div className="metric-tile !p-8">
+        <div className="col-span-12 lg:col-span-8">
+          <div className="metric-tile !p-8 h-full">
             <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-3">
               <Newspaper className="h-5 w-5 text-primary" />
               Últimas Noticias
@@ -85,7 +104,7 @@ const Dashboard = () => {
                 >
                   <CarouselContent className="-ml-4">
                     {newsPosts.map((news) => (
-                      <CarouselItem key={news.id} className="pl-4 md:basis-1/2">
+                      <CarouselItem key={news.id} className="pl-4 basis-full md:basis-1/2">
                         <NewsCard
                           title={news.title}
                           shortDescription={news.short_description}
@@ -116,8 +135,14 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* User Status Panel - NEW */}
+        <div className="col-span-12 lg:col-span-4">
+          {stats && (
+            <UserStatusPanel stats={stats} isAdmin={isSuperAdmin} isLoading={statsLoading} />
+          )}
+        </div>
 
-        {/* Recent Activity Timeline - Full Width */}
+        {/* Recent Activity Timeline - Full Width - EXISTING */}
         <div className="col-span-12">
           <div className="metric-tile">
             <div className="flex items-center gap-3 mb-6">
@@ -158,14 +183,14 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Detail Modal */}
+      {/* Detail Modal - EXISTING */}
       <NewsDetailModal
         news={selectedNews}
         open={!!selectedNews}
         onOpenChange={(open) => !open && setSelectedNews(null)}
       />
 
-      {/* Manager Modal */}
+      {/* Manager Modal - EXISTING */}
       {isSuperAdmin && (
         <NewsManager open={showManager} onOpenChange={setShowManager} />
       )}
