@@ -63,16 +63,6 @@ export async function generateGlobalEvaluationReport(
     14,
     y
   );
-  y += 6;
-
-  const averageScore =
-    reports.length > 0
-      ? (
-          reports.reduce((sum, r) => sum + (r.total_score || 0), 0) /
-          reports.length
-        ).toFixed(2)
-      : "0.00";
-  doc.text(`Puntuación Promedio: ${averageScore}/100 pts`, 14, y);
   y += 10;
 
   // Main table with all researchers
@@ -164,17 +154,18 @@ export async function generateGlobalEvaluationReport(
     doc.setLineWidth(0.5);
     doc.line(xPos - 30, sigY, xPos + 30, sigY);
 
-    // Name
+    // Name - more spacing
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    const nameLines = doc.splitTextToSize(sig.name, 70);
-    doc.text(nameLines, xPos, sigY + 5, { align: "center" });
+    const nameLines = doc.splitTextToSize(sig.name, 55);
+    doc.text(nameLines, xPos, sigY + 6, { align: "center" });
 
-    // Title
+    // Title - more spacing and better line height
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    const titleLines = doc.splitTextToSize(sig.title, 70);
-    doc.text(titleLines, xPos, sigY + 5 + nameLines.length * 4, {
+    doc.setFontSize(8);
+    const titleLines = doc.splitTextToSize(sig.title, 55);
+    const nameHeight = nameLines.length * 5;
+    doc.text(titleLines, xPos, sigY + 6 + nameHeight + 2, {
       align: "center",
     });
   });
