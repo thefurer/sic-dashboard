@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { drawPDFHeader } from "./pdfHeaderUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ApprovedReport {
   id: string;
@@ -19,6 +20,16 @@ export async function generateGlobalEvaluationReport(
   reports: ApprovedReport[],
   year: number
 ) {
+  // Fetch signature settings from database
+  const { data: settings } = await supabase
+    .from("app_settings")
+    .select("signature_president_name, signature_coordinator_name, signature_responsible_name")
+    .single();
+
+  // Order: 1. Coordinador Grupo GISICF, 2. Responsable Comisión, 3. Coordinador Carrera
+  const coordinadorGrupoName = settings?.signature_coordinator_name || "Ing. Christian Caicedo Plúa, PhD";
+  const responsableComisionName = settings?.signature_responsible_name || "Ing. Karina Mero, MSc";
+  const coordinadorCarreraName = settings?.signature_president_name || "Ing. Javier Marcillo Merino, Mg";
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -138,14 +149,11 @@ export async function generateGlobalEvaluationReport(
   const sigY = finalY > pageHeight - 60 ? 40 : finalY;
   const colWidth = (pageWidth - 28) / 3;
 
-  // Three signatures: President, Responsible, Coordinator
+  // Three signatures in order: Coordinador Grupo, Responsable Comisión, Coordinador Carrera
   const signatures = [
-    { title: "Presidente", name: "Ing. Christian Caicedo Plúa, PhD" },
-    {
-      title: "Responsable Comisión de Investigación",
-      name: "Ing. María González, MSc",
-    },
-    { title: "Coordinador", name: "Ing. Javier Marcillo Merino, Mg" },
+    { title: "Coordinador del Grupo de Investigación GISICF", name: coordinadorGrupoName },
+    { title: "Responsable Comisión de Investigación", name: responsableComisionName },
+    { title: "Coordinador de la Carrera de TI", name: coordinadorCarreraName },
   ];
 
   signatures.forEach((sig, index) => {
