@@ -2,6 +2,7 @@ import { motion, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import { Users, FileText, FolderOpen, BookOpen } from "lucide-react";
 import { useLandingStats } from "@/hooks/useLandingStats";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface StatItemProps {
   icon: React.ElementType;
@@ -60,8 +61,18 @@ function StatItem({ icon: Icon, value, label, suffix = "+" }: StatItemProps) {
   );
 }
 
+function StatSkeleton() {
+  return (
+    <div className="flex flex-col items-center text-center p-6">
+      <Skeleton className="w-14 h-14 rounded-2xl mb-4" />
+      <Skeleton className="h-12 w-24 mb-2" />
+      <Skeleton className="h-5 w-32" />
+    </div>
+  );
+}
+
 export function AnimatedStats() {
-  const { data: stats } = useLandingStats();
+  const { data: stats, isLoading } = useLandingStats();
 
   const statItems = [
     { icon: Users, value: stats?.researchers || 0, label: "Investigadores Activos", suffix: "+" },
@@ -84,15 +95,24 @@ export function AnimatedStats() {
           transition={{ duration: 0.6 }}
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            {statItems.map((stat) => (
-              <StatItem
-                key={stat.label}
-                icon={stat.icon}
-                value={stat.value}
-                label={stat.label}
-                suffix={stat.suffix}
-              />
-            ))}
+            {isLoading ? (
+              <>
+                <StatSkeleton />
+                <StatSkeleton />
+                <StatSkeleton />
+                <StatSkeleton />
+              </>
+            ) : (
+              statItems.map((stat) => (
+                <StatItem
+                  key={stat.label}
+                  icon={stat.icon}
+                  value={stat.value}
+                  label={stat.label}
+                  suffix={stat.suffix}
+                />
+              ))
+            )}
           </div>
         </motion.div>
       </div>
