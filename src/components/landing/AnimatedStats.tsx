@@ -1,6 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import { Users, FileText, FolderOpen, BookOpen } from "lucide-react";
+import { useLandingStats } from "@/hooks/useLandingStats";
 
 interface StatItemProps {
   icon: React.ElementType;
@@ -59,14 +60,16 @@ function StatItem({ icon: Icon, value, label, suffix = "+" }: StatItemProps) {
   );
 }
 
-const stats = [
-  { icon: Users, value: 50, label: "Investigadores Activos", suffix: "+" },
-  { icon: FileText, value: 120, label: "Publicaciones Indexadas", suffix: "+" },
-  { icon: FolderOpen, value: 35, label: "Proyectos Ejecutados", suffix: "+" },
-  { icon: BookOpen, value: 17, label: "Líneas de Investigación", suffix: "" },
-];
-
 export function AnimatedStats() {
+  const { data: stats } = useLandingStats();
+
+  const statItems = [
+    { icon: Users, value: stats?.researchers || 0, label: "Investigadores Activos", suffix: "+" },
+    { icon: FileText, value: stats?.publications || 0, label: "Publicaciones Indexadas", suffix: "+" },
+    { icon: FolderOpen, value: stats?.projects || 0, label: "Proyectos Ejecutados", suffix: "+" },
+    { icon: BookOpen, value: stats?.researchLines || 17, label: "Líneas de Investigación", suffix: "" },
+  ];
+
   return (
     <section className="py-16 relative overflow-hidden">
       {/* Background decoration */}
@@ -81,7 +84,7 @@ export function AnimatedStats() {
           transition={{ duration: 0.6 }}
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            {stats.map((stat, index) => (
+            {statItems.map((stat) => (
               <StatItem
                 key={stat.label}
                 icon={stat.icon}
