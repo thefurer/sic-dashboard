@@ -19,7 +19,8 @@ export default function ProjectSelector({ value, onChange, required }: ProjectSe
       const { data, error } = await supabase
         .from("official_projects")
         .select("*")
-        .eq("year", currentYear)
+        .gte("year", currentYear - 1)
+        .order("year", { ascending: false })
         .order("name");
       
       if (error) throw error;
