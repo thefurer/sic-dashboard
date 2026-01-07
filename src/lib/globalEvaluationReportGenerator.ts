@@ -9,6 +9,7 @@ interface ApprovedReport {
   total_score: number;
   status: string;
   reviewed_at: string | null;
+  admin_observations?: string | null;
   profiles?: {
     full_name: string;
   };
@@ -42,8 +43,12 @@ export async function generateGlobalEvaluationReport(
   // Summary stats
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
+  
+  const completedCount = reports.filter(r => r.status === 'approved').length;
+  const incompleteCount = reports.length - completedCount;
+  
   doc.text(
-    `Total de Evaluaciones Aprobadas: ${reports.length}`,
+    `Total de Evaluaciones: ${reports.length} (Completas: ${completedCount}, Incompletas: ${incompleteCount})`,
     14,
     y
   );
@@ -59,21 +64,41 @@ export async function generateGlobalEvaluationReport(
   doc.text(`Puntuación Promedio: ${averageScore}/100 pts`, 14, y);
   y += 10;
 
-  // Main table with all approved researchers
+  // Main table with all researchers
   const tableData = reports
     .sort((a, b) => (b.total_score || 0) - (a.total_score || 0))
-    .map((report, index) => [
-      (index + 1).toString(),
-      report.profiles?.full_name || "Sin nombre",
-      `${(report.total_score || 0).toFixed(1)}/100`,
-      report.reviewed_at
-        ? new Date(report.reviewed_at).toLocaleDateString("es-ES")
-        : "N/A",
-    ]);
+    .map((report, index) => {
+      const isApproved = report.status === 'approved';
+      const hasObservations = report.admin_observations && report.admin_observations.trim() !== '';
+      
+      // Determine estado based on status
+      const estado = isApproved ? 'Completo' : 'Incompleto';
+      
+      // Calculate puntuación: 100/100 if approved, 0/100 if incomplete or has observations
+      const puntuacion = isApproved ? '100/100' : '0/100';
+      
+      // Get observations or show "Sin observaciones"
+      const observaciones = hasObservations 
+        ? (report.admin_observations!.length > 50 
+            ? report.admin_observations!.substring(0, 50) + '...' 
+            : report.admin_observations!)
+        : 'Sin observaciones';
+      
+      return [
+        (index + 1).toString(),
+        report.profiles?.full_name || "Sin nombre",
+        puntuacion,
+        estado,
+        observaciones,
+        report.reviewed_at
+          ? new Date(report.reviewed_at).toLocaleDateString("es-ES")
+          : "N/A",
+      ];
+    });
 
   autoTable(doc, {
     startY: y,
-    head: [["N°", "Investigador", "Puntuación Total", "Fecha Aprobación"]],
+    head: [["N°", "Investigador", "Puntuación", "Estado", "Observaciones", "Fecha Revisión"]],
     body: tableData,
     theme: "grid",
     headStyles: {
@@ -81,17 +106,19 @@ export async function generateGlobalEvaluationReport(
       textColor: [0, 0, 0],
       fontStyle: "bold",
       halign: "center",
-      fontSize: 10,
+      fontSize: 9,
     },
     styles: {
-      fontSize: 9,
-      cellPadding: 4,
+      fontSize: 8,
+      cellPadding: 3,
     },
     columnStyles: {
-      0: { halign: "center", cellWidth: 15 },
-      1: { halign: "left" },
-      2: { halign: "center", cellWidth: 35 },
-      3: { halign: "center", cellWidth: 35 },
+      0: { halign: "center", cellWidth: 12 },
+      1: { halign: "left", cellWidth: 40 },
+      2: { halign: "center", cellWidth: 22 },
+      3: { halign: "center", cellWidth: 22 },
+      4: { halign: "left", cellWidth: 55 },
+      5: { halign: "center", cellWidth: 28 },
     },
     didDrawPage: (data) => {
       drawPageFooter(doc);

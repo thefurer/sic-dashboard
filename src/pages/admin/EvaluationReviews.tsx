@@ -119,15 +119,18 @@ export default function EvaluationReviews() {
 
   const handleGenerateGlobalReport = async () => {
     try {
-      const approvedReports = reports?.filter(r => r.status === 'approved') || [];
+      // Include all reports (submitted, needs_correction, approved) for the general report
+      const allReviewedReports = reports?.filter(r => 
+        r.status === 'approved' || r.status === 'needs_correction' || r.status === 'submitted'
+      ) || [];
       
-      if (approvedReports.length === 0) {
-        toast.error("No hay evaluaciones aprobadas para generar el informe");
+      if (allReviewedReports.length === 0) {
+        toast.error("No hay evaluaciones para generar el informe");
         return;
       }
 
       toast.loading("Generando informe global...");
-      await generateGlobalEvaluationReport(approvedReports, parseInt(selectedYear));
+      await generateGlobalEvaluationReport(allReviewedReports, parseInt(selectedYear));
       toast.dismiss();
       toast.success("Informe global generado exitosamente");
     } catch (error: any) {
