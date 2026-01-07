@@ -273,7 +273,9 @@ export default function EvaluationReviews() {
                       </TableCell>
                       <TableCell>{report.year}</TableCell>
                       <TableCell>
-                        <span className="font-semibold">{report.total_score}/100</span>
+                        <span className="font-semibold">
+                          {report.status === 'approved' ? '100/100' : '0/100'}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <Badge className={`${statusConfig.bg} ${statusConfig.text} border-0`}>
