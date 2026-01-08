@@ -358,6 +358,7 @@ export type Database = {
       official_projects: {
         Row: {
           created_at: string
+          documents: Json | null
           id: string
           name: string
           project_document_url: string | null
@@ -366,6 +367,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          documents?: Json | null
           id?: string
           name: string
           project_document_url?: string | null
@@ -374,6 +376,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          documents?: Json | null
           id?: string
           name?: string
           project_document_url?: string | null

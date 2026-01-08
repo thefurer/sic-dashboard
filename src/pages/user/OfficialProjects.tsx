@@ -7,13 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { FileText, ExternalLink, Upload, Loader2 } from "lucide-react";
+import { FileText, ExternalLink, Upload, Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
+
+interface ProjectDocument {
+  url: string;
+  name: string;
+  uploaded_at: string;
+  [key: string]: string; // Index signature for Json compatibility
+}
 
 export default function OfficialProjects() {
-  const [uploadingProjectId, setUploadingProjectId] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [documentName, setDocumentName] = useState("");
   const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -31,7 +41,12 @@ export default function OfficialProjects() {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: async ({ projectId, file }: { projectId: string; file: File }) => {
+    mutationFn: async ({ projectId, file, name, currentDocs }: { 
+      projectId: string; 
+      file: File; 
+      name: string;
+      currentDocs: ProjectDocument[];
+    }) => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `project-docs/${fileName}`;
@@ -46,35 +61,112 @@ export default function OfficialProjects() {
         .from('institutional-docs')
         .getPublicUrl(filePath);
 
+      const newDoc: ProjectDocument = {
+        url: publicUrl,
+        name: name || file.name,
+        uploaded_at: new Date().toISOString()
+      };
+
+      const updatedDocs = [...currentDocs, newDoc];
+
       const { error: updateError } = await supabase
         .from("official_projects")
-        .update({ project_document_url: publicUrl })
+        .update({ 
+          documents: updatedDocs,
+          project_document_url: updatedDocs[0]?.url || null
+        })
         .eq("id", projectId);
 
       if (updateError) throw updateError;
+
+      return updatedDocs;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["official-projects"] });
       toast.success("Documento subido correctamente");
-      setIsDialogOpen(false);
+      setIsUploadDialogOpen(false);
       setSelectedFile(null);
-      setUploadingProjectId(null);
+      setDocumentName("");
     },
     onError: (error: any) => {
       toast.error("Error al subir el documento", { description: error.message });
     },
   });
 
-  const handleUploadClick = (projectId: string) => {
-    setUploadingProjectId(projectId);
-    setIsDialogOpen(true);
+  const deleteMutation = useMutation({
+    mutationFn: async ({ projectId, docIndex, currentDocs }: { 
+      projectId: string; 
+      docIndex: number;
+      currentDocs: ProjectDocument[];
+    }) => {
+      const updatedDocs = currentDocs.filter((_, i) => i !== docIndex);
+
+      const { error } = await supabase
+        .from("official_projects")
+        .update({ 
+          documents: updatedDocs,
+          project_document_url: updatedDocs[0]?.url || null
+        })
+        .eq("id", projectId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["official-projects"] });
+      toast.success("Documento eliminado");
+    },
+    onError: (error: any) => {
+      toast.error("Error al eliminar", { description: error.message });
+    },
+  });
+
+  const handleUploadClick = (project: any) => {
+    setSelectedProject(project);
+    setIsUploadDialogOpen(true);
+  };
+
+  const handleViewDocs = (project: any) => {
+    setSelectedProject(project);
+    setIsViewDialogOpen(true);
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !uploadingProjectId) return;
+    if (!selectedFile || !selectedProject) return;
     setUploading(true);
-    await uploadMutation.mutateAsync({ projectId: uploadingProjectId, file: selectedFile });
+    const currentDocs = (selectedProject.documents as ProjectDocument[]) || [];
+    await uploadMutation.mutateAsync({ 
+      projectId: selectedProject.id, 
+      file: selectedFile,
+      name: documentName,
+      currentDocs
+    });
     setUploading(false);
+  };
+
+  const handleDeleteDoc = (docIndex: number) => {
+    if (!selectedProject) return;
+    if (confirm("¿Eliminar este documento?")) {
+      const currentDocs = (selectedProject.documents as ProjectDocument[]) || [];
+      deleteMutation.mutate({
+        projectId: selectedProject.id,
+        docIndex,
+        currentDocs
+      });
+      // Update local state
+      const updatedDocs = currentDocs.filter((_, i) => i !== docIndex);
+      setSelectedProject({ ...selectedProject, documents: updatedDocs });
+    }
+  };
+
+  const getDocuments = (project: any): ProjectDocument[] => {
+    if (Array.isArray(project.documents)) {
+      return project.documents;
+    }
+    // Fallback for old format
+    if (project.project_document_url) {
+      return [{ url: project.project_document_url, name: 'Documento', uploaded_at: project.created_at }];
+    }
+    return [];
   };
 
   if (isLoading) {
@@ -101,41 +193,41 @@ export default function OfficialProjects() {
                 <TableRow>
                   <TableHead>Nombre del Proyecto</TableHead>
                   <TableHead>Año</TableHead>
-                  <TableHead className="text-right">Documento</TableHead>
+                  <TableHead className="text-right">Documentos</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projects.map((project) => (
-                  <TableRow key={project.id}>
-                    <TableCell className="font-medium">{project.name}</TableCell>
-                    <TableCell>{project.year}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {project.project_document_url ? (
+                {projects.map((project) => {
+                  const docs = getDocuments(project);
+                  return (
+                    <TableRow key={project.id}>
+                      <TableCell className="font-medium">{project.name}</TableCell>
+                      <TableCell>{project.year}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          {docs.length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewDocs(project)}
+                            >
+                              <FileText className="w-4 h-4 mr-2" />
+                              Ver ({docs.length})
+                            </Button>
+                          )}
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            onClick={() => window.open(project.project_document_url, '_blank')}
+                            onClick={() => handleUploadClick(project)}
                           >
-                            <FileText className="w-4 h-4 mr-2" />
-                            Ver Documento
-                            <ExternalLink className="w-3 h-3 ml-1" />
+                            <Plus className="w-4 h-4 mr-1" />
+                            Agregar
                           </Button>
-                        ) : (
-                          <span className="text-muted-foreground text-sm mr-2">Sin documento</span>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleUploadClick(project.id)}
-                        >
-                          <Upload className="w-4 h-4 mr-1" />
-                          {project.project_document_url ? "Cambiar" : "Subir"}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           ) : (
@@ -146,20 +238,32 @@ export default function OfficialProjects() {
         </CardContent>
       </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={(open) => {
-        setIsDialogOpen(open);
+      {/* Upload Dialog */}
+      <Dialog open={isUploadDialogOpen} onOpenChange={(open) => {
+        setIsUploadDialogOpen(open);
         if (!open) {
           setSelectedFile(null);
-          setUploadingProjectId(null);
+          setDocumentName("");
+          setSelectedProject(null);
         }
       }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Subir Documento del Proyecto</DialogTitle>
+            <DialogTitle>Agregar Documento</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label htmlFor="document">Documento (PDF)</Label>
+              <Label htmlFor="docName">Nombre del Documento</Label>
+              <Input
+                id="docName"
+                value={documentName}
+                onChange={(e) => setDocumentName(e.target.value)}
+                placeholder="Ej: Propuesta de Proyecto"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="document">Archivo (PDF)</Label>
               <Input
                 id="document"
                 type="file"
@@ -179,10 +283,72 @@ export default function OfficialProjects() {
                   Subiendo...
                 </>
               ) : (
-                "Subir Documento"
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Subir Documento
+                </>
               )}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Documents Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={(open) => {
+        setIsViewDialogOpen(open);
+        if (!open) setSelectedProject(null);
+      }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Documentos del Proyecto</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-4 max-h-[400px] overflow-y-auto">
+            {selectedProject && getDocuments(selectedProject).map((doc, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3 min-w-0">
+                  <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{doc.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(doc.uploaded_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => window.open(doc.url, '_blank')}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteDoc(index)}
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+            {selectedProject && getDocuments(selectedProject).length === 0 && (
+              <p className="text-center text-muted-foreground py-4">
+                No hay documentos
+              </p>
+            )}
+          </div>
+          <Button 
+            variant="outline" 
+            className="w-full mt-2"
+            onClick={() => {
+              setIsViewDialogOpen(false);
+              handleUploadClick(selectedProject);
+            }}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Agregar Documento
+          </Button>
         </DialogContent>
       </Dialog>
     </div>
