@@ -76,6 +76,23 @@ export function ActivityDialog({
       return;
     }
 
+    // Fetch emails for matching
+    const memberIds = data?.map((m: any) => m.profile_id) || [];
+    let emailMap = new Map<string, string>();
+    
+    if (memberIds.length > 0) {
+      const { data: contacts } = await supabase
+        .from("profile_contacts")
+        .select("user_id, email")
+        .in("user_id", memberIds);
+      
+      contacts?.forEach((c: any) => {
+        if (c.email) {
+          emailMap.set(c.email.toLowerCase(), c.user_id);
+        }
+      });
+    }
+
     const members = data?.map((m: any) => ({
       label: m.profiles.full_name,
       value: m.profile_id, // Use profile_id as value for proper task assignment
@@ -84,11 +101,23 @@ export function ActivityDialog({
 
     setTeamMembers(members);
 
-    // If editing, map existing responsibles (names) to IDs
+    // If editing, map existing responsibles (names or emails) to IDs
     if (activity && activity.responsibles) {
       const responsibleIds = activity.responsibles.map((name: string) => {
-        const member = members.find(m => m.fullName === name);
-        return member?.value || name;
+        // First try to find by full name
+        const member = members.find(m => m.fullName.toLowerCase() === name.toLowerCase());
+        if (member) return member.value;
+        
+        // Then try by email
+        const idByEmail = emailMap.get(name.toLowerCase());
+        if (idByEmail) return idByEmail;
+        
+        // Partial match
+        const partialMatch = members.find(m => 
+          m.fullName.toLowerCase().includes(name.toLowerCase()) ||
+          name.toLowerCase().includes(m.fullName.toLowerCase())
+        );
+        return partialMatch?.value || name;
       });
       setSelectedResponsibles(responsibleIds);
     }
