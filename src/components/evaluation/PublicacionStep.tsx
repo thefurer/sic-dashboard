@@ -573,9 +573,12 @@ export default function PublicacionStep({ reportId, items, onItemsChange, isRead
           reportId={reportId!}
           existingEntry={
             editingEntry
-              ? items
-                  .find((i) => i.indicator_name === editingEntry.indicator)
-                  ?.entries?.find((e) => e.id === editingEntry.entryId)
+              ? (() => {
+                  const item = items.find((i) => i.indicator_name === editingEntry.indicator);
+                  // Map evidence_details to entries if entries is not present
+                  const entries = item?.entries || (item as any)?.evidence_details || [];
+                  return entries.find((e: EntryData) => e.id === editingEntry.entryId);
+                })()
               : undefined
           }
         />

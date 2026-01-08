@@ -5,12 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, X, FileText, AlertTriangle, Search, Sparkles } from "lucide-react";
+import { Upload, X, FileText, AlertTriangle, Search, Sparkles, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDOIMetadata } from "@/hooks/useDOIMetadata";
 import { useISBNMetadata } from "@/hooks/useISBNMetadata";
-
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
 export type IndicatorType = "Artículos JCR/Scopus" | "Libros Científicos" | "Artículos Regionales" | "Ponencias";
 
 export interface EntryData {
@@ -48,6 +52,9 @@ export default function EntryFormDialog({
   const [uploading, setUploading] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [autoDetected, setAutoDetected] = useState(false);
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
+  const [customAuthor, setCustomAuthor] = useState("");
+  const [authorPopoverOpen, setAuthorPopoverOpen] = useState(false);
 
   const { fetchMetadata: fetchDOI, isLoading: loadingDOI } = useDOIMetadata();
   const { fetchMetadata: fetchISBN, isLoading: loadingISBN } = useISBNMetadata();
@@ -56,22 +63,56 @@ export default function EntryFormDialog({
   const isArticle = indicatorType.includes("Artículos");
   const isBook = indicatorType === "Libros Científicos";
 
+  // Fetch profiles for author selection in Ponencias
+  const { data: profiles } = useQuery({
+    queryKey: ["profiles-for-authors"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .order("full_name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: isPonencias,
+  });
+
+  // Generate year options (current year and 10 years back)
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 11 }, (_, i) => currentYear - i);
+
   // Reset form when dialog opens with new entry or populate when editing
   useEffect(() => {
     if (open) {
       if (existingEntry) {
-        setProjectType(existingEntry.project_type);
-        setMetadata(existingEntry.metadata);
-        setFiles(existingEntry.files);
+        setProjectType(existingEntry.project_type || "");
+        setMetadata(existingEntry.metadata || {});
+        setFiles(existingEntry.files || {});
+        // Restore selected authors for Ponencias
+        if (isPonencias && existingEntry.metadata?.selectedAuthors) {
+          setSelectedAuthors(existingEntry.metadata.selectedAuthors || []);
+        } else {
+          setSelectedAuthors([]);
+        }
+        // Restore search value for DOI/ISBN
+        if (existingEntry.metadata?.doi) {
+          setSearchValue(existingEntry.metadata.doi);
+        } else if (existingEntry.metadata?.isbn) {
+          setSearchValue(existingEntry.metadata.isbn);
+        } else {
+          setSearchValue("");
+        }
       } else {
         setProjectType("");
         setMetadata({});
         setFiles({});
         setSearchValue("");
         setAutoDetected(false);
+        setSelectedAuthors([]);
+        setCustomAuthor("");
       }
     }
-  }, [open, existingEntry]);
+  }, [open, existingEntry, isPonencias]);
 
   const sanitizeFilename = (filename: string): string => {
     return filename
@@ -465,15 +506,118 @@ export default function EntryFormDialog({
                 className="mt-1"
               />
             </div>
-            <div>
-              <Label>Autores *</Label>
-              <Input
-                value={metadata.authors || ""}
-                onChange={(e) => setMetadata({ ...metadata, authors: e.target.value })}
-                placeholder="Ingrese los autores"
-                className="mt-1"
-              />
-            </div>
+            
+            {/* Authors field - Multi-select for Ponencias, Input for others */}
+            {isPonencias ? (
+              <div>
+                <Label>Autores *</Label>
+                <div className="mt-1 space-y-2">
+                  {/* Selected authors display */}
+                  {selectedAuthors.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {selectedAuthors.map((author, index) => (
+                        <Badge key={index} variant="secondary" className="gap-1">
+                          {author}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newAuthors = selectedAuthors.filter((_, i) => i !== index);
+                              setSelectedAuthors(newAuthors);
+                              setMetadata({ 
+                                ...metadata, 
+                                authors: newAuthors.join(", "),
+                                selectedAuthors: newAuthors
+                              });
+                            }}
+                            className="ml-1 hover:text-destructive"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Author selector popover */}
+                  <Popover open={authorPopoverOpen} onOpenChange={setAuthorPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full justify-start">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Agregar autor
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar usuario..." />
+                        <CommandList>
+                          <CommandEmpty>No se encontraron usuarios.</CommandEmpty>
+                          <CommandGroup heading="Usuarios Registrados">
+                            {profiles?.filter(p => !selectedAuthors.includes(p.full_name)).map((profile) => (
+                              <CommandItem
+                                key={profile.id}
+                                onSelect={() => {
+                                  const newAuthors = [...selectedAuthors, profile.full_name];
+                                  setSelectedAuthors(newAuthors);
+                                  setMetadata({ 
+                                    ...metadata, 
+                                    authors: newAuthors.join(", "),
+                                    selectedAuthors: newAuthors
+                                  });
+                                  setAuthorPopoverOpen(false);
+                                }}
+                              >
+                                {profile.full_name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                      <div className="border-t p-2">
+                        <Label className="text-xs text-muted-foreground">Agregar otro autor</Label>
+                        <div className="flex gap-2 mt-1">
+                          <Input
+                            placeholder="Nombre del autor"
+                            value={customAuthor}
+                            onChange={(e) => setCustomAuthor(e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              if (customAuthor.trim()) {
+                                const newAuthors = [...selectedAuthors, customAuthor.trim()];
+                                setSelectedAuthors(newAuthors);
+                                setMetadata({ 
+                                  ...metadata, 
+                                  authors: newAuthors.join(", "),
+                                  selectedAuthors: newAuthors
+                                });
+                                setCustomAuthor("");
+                                setAuthorPopoverOpen(false);
+                              }
+                            }}
+                            disabled={!customAuthor.trim()}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <Label>Autores *</Label>
+                <Input
+                  value={metadata.authors || ""}
+                  onChange={(e) => setMetadata({ ...metadata, authors: e.target.value })}
+                  placeholder="Ingrese los autores"
+                  className="mt-1"
+                />
+              </div>
+            )}
+            
             {isArticle && (
               <div>
                 <Label>Revista *</Label>
@@ -516,15 +660,38 @@ export default function EntryFormDialog({
                 </div>
               </>
             )}
-            <div>
-              <Label>Año *</Label>
-              <Input
-                value={metadata.year || ""}
-                onChange={(e) => setMetadata({ ...metadata, year: e.target.value })}
-                placeholder="2024"
-                className="mt-1"
-              />
-            </div>
+            
+            {/* Year field - Select for Ponencias, Input for others */}
+            {isPonencias ? (
+              <div>
+                <Label>Año *</Label>
+                <Select 
+                  value={metadata.year || ""} 
+                  onValueChange={(value) => setMetadata({ ...metadata, year: value })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Seleccione año" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearOptions.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div>
+                <Label>Año *</Label>
+                <Input
+                  value={metadata.year || ""}
+                  onChange={(e) => setMetadata({ ...metadata, year: e.target.value })}
+                  placeholder="2024"
+                  className="mt-1"
+                />
+              </div>
+            )}
           </div>
 
           {/* Project Type */}
