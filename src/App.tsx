@@ -27,6 +27,8 @@ import MyTasks from "./pages/MyTasks";
 import TermsOfService from "./pages/legal/TermsOfService";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
 import LegalNotice from "./pages/legal/LegalNotice";
+import OfficialProjects from "./pages/user/OfficialProjects";
+import ResearcherDirectory from "./pages/user/ResearcherDirectory";
 
 const queryClient = new QueryClient();
 
@@ -114,6 +116,16 @@ const App = () => (
               <Route path="/my-tasks" element={
                 <ProtectedRoute>
                   <MainLayout><MyTasks /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/projects" element={
+                <ProtectedRoute>
+                  <MainLayout><OfficialProjects /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/researchers" element={
+                <ProtectedRoute>
+                  <MainLayout><ResearcherDirectory /></MainLayout>
                 </ProtectedRoute>
               } />
               <Route path="/legal/terms" element={<TermsOfService />} />

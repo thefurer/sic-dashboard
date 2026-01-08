@@ -29,6 +29,14 @@ const userOnlyItems = [{
   title: "Mis Actividades",
   url: "/my-tasks",
   icon: CheckSquare
+}, {
+  title: "Proyectos Oficiales",
+  url: "/projects",
+  icon: FolderOpen
+}, {
+  title: "Directorio de Investigadores",
+  url: "/researchers",
+  icon: Users
 }];
 
 // Admin menu items grouped
@@ -37,7 +45,7 @@ const adminItems = [{
   url: "/admin/pending-approvals",
   icon: UserPlus
 }, {
-  title: "Directorio de Usuarios",
+  title: "Directorio de Investigadores",
   url: "/admin/users",
   icon: Users
 }, {

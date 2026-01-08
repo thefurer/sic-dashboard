@@ -1,28 +1,18 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter, Clock, ChevronLeft, ChevronRight, Globe, Link as LinkIcon } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { Loader2, FileText, Eye, Filter, ChevronLeft, ChevronRight, Globe, Link as LinkIcon } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getSignedUrl } from "@/hooks/useSignedUrl";
 import { getCountryFlag, getCountryName } from "@/lib/countryUtils";
 
 const ITEMS_PER_PAGE = 5;
-
-interface ProfileContact {
-  email: string | null;
-  phone: string | null;
-}
 
 interface Profile {
   id: string;
@@ -32,12 +22,9 @@ interface Profile {
   bio: string | null;
   cv_url: string | null;
   is_approved: boolean;
-  created_at: string;
   research_role: string | null;
-  last_login_at: string | null;
   orcid: string | null;
   country_code: string | null;
-  contact?: ProfileContact | null;
 }
 
 const RESEARCH_ROLES = [
@@ -49,73 +36,22 @@ const RESEARCH_ROLES = [
   'Personal técnico'
 ];
 
-export default function UserDirectory() {
+export default function ResearcherDirectory() {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
-  const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
-    queryKey: ["all-users"],
+    queryKey: ["researchers-directory"],
     queryFn: async () => {
-      // Fetch profiles
-      const { data: profilesData, error: profilesError } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (profilesError) throw profilesError;
-
-      // Fetch contacts for all users (admin has access)
-      const { data: contactsData } = await supabase
-        .from("profile_contacts")
-        .select("user_id, email, phone");
-
-      // Merge contacts into profiles
-      const usersWithContacts = profilesData?.map(profile => ({
-        ...profile,
-        contact: contactsData?.find(c => c.user_id === profile.id) || null
-      })) || [];
-
-      return usersWithContacts as Profile[];
-    },
-  });
-
-  const updateRoleMutation = useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ research_role: role })
-        .eq("id", userId);
+        .select("id, full_name, avatar_url, researcher_code, bio, cv_url, is_approved, research_role, orcid, country_code")
+        .eq("is_approved", true)
+        .order("full_name", { ascending: true });
 
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["all-users"] });
-      toast.success("Rol actualizado correctamente");
-    },
-    onError: () => {
-      toast.error("Error al actualizar rol");
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (userId: string) => {
-      const { error } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", userId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["all-users"] });
-      toast.success("Usuario eliminado correctamente");
-      setUserToDelete(null);
-    },
-    onError: () => {
-      toast.error("Error al eliminar usuario");
+      return data as Profile[];
     },
   });
 
@@ -134,23 +70,21 @@ export default function UserDirectory() {
     return user.research_role === roleFilter;
   });
 
-  // Pagination logic
   const totalPages = Math.ceil((filteredUsers?.length || 0) / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedUsers = filteredUsers?.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  // Reset to page 1 when filter changes
   const handleFilterChange = (value: string) => {
     setRoleFilter(value);
     setCurrentPage(1);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-8">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Directorio de Investigadores</h1>
         <p className="text-muted-foreground mt-2">
-          Vista completa de todos los investigadores registrados en el sistema
+          Conoce a los investigadores registrados en el sistema
         </p>
       </div>
 
@@ -179,9 +113,9 @@ export default function UserDirectory() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Todos los Usuarios</CardTitle>
+          <CardTitle>Investigadores</CardTitle>
           <CardDescription>
-            {filteredUsers?.length || 0} usuarios mostrados {roleFilter !== "all" && `(de ${users?.length || 0} total)`}
+            {filteredUsers?.length || 0} investigadores {roleFilter !== "all" && `(de ${users?.length || 0} total)`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -194,21 +128,16 @@ export default function UserDirectory() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Usuario</TableHead>
+                    <TableHead>Investigador</TableHead>
                     <TableHead>Código</TableHead>
-                    <TableHead>Rol de Investigación</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Último acceso</TableHead>
+                    <TableHead>Rol</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedUsers.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell 
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => setSelectedUser(user)}
-                      >
+                      <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={user.avatar_url || undefined} />
@@ -226,56 +155,22 @@ export default function UserDirectory() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
-                        {user.researcher_code || "N/A"}
-                      </TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()}>
-                        <Select
-                          value={user.research_role || "none"}
-                          onValueChange={(value) =>
-                            updateRoleMutation.mutate({ userId: user.id, role: value === "none" ? "" : value })
-                          }
-                        >
-                          <SelectTrigger className="w-[200px]">
-                            <SelectValue placeholder="Sin rol" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Sin rol</SelectItem>
-                            {RESEARCH_ROLES.map((role) => (
-                              <SelectItem key={role} value={role}>
-                                {role}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
-                        {user.is_approved ? (
-                          <Badge className="bg-primary">Aprobado</Badge>
+                      <TableCell>{user.researcher_code || "N/A"}</TableCell>
+                      <TableCell>
+                        {user.research_role ? (
+                          <Badge variant="secondary">{user.research_role}</Badge>
                         ) : (
-                          <Badge variant="secondary">Pendiente</Badge>
+                          <span className="text-muted-foreground text-sm">Sin rol</span>
                         )}
-                      </TableCell>
-                      <TableCell onClick={() => setSelectedUser(user)} className="cursor-pointer">
-                        <div className="flex items-center gap-1 text-sm">
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          {user.last_login_at 
-                            ? format(new Date(user.last_login_at), "dd/MM/yyyy HH:mm", { locale: es })
-                            : "Nunca"
-                          }
-                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setUserToDelete(user);
-                          }}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          size="sm"
+                          onClick={() => setSelectedUser(user)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver perfil
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -283,11 +178,10 @@ export default function UserDirectory() {
                 </TableBody>
               </Table>
 
-              {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between border-t pt-4 mt-4">
                   <p className="text-sm text-muted-foreground">
-                    Mostrando {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredUsers?.length || 0)} de {filteredUsers?.length || 0} usuarios
+                    Mostrando {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredUsers?.length || 0)} de {filteredUsers?.length || 0}
                   </p>
                   <div className="flex items-center gap-2">
                     <Button
@@ -327,7 +221,7 @@ export default function UserDirectory() {
             </>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              No hay usuarios registrados
+              No hay investigadores registrados
             </div>
           )}
         </CardContent>
@@ -336,8 +230,8 @@ export default function UserDirectory() {
       <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Detalles del Usuario</DialogTitle>
-            <DialogDescription>Información completa del perfil</DialogDescription>
+            <DialogTitle>Perfil del Investigador</DialogTitle>
+            <DialogDescription>Información del perfil</DialogDescription>
           </DialogHeader>
           {selectedUser && (
             <div className="space-y-4">
@@ -350,29 +244,13 @@ export default function UserDirectory() {
                 </Avatar>
                 <div>
                   <h3 className="text-lg font-semibold">{selectedUser.full_name}</h3>
-                  {selectedUser.is_approved ? (
-                    <Badge className="bg-primary">Aprobado</Badge>
-                  ) : (
-                    <Badge variant="secondary">Pendiente</Badge>
+                  {selectedUser.research_role && (
+                    <Badge variant="secondary">{selectedUser.research_role}</Badge>
                   )}
                 </div>
               </div>
 
               <div className="space-y-3 border-t pt-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Email:</span>
-                  <span className="font-medium">{selectedUser.contact?.email || selectedUser.id}</span>
-                </div>
-
-                {selectedUser.contact?.phone && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Teléfono:</span>
-                    <span className="font-medium">{selectedUser.contact.phone}</span>
-                  </div>
-                )}
-
                 <div className="flex items-center gap-2 text-sm">
                   <Globe className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">País:</span>
@@ -405,83 +283,17 @@ export default function UserDirectory() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Último acceso:</span>
-                  <span className="font-medium">
-                    {selectedUser.last_login_at 
-                      ? format(new Date(selectedUser.last_login_at), "dd 'de' MMMM yyyy, HH:mm", { locale: es })
-                      : "Nunca ha iniciado sesión"
-                    }
-                  </span>
-                </div>
-
                 {selectedUser.bio && (
                   <div className="border-t pt-3">
                     <p className="text-sm text-muted-foreground mb-1">Biografía:</p>
                     <p className="text-sm">{selectedUser.bio}</p>
                   </div>
                 )}
-
-                {selectedUser.cv_url && (
-                  <div className="border-t pt-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        const url = await getSignedUrl('cvs', selectedUser.cv_url!);
-                        if (url) {
-                          window.open(url, '_blank');
-                        } else {
-                          toast.error('Error al abrir el CV');
-                        }
-                      }}
-                      className="w-full"
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver CV
-                    </Button>
-                  </div>
-                )}
               </div>
-              
-              <DialogFooter className="border-t pt-4">
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    setUserToDelete(selectedUser);
-                    setSelectedUser(null);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Eliminar Usuario
-                </Button>
-              </DialogFooter>
             </div>
           )}
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar usuario?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará permanentemente el perfil de{" "}
-              <span className="font-semibold">{userToDelete?.full_name}</span> y toda su información asociada.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => userToDelete && deleteMutation.mutate(userToDelete.id)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
