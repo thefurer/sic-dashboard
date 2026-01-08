@@ -341,7 +341,7 @@ export function ActivityDialog({
           </div>
 
           <div>
-            <Label>Responsables *</Label>
+            <Label>Responsables de la actividad *</Label>
             <MultiSelect
               options={teamMembers.map(m => ({ label: m.label, value: m.value }))}
               selected={selectedResponsibles}
