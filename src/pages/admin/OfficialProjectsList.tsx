@@ -44,7 +44,32 @@ export default function OfficialProjectsList() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (data: { id?: string; name: string; year: number }) => {
+    mutationFn: async (data: { id?: string; name: string; year: number; file?: File | null; docName?: string }) => {
+      let documents: ProjectDocument[] = [];
+
+      // Upload file if provided for new project
+      if (data.file && !data.id) {
+        const fileExt = data.file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `project-docs/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('institutional-docs')
+          .upload(filePath, data.file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('institutional-docs')
+          .getPublicUrl(filePath);
+
+        documents = [{
+          url: urlData.publicUrl,
+          name: data.docName || data.file.name,
+          uploaded_at: new Date().toISOString()
+        }];
+      }
+
       if (data.id) {
         const { error } = await supabase
           .from("official_projects")
@@ -61,7 +86,8 @@ export default function OfficialProjectsList() {
           .insert({ 
             name: data.name, 
             year: data.year,
-            documents: []
+            documents: documents as unknown as Json,
+            project_document_url: documents[0]?.url || null
           });
         if (error) throw error;
       }
@@ -206,11 +232,15 @@ export default function OfficialProjectsList() {
       return;
     }
 
+    setUploading(true);
     saveMutation.mutate({
       id: editingProject?.id,
       name: projectName,
       year: projectYear,
+      file: !editingProject ? projectFile : null,
+      docName: documentName
     });
+    setUploading(false);
   };
 
   const handleUploadDoc = async () => {
@@ -298,8 +328,32 @@ export default function OfficialProjectsList() {
                   className="mt-1"
                 />
               </div>
-              <Button onClick={handleSave} className="w-full" disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? "Guardando..." : "Guardar"}
+              {!editingProject && (
+                <>
+                  <div>
+                    <Label htmlFor="docName">Nombre del Documento</Label>
+                    <Input
+                      id="docName"
+                      value={documentName}
+                      onChange={(e) => setDocumentName(e.target.value)}
+                      placeholder="Ej: Propuesta de Proyecto"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="docFile">Documento del Proyecto (PDF)</Label>
+                    <Input
+                      id="docFile"
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(e) => setProjectFile(e.target.files?.[0] || null)}
+                      className="mt-1 cursor-pointer"
+                    />
+                  </div>
+                </>
+              )}
+              <Button onClick={handleSave} className="w-full" disabled={saveMutation.isPending || uploading}>
+                {saveMutation.isPending || uploading ? "Guardando..." : "Guardar"}
               </Button>
             </div>
           </DialogContent>
