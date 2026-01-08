@@ -277,7 +277,7 @@ export function ActivityDialog({
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="activity">Actividad *</Label>
+            <Label htmlFor="activity">Descripción de la actividad *</Label>
             <Textarea
               id="activity"
               value={activityText}
