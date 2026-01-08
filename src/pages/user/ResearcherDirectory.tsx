@@ -7,7 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2, FileText, Eye, Filter, ChevronLeft, ChevronRight, Globe, Link as LinkIcon } from "lucide-react";
+import { Loader2, FileText, Eye, Filter, ChevronLeft, ChevronRight, Globe, Link as LinkIcon, Download } from "lucide-react";
+import { getSignedUrl } from "@/hooks/useSignedUrl";
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getCountryFlag, getCountryName } from "@/lib/countryUtils";
@@ -287,6 +288,29 @@ export default function ResearcherDirectory() {
                   <div className="border-t pt-3">
                     <p className="text-sm text-muted-foreground mb-1">Biografía:</p>
                     <p className="text-sm">{selectedUser.bio}</p>
+                  </div>
+                )}
+
+                {selectedUser.cv_url && (
+                  <div className="border-t pt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={async () => {
+                        try {
+                          const signedUrl = await getSignedUrl('cvs', selectedUser.cv_url!);
+                          if (signedUrl) {
+                            window.open(signedUrl, '_blank');
+                          }
+                        } catch (error) {
+                          console.error('Error getting CV URL:', error);
+                        }
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Descargar CV
+                    </Button>
                   </div>
                 )}
               </div>
