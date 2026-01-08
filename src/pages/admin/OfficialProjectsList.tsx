@@ -126,7 +126,7 @@ export default function OfficialProjectsList() {
       const { error: updateError } = await supabase
         .from("official_projects")
         .update({ 
-          documents: updatedDocs,
+          documents: updatedDocs as unknown as Json,
           project_document_url: updatedDocs[0]?.url || null
         })
         .eq("id", projectId);
@@ -160,7 +160,7 @@ export default function OfficialProjectsList() {
       const { error } = await supabase
         .from("official_projects")
         .update({ 
-          documents: updatedDocs,
+          documents: updatedDocs as unknown as Json,
           project_document_url: updatedDocs[0]?.url || null
         })
         .eq("id", projectId);
