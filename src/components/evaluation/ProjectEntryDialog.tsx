@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -43,6 +43,24 @@ export default function ProjectEntryDialog({
   );
   const [evidences, setEvidences] = useState<Evidence[]>(existingEntry?.evidences || []);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (existingEntry) {
+      setRelatedProjectId(existingEntry.related_project_id || "");
+      setProposalType(existingEntry.proposal_type || "");
+      setTeamMembers(existingEntry.team_members || []);
+      setProjectRoles(existingEntry.project_roles || { director: "", principal: "" });
+      setEvidences(existingEntry.evidences || []);
+    } else {
+      setRelatedProjectId("");
+      setProposalType("");
+      setTeamMembers([]);
+      setProjectRoles({ director: "", principal: "" });
+      setEvidences([]);
+    }
+  }, [open, existingEntry]);
 
   const profileOptions = profiles.map(p => ({ value: p.id, label: p.full_name }));
 

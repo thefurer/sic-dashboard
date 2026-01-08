@@ -596,9 +596,11 @@ export default function PublicacionStep({ reportId, items, onItemsChange, isRead
         profiles={profiles || []}
         existingEntry={
           editingProjectEntry
-            ? items
-                .find((i) => i.indicator_name === "Proyectos I+D+i")
-                ?.project_entries?.find((e) => e.id === editingProjectEntry)
+            ? (() => {
+                const item = items.find((i) => i.indicator_name === "Proyectos I+D+i");
+                const entries = (item as any)?.project_entries || (item as any)?.evidence_details || [];
+                return (entries as ProjectEntryData[]).find((e) => e.id === editingProjectEntry);
+              })()
             : undefined
         }
       />
