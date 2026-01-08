@@ -277,7 +277,10 @@ export default function PublicacionStep({ reportId, items, onItemsChange, isRead
     if (!reportId) return;
 
     const existingItem = items.find((i) => i.indicator_name === "Proyectos I+D+i");
-    const currentEntries = existingItem?.project_entries || [];
+    // Map evidence_details to project_entries since DB stores as evidence_details
+    const currentEntries: ProjectEntryData[] = (existingItem as any)?.project_entries 
+      || (existingItem as any)?.evidence_details 
+      || [];
 
     let updatedEntries: ProjectEntryData[];
     if (editingProjectEntry) {
