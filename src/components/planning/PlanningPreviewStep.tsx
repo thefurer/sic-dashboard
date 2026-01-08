@@ -115,21 +115,43 @@ export function PlanningPreviewStep({
 
     const { activities, members } = planData;
     
-    // Create a map of full_name/email to profile_id
-    const memberMap = new Map<string, string>();
+    // Create maps for full_name and email to profile_id
+    const nameToIdMap = new Map<string, string>();
+    const emailToIdMap = new Map<string, string>();
+    
     members.forEach((m: any) => {
-      memberMap.set(m.profiles.full_name, m.profile_id || m.profiles?.id);
+      const profileId = m.profile_id || m.profiles?.id;
+      if (m.profiles.full_name) {
+        nameToIdMap.set(m.profiles.full_name.toLowerCase(), profileId);
+      }
     });
 
-    // Also get profile_ids from planning_members table
+    // Also get profile_ids with emails from planning_members and profile_contacts
     const { data: planningMembers } = await supabase
       .from("planning_members")
       .select("profile_id, profiles(full_name)")
       .eq("plan_id", planId);
 
     planningMembers?.forEach((pm: any) => {
-      memberMap.set(pm.profiles.full_name, pm.profile_id);
+      if (pm.profiles.full_name) {
+        nameToIdMap.set(pm.profiles.full_name.toLowerCase(), pm.profile_id);
+      }
     });
+
+    // Fetch emails for all planning members to enable email-based matching
+    const memberIds = planningMembers?.map((pm: any) => pm.profile_id) || [];
+    if (memberIds.length > 0) {
+      const { data: contacts } = await supabase
+        .from("profile_contacts")
+        .select("user_id, email")
+        .in("user_id", memberIds);
+      
+      contacts?.forEach((c: any) => {
+        if (c.email) {
+          emailToIdMap.set(c.email.toLowerCase(), c.user_id);
+        }
+      });
+    }
 
     // Delete existing assigned_tasks for this plan to avoid duplicates
     await supabase
@@ -144,14 +166,20 @@ export function PlanningPreviewStep({
       const responsibles = activity.responsibles || [];
       
       for (const responsible of responsibles) {
-        // Try to find profile_id by name
-        let profileId = memberMap.get(responsible);
+        const responsibleLower = responsible.toLowerCase();
         
-        // If not found directly, search by partial match
+        // Try to find profile_id by exact name match
+        let profileId = nameToIdMap.get(responsibleLower);
+        
+        // If not found, try by email
         if (!profileId) {
-          for (const [name, id] of memberMap.entries()) {
-            if (name.toLowerCase().includes(responsible.toLowerCase()) || 
-                responsible.toLowerCase().includes(name.toLowerCase())) {
+          profileId = emailToIdMap.get(responsibleLower);
+        }
+        
+        // If still not found, search by partial name match
+        if (!profileId) {
+          for (const [name, id] of nameToIdMap.entries()) {
+            if (name.includes(responsibleLower) || responsibleLower.includes(name)) {
               profileId = id;
               break;
             }
@@ -165,6 +193,8 @@ export function PlanningPreviewStep({
             user_id: profileId,
             status: "pending",
           });
+        } else {
+          console.warn(`Could not find profile for responsible: ${responsible}`);
         }
       }
     }
