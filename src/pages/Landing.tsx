@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AccessibilityMenu } from "@/components/accessibility/AccessibilityMenu";
 import gisicfLogo from "@/assets/gisicf-logo.png";
 import { useState, useEffect } from "react";
-import { AnimatedStats } from "@/components/landing/AnimatedStats";
+
 import { LogoMarquee } from "@/components/landing/LogoMarquee";
 
 import { FAQSection } from "@/components/landing/FAQSection";
@@ -240,8 +240,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Animated Stats Section */}
-      <AnimatedStats />
 
       {/* Logo Marquee */}
       <LogoMarquee />
