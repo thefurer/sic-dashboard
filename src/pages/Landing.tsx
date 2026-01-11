@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, BarChart3, Users, FileCheck, Calendar, Settings, Search, Bell, Mail, BookOpen, Leaf, Cpu, Globe, Heart, Lightbulb, FlaskConical, Building, GraduationCap, Zap, Database, Cloud, ChevronLeft, ChevronRight, MapPin, Phone, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { ArrowRight, Mail, BookOpen, Leaf, Cpu, Globe, Heart, Lightbulb, FlaskConical, Building, GraduationCap, Zap, Database, Cloud, ChevronLeft, ChevronRight, MapPin, Phone, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { AccessibilityMenu } from "@/components/accessibility/AccessibilityMenu";
@@ -7,7 +7,7 @@ import gisicfLogo from "@/assets/gisicf-logo.png";
 import { useState, useEffect } from "react";
 import { AnimatedStats } from "@/components/landing/AnimatedStats";
 import { LogoMarquee } from "@/components/landing/LogoMarquee";
-import { TestimonialsCarousel } from "@/components/landing/TestimonialsCarousel";
+
 import { FAQSection } from "@/components/landing/FAQSection";
 
 import { FloatingBadge } from "@/components/landing/FloatingBadge";
@@ -33,37 +33,6 @@ const staggerContainer = {
     }
   }
 };
-const features = [{
-  title: "Dashboard Inteligente",
-  description: "Visualiza noticias, novedades y el estado de tu grupo de investigación en tiempo real.",
-  image: "/manual-screenshots/dashboard.png",
-  icon: BarChart3
-}, {
-  title: "Directorio de Usuarios",
-  description: "Gestiona investigadores, estudiantes y roles con control total de accesos.",
-  image: "/manual-screenshots/directorio-usuarios.png",
-  icon: Users
-}, {
-  title: "Revisión de Evaluaciones",
-  description: "Aprueba y revisa evaluaciones anuales de los investigadores del grupo.",
-  image: "/manual-screenshots/revision-evaluaciones.png",
-  icon: FileCheck
-}, {
-  title: "Planificación Estratégica",
-  description: "Crea y administra planes de trabajo con actividades y cronogramas.",
-  image: "/manual-screenshots/planificacion.png",
-  icon: Calendar
-}, {
-  title: "Configuración Institucional",
-  description: "Personaliza logos, firmas, líneas de investigación y documentos oficiales.",
-  image: "/manual-screenshots/configuracion.png",
-  icon: Settings
-}, {
-  title: "Proyectos Oficiales",
-  description: "Registra y gestiona proyectos de investigación con documentación completa.",
-  image: "/manual-screenshots/proyectos-oficiales.png",
-  icon: Shield
-}];
 const researchLines = [{
   name: "Salud Pública",
   icon: Heart
@@ -100,27 +69,6 @@ const researchLines = [{
 }, {
   name: "Recursos Hídricos",
   icon: BookOpen
-}];
-const uniqueFeatures = [{
-  icon: Search,
-  title: "Búsqueda Inteligente con DOI/ISBN",
-  description: "Ingresa un DOI o ISBN y el sistema detecta automáticamente metadatos como título, autores, revista, cuartil y base de datos indexada (Scopus, WOS, Scielo, etc.).",
-  highlight: "Agente de detección automática"
-}, {
-  icon: Mail,
-  title: "Notificaciones por Correo",
-  description: "Recibe alertas automáticas sobre actividades asignadas, fechas límite próximas y cambios en el estado de tus evaluaciones directamente en tu email.",
-  highlight: "Integración con Resend"
-}, {
-  icon: Bell,
-  title: "Sistema de Alertas en Tiempo Real",
-  description: "Notificaciones instantáneas cuando tu evaluación tiene observaciones, con indicador visual y detalles específicos de las correcciones requeridas.",
-  highlight: "Feedback inmediato"
-}, {
-  icon: FileCheck,
-  title: "Evaluación 100/100 Automatizada",
-  description: "Sistema de puntuación inteligente que calcula automáticamente tu progreso y asegura que cumplas todos los indicadores antes de enviar.",
-  highlight: "Validación automática"
 }];
 const footerLinks = {
   platform: [{
@@ -186,14 +134,11 @@ export default function Landing() {
             <a href="#research-lines" className="text-slate-600 dark:text-white/70 hover:text-primary transition-colors font-medium">
               Líneas
             </a>
-            <a href="#features" className="text-slate-600 dark:text-white/70 hover:text-primary transition-colors font-medium">
-              Características
-            </a>
-            <a href="#unique" className="text-slate-600 dark:text-white/70 hover:text-primary transition-colors font-medium">
-              Único
-            </a>
             <a href="#about" className="text-slate-600 dark:text-white/70 hover:text-primary transition-colors font-medium">
               Acerca de
+            </a>
+            <a href="#faq" className="text-slate-600 dark:text-white/70 hover:text-primary transition-colors font-medium">
+              FAQ
             </a>
           </div>
 
@@ -374,113 +319,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Unique Features Section - Smart Search, Notifications */}
-      <section id="unique" className="py-20 md:py-28">
-        <div className="container mx-auto px-6">
-          <motion.div className="text-center mb-14" initial={{
-          opacity: 0,
-          y: 20
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} viewport={{
-          once: true
-        }}>
-            <span className="inline-block px-4 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
-              ¿Qué nos hace únicos?
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-              Funciones <span className="text-primary">Inteligentes</span>
-            </h2>
-            <p className="text-lg text-slate-600 dark:text-white/60 max-w-2xl mx-auto">
-              Automatización avanzada para maximizar tu productividad investigativa
-            </p>
-          </motion.div>
-
-          <motion.div className="grid md:grid-cols-2 gap-6" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{
-          once: true,
-          amount: 0.2
-        }}>
-            {uniqueFeatures.map((feature, index) => <motion.div key={feature.title} variants={fadeInUp} className="group relative p-8 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-white/10 hover:border-primary/40 transition-all duration-300 hover:shadow-xl">
-                {/* Highlight Badge */}
-                <span className="absolute top-4 right-4 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                  {feature.highlight}
-                </span>
-
-                <div className="flex items-start gap-5">
-                  <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
-                    <feature.icon className="w-7 h-7 text-white" />
-                  </div>
-                  
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors">
-                      {feature.title}
-                    </h3>
-                    <p className="text-slate-600 dark:text-white/60 leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Decorative corner */}
-                <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/5 rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              </motion.div>)}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-20 md:py-32 bg-white dark:bg-slate-900/50">
-        <div className="container mx-auto px-6">
-          <motion.div className="text-center mb-16" initial={{
-          opacity: 0,
-          y: 20
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} viewport={{
-          once: true
-        }}>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-              Todo lo que Necesitas para{" "}
-              <span className="text-primary">Investigar</span>
-            </h2>
-            <p className="text-lg text-slate-600 dark:text-white/60 max-w-2xl mx-auto">
-              Una plataforma completa para gestionar proyectos, evaluaciones, planificación y producción científica.
-            </p>
-          </motion.div>
-
-          <motion.div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{
-          once: true,
-          amount: 0.1
-        }}>
-            {features.map((feature, index) => <motion.div key={feature.title} variants={fadeInUp} whileHover={{
-            y: -8,
-            transition: {
-              duration: 0.3
-            }
-          }} className="group bg-slate-50 dark:bg-slate-800/50 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10">
-                <div className="relative h-48 overflow-hidden">
-                  <img src={feature.image} alt={feature.title} className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
-                  
-                  <div className="absolute bottom-4 left-4 w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
-                    <feature.icon className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors">
-                    {feature.title}
-                  </h3>
-                  <p className="text-slate-600 dark:text-white/60">
-                    {feature.description}
-                  </p>
-                </div>
-              </motion.div>)}
-          </motion.div>
-        </div>
-      </section>
 
       {/* About Section */}
       <section id="about" className="py-20 md:py-32">
@@ -544,8 +382,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <TestimonialsCarousel />
 
       {/* FAQ Section */}
       <FAQSection />
