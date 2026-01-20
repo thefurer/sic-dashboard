@@ -23,6 +23,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { openSignedUrl } from "@/hooks/useSignedUrl";
+import { sendNotificationEmail, getUserEmail } from "@/hooks/useSendEmail";
 
 interface ReviewModalProps {
   open: boolean;
@@ -199,6 +200,20 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
         .eq("id", report.id);
 
       if (error) throw error;
+
+      // Send email notification
+      const email = await getUserEmail(report.user_id);
+      if (email) {
+        sendNotificationEmail({
+          type: "evaluation_approved",
+          to: email,
+          userName,
+          data: {
+            evaluationYear: report.year,
+            score: report.total_score,
+          },
+        }).catch(err => console.error("Error sending notification:", err));
+      }
     },
     onSuccess: () => {
       toast.success("Evaluación aprobada exitosamente");
@@ -231,6 +246,21 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
         .eq("id", report.id);
 
       if (error) throw error;
+
+      // Send email notification
+      const email = await getUserEmail(report.user_id);
+      if (email) {
+        sendNotificationEmail({
+          type: "evaluation_correction",
+          to: email,
+          userName,
+          data: {
+            evaluationYear: report.year,
+            observations: observations,
+            correctionDeadline: deadline?.toISOString().split('T')[0],
+          },
+        }).catch(err => console.error("Error sending notification:", err));
+      }
     },
     onSuccess: () => {
       toast.success("Observaciones enviadas exitosamente");

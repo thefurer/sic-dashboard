@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { sendNotificationEmail, getUserEmail } from "@/hooks/useSendEmail";
 
 interface ActivityDialogProps {
   open: boolean;
@@ -185,7 +186,35 @@ export function ActivityDialog({
 
       // Now create/update assigned_tasks for each responsible
       if (activityId) {
-        await assignTasksToResponsibles(activityId, planId, selectedResponsibles, activity !== null);
+        const newResponsibles = await assignTasksToResponsibles(activityId, planId, selectedResponsibles, activity !== null);
+        
+        // Get plan name for email
+        const { data: planData } = await supabase
+          .from("planning_sheets")
+          .select("period_name")
+          .eq("id", planId)
+          .single();
+
+        // Send email notifications to newly assigned responsibles
+        if (newResponsibles && newResponsibles.length > 0) {
+          for (const userId of newResponsibles) {
+            const member = teamMembers.find(m => m.value === userId);
+            const email = await getUserEmail(userId);
+            
+            if (email) {
+              sendNotificationEmail({
+                type: "activity_assigned",
+                to: email,
+                userName: member?.fullName || "Investigador",
+                data: {
+                  activityName: activityText,
+                  planName: planData?.period_name || "Plan de trabajo",
+                  deadline: format(endDate!, "dd/MM/yyyy"),
+                },
+              }).catch(err => console.error("Error sending notification:", err));
+            }
+          }
+        }
       }
 
       toast.success(activity ? "Actividad actualizada" : "Actividad agregada y asignada a responsables");
@@ -202,7 +231,9 @@ export function ActivityDialog({
     planId: string, 
     responsibleIds: string[],
     isUpdate: boolean
-  ) => {
+  ): Promise<string[]> => {
+    let newlyAssignedUsers: string[] = [];
+    
     try {
       if (isUpdate) {
         // Get existing assigned tasks for this activity
@@ -215,6 +246,7 @@ export function ActivityDialog({
         
         // Find new responsibles that don't have tasks yet
         const newResponsibles = responsibleIds.filter(id => !existingUserIds.includes(id));
+        newlyAssignedUsers = newResponsibles;
         
         // Find responsibles that were removed
         const removedResponsibles = existingUserIds.filter(id => !responsibleIds.includes(id));
@@ -246,6 +278,8 @@ export function ActivityDialog({
         }
       } else {
         // New activity - create tasks for all responsibles
+        newlyAssignedUsers = responsibleIds;
+        
         const tasks = responsibleIds.map(userId => ({
           activity_id: activityId,
           plan_id: planId,
@@ -264,6 +298,8 @@ export function ActivityDialog({
       // Don't throw - activity was saved, just log the error
       toast.error("Actividad guardada pero hubo un error al asignar tareas");
     }
+    
+    return newlyAssignedUsers;
   };
 
   return (
