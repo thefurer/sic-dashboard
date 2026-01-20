@@ -20,6 +20,7 @@ import { es } from "date-fns/locale";
 import { drawPDFHeader } from "@/lib/pdfHeaderUtils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { openSignedUrl } from "@/hooks/useSignedUrl";
+import { sendNotificationEmail, getUserEmail, getUserName } from "@/hooks/useSendEmail";
 
 export default function TaskReviews() {
   const { toast } = useToast();
@@ -85,7 +86,7 @@ export default function TaskReviews() {
 
   // Review mutation
   const reviewMutation = useMutation({
-    mutationFn: async ({ taskId, status, obs }: { taskId: string; status: string; obs?: string }) => {
+    mutationFn: async ({ taskId, status, obs, task }: { taskId: string; status: string; obs?: string; task?: any }) => {
       const { data: user } = await supabase.auth.getUser();
       
       const { error } = await supabase
@@ -99,6 +100,25 @@ export default function TaskReviews() {
         .eq("id", taskId);
 
       if (error) throw error;
+
+      // Send email notification if status is "observed" (needs correction)
+      if (status === "observed" && obs && task?.user_id) {
+        const email = await getUserEmail(task.user_id);
+        const userName = await getUserName(task.user_id);
+        
+        if (email) {
+          sendNotificationEmail({
+            type: "activity_correction",
+            to: email,
+            userName,
+            data: {
+              activityName: task.planning_activities?.activity || "Actividad",
+              observations: obs,
+              deadline: task.planning_activities?.end_date,
+            },
+          }).catch(err => console.error("Error sending notification:", err));
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-assigned-tasks"] });
@@ -121,7 +141,7 @@ export default function TaskReviews() {
 
   // Send alert mutation
   const sendAlertMutation = useMutation({
-    mutationFn: async ({ taskIds, message }: { taskIds: string[]; message: string }) => {
+    mutationFn: async ({ taskIds, message, tasks }: { taskIds: string[]; message: string; tasks?: any[] }) => {
       // Update tasks with admin observations as an alert/reminder
       const { error } = await supabase
         .from("assigned_tasks")
@@ -131,6 +151,27 @@ export default function TaskReviews() {
         .in("id", taskIds);
 
       if (error) throw error;
+
+      // Send email notifications to all affected users
+      if (tasks && tasks.length > 0) {
+        for (const task of tasks) {
+          const email = await getUserEmail(task.user_id);
+          const userName = await getUserName(task.user_id);
+          
+          if (email) {
+            sendNotificationEmail({
+              type: "activity_correction",
+              to: email,
+              userName,
+              data: {
+                activityName: task.planning_activities?.activity || "Actividad",
+                observations: message,
+                deadline: task.planning_activities?.end_date,
+              },
+            }).catch(err => console.error("Error sending notification:", err));
+          }
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-assigned-tasks"] });
