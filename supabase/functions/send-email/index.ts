@@ -33,7 +33,7 @@ interface EmailRequest {
 }
 
 const APP_URL = "https://gisicf.lovable.app";
-const FROM_EMAIL = "GISICF <noreply@gisicf.edu.ec>";
+const FROM_EMAIL = "GISICF <sistema@gisicf.edu.ec>";
 
 function getEmailContent(type: string, userName: string, data: EmailRequest["data"]): { subject: string; html: string } {
   const styles = `
