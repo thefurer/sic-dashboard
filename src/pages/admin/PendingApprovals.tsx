@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import { format } from "date-fns";
+import { sendNotificationEmail } from "@/hooks/useSendEmail";
 
 export default function PendingApprovals() {
   const queryClient = useQueryClient();
@@ -38,20 +39,31 @@ export default function PendingApprovals() {
   });
 
   const approveMutation = useMutation({
-    mutationFn: async (userId: string) => {
+    mutationFn: async ({ userId, email, fullName }: { userId: string; email: string | null; fullName: string }) => {
       const { error } = await supabase
         .from("profiles")
         .update({ is_approved: true })
         .eq("id", userId);
 
       if (error) throw error;
+      
+      // Send welcome email with invitation to update profile
+      if (email) {
+        await sendNotificationEmail({
+          type: "user_approved",
+          to: email,
+          userName: fullName || "Usuario",
+          data: {},
+        }).catch(err => console.error("Error sending approval email:", err));
+      }
+      
       return userId;
     },
     onSuccess: (userId) => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
       queryClient.invalidateQueries({ queryKey: ["pending-approvals-count"] });
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
-      toast.success("Usuario aprobado correctamente");
+      toast.success("Usuario aprobado correctamente. Se ha enviado un email de bienvenida.");
     },
     onError: () => {
       toast.error("Error al aprobar usuario");
@@ -119,7 +131,11 @@ export default function PendingApprovals() {
                         <Button
                           size="sm"
                           className="bg-primary hover:bg-primary/90"
-                          onClick={() => approveMutation.mutate(user.id)}
+                          onClick={() => approveMutation.mutate({ 
+                            userId: user.id, 
+                            email: user.email,
+                            fullName: user.full_name 
+                          })}
                           disabled={approveMutation.isPending || rejectMutation.isPending}
                         >
                           <CheckCircle className="mr-2 h-4 w-4" />
