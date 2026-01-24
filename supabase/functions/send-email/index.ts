@@ -14,6 +14,7 @@ interface EmailRequest {
     | "activity_assigned" 
     | "activity_deadline_warning" 
     | "activity_correction" 
+    | "admin_alert"
     | "evaluation_submitted" 
     | "evaluation_correction" 
     | "evaluation_approved"
@@ -152,6 +153,45 @@ function getEmailContent(type: string, userName: string, data: EmailRequest["dat
                 <p>Por favor, realiza las correcciones necesarias lo antes posible.</p>
                 <center>
                   <a href="${APP_URL}/my-tasks" class="button">Ver Actividad</a>
+                </center>
+              </div>
+              <div class="footer">
+                <p>Sistema de Gestión de Investigación Científica</p>
+                <p>Universidad Estatal del Sur de Manabí</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      };
+
+    case "admin_alert":
+      return {
+        subject: `🔔 Alerta del Administrador: Actividad pendiente`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>${styles}</head>
+          <body>
+            <div class="container">
+              <div class="header" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
+                <div class="logo">GISICF</div>
+                <h1>🔔 Alerta Administrativa</h1>
+              </div>
+              <div class="content">
+                <p>Hola <strong>${userName}</strong>,</p>
+                <p>El administrador te ha enviado una alerta importante sobre tu actividad pendiente:</p>
+                <div class="alert" style="background: #fee2e2; border-left-color: #dc2626;">
+                  <strong>📢 Mensaje del Administrador:</strong><br>
+                  ${data?.observations || "Sin mensaje específico"}
+                </div>
+                <div class="info-box">
+                  <p><strong>📌 Actividad:</strong> ${data?.activityName || "Actividad asignada"}</p>
+                  ${data?.deadline ? `<p><strong>📅 Fecha límite:</strong> ${data.deadline}</p>` : ""}
+                </div>
+                <p style="color: #dc2626; font-weight: 600;">Por favor, atiende esta actividad lo antes posible.</p>
+                <center>
+                  <a href="${APP_URL}/my-tasks" class="button" style="background: #dc2626;">Ir a Mis Tareas</a>
                 </center>
               </div>
               <div class="footer">

@@ -161,7 +161,7 @@ export default function TaskReviews() {
           
           if (email) {
             sendNotificationEmail({
-              type: "activity_correction",
+              type: "admin_alert",
               to: email,
               userName,
               data: {
@@ -358,7 +358,9 @@ export default function TaskReviews() {
       });
       return;
     }
-    sendAlertMutation.mutate({ taskIds: selectedTasksForAlert, message: alertMessage });
+    // Get the actual tasks for the selected IDs to send email notifications
+    const tasksToAlert = pendingTasks.filter(t => selectedTasksForAlert.includes(t.id));
+    sendAlertMutation.mutate({ taskIds: selectedTasksForAlert, message: alertMessage, tasks: tasksToAlert });
   };
 
   const handleSelectAllUrgent = () => {

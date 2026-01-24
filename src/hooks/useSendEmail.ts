@@ -15,6 +15,7 @@ export type EmailType =
   | "activity_assigned" 
   | "activity_deadline_warning" 
   | "activity_correction" 
+  | "admin_alert"
   | "evaluation_submitted" 
   | "evaluation_correction" 
   | "evaluation_approved"
