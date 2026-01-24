@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { SmartTextarea } from "@/components/ui/smart-textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Link as LinkIcon } from "lucide-react";
@@ -127,12 +127,22 @@ export function TaskEvidenceModal({ open, onOpenChange, task, onSuccess }: TaskE
 
           <div className="space-y-2">
             <Label htmlFor="description">Descripción</Label>
-            <Textarea
+            <SmartTextarea
               id="description"
               value={evidenceDescription}
               onChange={(e) => setEvidenceDescription(e.target.value)}
               placeholder="Describe brevemente la evidencia..."
               rows={4}
+              storageKey="user-evidence-descriptions"
+              quickSuggestions={[
+                "Documento de evidencia que respalda la actividad realizada.",
+                "Informe de avance correspondiente al período establecido.",
+                "Acta de reunión con los participantes involucrados.",
+                "Certificado de participación en el evento.",
+                "Capturas de pantalla del sistema/plataforma utilizada.",
+                "Lista de asistencia firmada por los participantes.",
+                "Fotografías del evento/actividad realizada.",
+              ]}
             />
           </div>
         </div>
