@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { SmartTextarea } from "@/components/ui/smart-textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -314,23 +314,43 @@ export function ActivityDialog({
         <div className="space-y-4">
           <div>
             <Label htmlFor="activity">Descripción de la actividad *</Label>
-            <Textarea
+            <SmartTextarea
               id="activity"
               value={activityText}
               onChange={(e) => setActivityText(e.target.value)}
               placeholder="Describe la actividad..."
               rows={3}
+              storageKey="planning_activities"
+              quickSuggestions={[
+                "Elaboración de artículo científico para revista indexada.",
+                "Participación en evento académico nacional/internacional.",
+                "Reunión de seguimiento del grupo de investigación.",
+                "Capacitación en metodologías de investigación.",
+                "Vinculación con la comunidad a través de proyectos sociales.",
+                "Revisión y actualización del plan operativo anual.",
+                "Elaboración de informe de avance del proyecto.",
+              ]}
             />
           </div>
 
           <div>
             <Label htmlFor="objective">Objetivo *</Label>
-            <Textarea
+            <SmartTextarea
               id="objective"
               value={objective}
               onChange={(e) => setObjective(e.target.value)}
               placeholder="Define el objetivo..."
               rows={3}
+              storageKey="planning_objectives"
+              quickSuggestions={[
+                "Incrementar la producción científica del grupo de investigación.",
+                "Fortalecer las competencias investigativas de los integrantes.",
+                "Difundir los resultados de investigación en la comunidad académica.",
+                "Establecer alianzas estratégicas con instituciones nacionales e internacionales.",
+                "Contribuir al desarrollo local a través de proyectos de vinculación.",
+                "Cumplir con los indicadores del plan operativo anual.",
+                "Generar impacto social mediante transferencia de conocimiento.",
+              ]}
             />
           </div>
 

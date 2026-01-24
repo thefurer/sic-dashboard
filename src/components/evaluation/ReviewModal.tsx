@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { SmartTextarea } from "@/components/ui/smart-textarea";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -1085,13 +1085,23 @@ export function ReviewModal({ open, onOpenChange, report, userName }: ReviewModa
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-muted/50 rounded-lg border">
             <div className="space-y-1.5">
               <Label htmlFor="observations" className="text-xs font-medium">Observaciones</Label>
-              <Textarea
+              <SmartTextarea
                 id="observations"
                 placeholder="Escribir observaciones o correcciones..."
                 value={observations}
                 onChange={(e) => setObservations(e.target.value)}
                 rows={2}
                 className="resize-none text-sm"
+                storageKey="evaluation_observations"
+                quickSuggestions={[
+                  "Los indicadores de publicaciones no cuentan con los DOI o enlaces a las revistas indexadas.",
+                  "Falta documentación de respaldo para el indicador de vinculación con la sociedad.",
+                  "El puntaje de proyectos requiere verificación del documento oficial del proyecto.",
+                  "Se requiere evidencia adicional para validar la participación en eventos académicos.",
+                  "Los porcentajes de ejecución no coinciden con la documentación presentada.",
+                  "Adjuntar certificados o constancias que respalden los indicadores declarados.",
+                  "Revisar el cálculo del puntaje total según la rúbrica de evaluación.",
+                ]}
               />
             </div>
             <div className="space-y-1.5">
