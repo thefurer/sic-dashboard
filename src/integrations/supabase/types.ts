@@ -93,6 +93,7 @@ export type Database = {
           evidence_url: string | null
           id: string
           plan_id: string
+          read_at: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
@@ -109,6 +110,7 @@ export type Database = {
           evidence_url?: string | null
           id?: string
           plan_id: string
+          read_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
@@ -125,6 +127,7 @@ export type Database = {
           evidence_url?: string | null
           id?: string
           plan_id?: string
+          read_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string

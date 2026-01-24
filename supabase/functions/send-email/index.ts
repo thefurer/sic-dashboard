@@ -343,82 +343,92 @@ async function checkDeadlines() {
     targetDate.setDate(today.getDate() + days);
     const targetDateStr = targetDate.toISOString().split("T")[0];
 
-    // Get activities ending on target date
-    const { data: activities, error: activitiesError } = await supabase
-      .from("planning_activities")
+    console.log(`Checking for activities ending on ${targetDateStr} (${days} days reminder)`);
+
+    // Get assigned tasks for activities ending on target date with user info
+    const { data: tasks, error: tasksError } = await supabase
+      .from("assigned_tasks")
       .select(`
         id,
-        activity,
-        end_date,
-        planning_members!inner (
+        user_id,
+        status,
+        activity_id,
+        planning_activities!inner(
+          activity,
+          end_date,
           plan_id,
-          plans (title)
+          planning_sheets(period_name)
         )
       `)
-      .eq("end_date", targetDateStr);
+      .eq("status", "pending")
+      .eq("planning_activities.end_date", targetDateStr);
 
-    if (activitiesError) {
-      console.error("Error fetching activities:", activitiesError);
-      results.errors.push(`Error fetching activities: ${activitiesError.message}`);
+    if (tasksError) {
+      console.error("Error fetching tasks:", tasksError);
+      results.errors.push(`Error fetching tasks: ${tasksError.message}`);
       continue;
     }
 
-    if (!activities || activities.length === 0) {
-      console.log(`No activities found for ${days} days reminder`);
+    if (!tasks || tasks.length === 0) {
+      console.log(`No pending tasks found for ${days} days reminder`);
       continue;
     }
 
-    // Get assigned tasks for these activities
-    for (const activity of activities) {
-      const { data: tasks, error: tasksError } = await supabase
-        .from("assigned_tasks")
-        .select(`
-          user_id,
-          status,
-          profiles (full_name),
-          profile_contacts (email)
-        `)
-        .eq("activity_id", activity.id)
-        .eq("status", "pending");
+    console.log(`Found ${tasks.length} pending tasks for ${days} days reminder`);
 
-      if (tasksError) {
-        console.error("Error fetching tasks:", tasksError);
+    // Get unique user IDs
+    const userIds = [...new Set(tasks.map(t => t.user_id))];
+
+    // Get user profiles and emails
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", userIds);
+
+    const { data: contacts } = await supabase
+      .from("profile_contacts")
+      .select("user_id, email")
+      .in("user_id", userIds);
+
+    for (const task of tasks) {
+      const profile = profiles?.find(p => p.id === task.user_id);
+      const contact = contacts?.find(c => c.user_id === task.user_id);
+
+      const email = contact?.email;
+      const userName = profile?.full_name || "Investigador";
+      const activity = (task as any).planning_activities;
+      const planName = activity?.planning_sheets?.period_name || "Plan de trabajo";
+
+      if (!email) {
+        console.log(`No email found for user ${task.user_id}`);
         continue;
       }
 
-      for (const task of tasks || []) {
-        const email = (task as any).profile_contacts?.email;
-        const userName = (task as any).profiles?.full_name || "Investigador";
+      const { subject, html } = getEmailContent("activity_deadline_warning", userName, {
+        activityName: activity?.activity,
+        planName,
+        deadline: activity?.end_date,
+        daysRemaining: days,
+      });
 
-        if (!email) {
-          console.log(`No email found for user ${task.user_id}`);
-          continue;
-        }
-
-        const { subject, html } = getEmailContent("activity_deadline_warning", userName, {
-          activityName: activity.activity,
-          deadline: activity.end_date,
-          daysRemaining: days,
+      try {
+        const emailResponse = await resend.emails.send({
+          from: FROM_EMAIL,
+          to: [email],
+          subject,
+          html,
         });
 
-        try {
-          const emailResponse = await resend.emails.send({
-            from: FROM_EMAIL,
-            to: [email],
-            subject,
-            html,
-          });
-
-          console.log(`Reminder email sent to ${email}:`, emailResponse);
-          results.sent++;
-        } catch (error: any) {
-          console.error(`Error sending email to ${email}:`, error);
-          results.errors.push(`Failed to send to ${email}: ${error.message}`);
-        }
+        console.log(`Reminder email sent to ${email} for ${days} days warning:`, emailResponse);
+        results.sent++;
+      } catch (error: any) {
+        console.error(`Error sending email to ${email}:`, error);
+        results.errors.push(`Failed to send to ${email}: ${error.message}`);
       }
     }
   }
 
+  console.log(`Deadline check complete. Sent: ${results.sent}, Errors: ${results.errors.length}`);
   return results;
 }
 
