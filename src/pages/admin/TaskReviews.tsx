@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, XCircle, FileText, ExternalLink, Download, Bell, AlertTriangle, Clock, Send, Users, Pencil, Trash2, RotateCcw } from "lucide-react";
+import { CheckCircle, XCircle, FileText, ExternalLink, Download, Bell, AlertTriangle, Clock, Send, Users, Pencil, Trash2, RotateCcw, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -38,6 +38,7 @@ export default function TaskReviews() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
   const [isClearPendingDialogOpen, setIsClearPendingDialogOpen] = useState(false);
+  const [showUrgentAlert, setShowUrgentAlert] = useState(true);
 
   // Fetch all tasks with different statuses
   const { data: allTasks, isLoading } = useQuery({
@@ -530,10 +531,18 @@ export default function TaskReviews() {
       </div>
 
       {/* Alert for urgent pending tasks */}
-      {urgentPendingTasks.length > 0 && (
-        <Alert variant="destructive" className="mb-6 border-2">
+      {showUrgentAlert && urgentPendingTasks.length > 0 && (
+        <Alert variant="destructive" className="mb-6 border-2 relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2 h-6 w-6 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+            onClick={() => setShowUrgentAlert(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
           <AlertTriangle className="h-5 w-5" />
-          <AlertTitle className="text-lg font-bold">
+          <AlertTitle className="text-lg font-bold pr-8">
             ¡Atención! {urgentPendingTasks.length} actividad{urgentPendingTasks.length > 1 ? "es" : ""} pendiente{urgentPendingTasks.length > 1 ? "s" : ""} con plazo vencido o próximo a vencer
           </AlertTitle>
           <AlertDescription className="mt-2">
