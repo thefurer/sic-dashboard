@@ -165,7 +165,7 @@ export const useSmartRecommendations = () => {
           description: "No tienes publicaciones registradas este año.",
           icon: BookOpen,
           action: "Ver proyectos",
-          route: "/user/official-projects",
+          route: "/projects",
         });
       }
 
