@@ -43,28 +43,26 @@ const Dashboard = () => {
   const { data: stats, isLoading: statsLoading } = useDashboardStats(isSuperAdmin);
 
   return (
-    <div className="min-h-[70vh] font-sans space-y-6">
+    <div className="min-h-[70vh] font-sans space-y-5">
       {/* Complete Profile Banner */}
       <CompleteProfileBanner />
 
-      {/* Welcome Greeting with Productivity Score */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* Welcome Greeting with Productivity Score - Compact */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <WelcomeGreeting userName={profile?.full_name || "Investigador"} />
-        <div className="w-full md:w-auto">
-          <ProductivityScore />
-        </div>
+        <ProductivityScore />
       </div>
 
-      {/* Smart Recommendations + Priority Task Queue */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Quick Access Widgets - Primary actions */}
+      <QuickAccessWidgets isAdmin={isSuperAdmin} />
+
+      {/* Smart Recommendations + Priority Task Queue - Condensed */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <SmartRecommendations />
         <PriorityTaskQueue />
       </div>
 
-      {/* Quick Access Widgets */}
-      <QuickAccessWidgets isAdmin={isSuperAdmin} />
-
-      {/* Quick Stats Row */}
+      {/* Quick Stats Row - Compact */}
       {stats && (
         <QuickStatsRow stats={stats} isAdmin={isSuperAdmin} isLoading={statsLoading} />
       )}

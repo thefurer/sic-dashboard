@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSmartRecommendations } from "@/hooks/useSmartRecommendations";
 import { Lightbulb, ArrowRight, Sparkles } from "lucide-react";
@@ -24,14 +23,14 @@ export const SmartRecommendations = () => {
 
   if (isLoading) {
     return (
-      <div className="metric-tile">
-        <div className="flex items-center gap-3 mb-4">
-          <Skeleton className="h-10 w-10 rounded-xl" />
-          <Skeleton className="h-6 w-48" />
+      <div className="metric-tile !p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Skeleton className="h-8 w-8 rounded-lg" />
+          <Skeleton className="h-5 w-32" />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-xl" />
+            <Skeleton key={i} className="h-11 w-full rounded-lg" />
           ))}
         </div>
       </div>
@@ -40,20 +39,20 @@ export const SmartRecommendations = () => {
 
   if (!recommendations || recommendations.length === 0) {
     return (
-      <div className="metric-tile">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="icon-glow-container !w-10 !h-10">
-            <Sparkles className="h-5 w-5 text-primary" />
+      <div className="metric-tile !p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="icon-glow-container !w-8 !h-8">
+            <Sparkles className="h-4 w-4 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground">
-            Recomendaciones Inteligentes
+          <h3 className="text-sm font-semibold text-foreground">
+            Recomendaciones
           </h3>
         </div>
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mb-4">
-            <Sparkles className="h-8 w-8 text-success" />
+        <div className="flex flex-col items-center justify-center py-6 text-center">
+          <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-3">
+            <Sparkles className="h-6 w-6 text-success" />
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             ¡Excelente! No tienes acciones pendientes.
           </p>
         </div>
@@ -63,71 +62,57 @@ export const SmartRecommendations = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="metric-tile"
+      transition={{ duration: 0.3 }}
+      className="metric-tile !p-4"
     >
-      <div className="flex items-center gap-3 mb-4">
-        <div className="icon-glow-container !w-10 !h-10">
-          <Lightbulb className="h-5 w-5 text-primary" />
+      <div className="flex items-center gap-2 mb-3">
+        <div className="icon-glow-container !w-8 !h-8">
+          <Lightbulb className="h-4 w-4 text-primary" />
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-foreground">
-            Recomendaciones Inteligentes
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            Acciones sugeridas basadas en tu actividad
-          </p>
-        </div>
+        <h3 className="text-sm font-semibold text-foreground">
+          Recomendaciones
+        </h3>
       </div>
 
-      <div className="space-y-3">
-        {recommendations.map((rec, index) => {
+      <div className="space-y-2">
+        {recommendations.slice(0, 3).map((rec, index) => {
           const Icon = rec.icon;
           return (
             <motion.div
               key={rec.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.05 }}
               className={cn(
-                "p-4 rounded-xl border-l-4 transition-all duration-300 hover:shadow-md cursor-pointer group",
+                "p-3 rounded-lg border-l-3 transition-all duration-200 hover:shadow-sm cursor-pointer group",
                 priorityColors[rec.priority]
               )}
               onClick={() => navigate(rec.route)}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-center gap-2">
                 <div className={cn(
-                  "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                  "w-7 h-7 rounded-md flex items-center justify-center shrink-0",
                   priorityBadgeColors[rec.priority]
                 )}>
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-3.5 w-3.5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-foreground text-sm truncate">
-                      {rec.title}
-                    </h4>
-                    <span className={cn(
-                      "text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0",
-                      priorityBadgeColors[rec.priority]
-                    )}>
-                      {rec.priority === "high" ? "Alta" : rec.priority === "medium" ? "Media" : "Baja"}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground line-clamp-1">
+                  <h4 className="font-medium text-foreground text-xs truncate">
+                    {rec.title}
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground truncate">
                     {rec.description}
                   </p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity h-8 px-3"
-                >
-                  <span className="text-xs mr-1">{rec.action}</span>
-                  <ArrowRight className="h-3 w-3" />
-                </Button>
+                <span className={cn(
+                  "text-[9px] px-1.5 py-0.5 rounded-full font-medium shrink-0",
+                  priorityBadgeColors[rec.priority]
+                )}>
+                  {rec.priority === "high" ? "Alta" : rec.priority === "medium" ? "Media" : "Baja"}
+                </span>
+                <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>
             </motion.div>
           );
