@@ -257,6 +257,32 @@ export default function TaskReviews() {
     },
   });
 
+  // Clear all pending tasks mutation
+  const clearPendingTasksMutation = useMutation({
+    mutationFn: async (taskIds: string[]) => {
+      const { error } = await supabase
+        .from("assigned_tasks")
+        .delete()
+        .in("id", taskIds);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-assigned-tasks"] });
+      toast({
+        title: "Actividades eliminadas",
+        description: "Las actividades sin enviar han sido eliminadas correctamente",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleEditTask = (task: any) => {
     setSelectedTask(task);
     setEditObservations(task.admin_observations || "");
@@ -645,12 +671,28 @@ export default function TaskReviews() {
                   <CardTitle>Actividades Sin Enviar</CardTitle>
                   <CardDescription>Actividades que aún no han sido completadas por los usuarios</CardDescription>
                 </div>
-                {selectedTasksForAlert.length > 0 && (
-                  <Button onClick={() => setIsAlertDialogOpen(true)}>
-                    <Send className="mr-2 h-4 w-4" />
-                    Enviar Alerta ({selectedTasksForAlert.length})
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {pendingTasks.length > 0 && (
+                    <Button 
+                      variant="destructive" 
+                      onClick={() => {
+                        if (confirm(`¿Estás seguro de eliminar las ${pendingTasks.length} actividades sin enviar? Esta acción no se puede deshacer.`)) {
+                          clearPendingTasksMutation.mutate(pendingTasks.map(t => t.id));
+                        }
+                      }}
+                      disabled={clearPendingTasksMutation.isPending}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      {clearPendingTasksMutation.isPending ? "Eliminando..." : "Limpiar Todas"}
+                    </Button>
+                  )}
+                  {selectedTasksForAlert.length > 0 && (
+                    <Button onClick={() => setIsAlertDialogOpen(true)}>
+                      <Send className="mr-2 h-4 w-4" />
+                      Enviar Alerta ({selectedTasksForAlert.length})
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent>

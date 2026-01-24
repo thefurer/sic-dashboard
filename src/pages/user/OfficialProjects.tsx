@@ -105,6 +105,15 @@ export default function OfficialProjects() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      // First, remove references from evaluation_items
+      const { error: refError } = await supabase
+        .from("evaluation_items")
+        .update({ related_project_id: null })
+        .eq("related_project_id", id);
+      
+      if (refError) throw refError;
+
+      // Now delete the project
       const { error } = await supabase
         .from("official_projects")
         .delete()
