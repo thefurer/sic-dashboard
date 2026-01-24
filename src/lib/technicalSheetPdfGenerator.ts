@@ -143,46 +143,52 @@ export async function generateTechnicalSheetPDF() {
 
   y = addSubsectionTitle(doc, "Diagrama de Arquitectura", y, "3.3");
 
-  y += 5;
-  doc.setFont("courier", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(60, 60, 60);
-  
-  const diagram = [
-    "┌─────────────────────────────────────────────────────────────────┐",
-    "│                     CLIENTE (Browser SPA)                       │",
-    "│  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────────┐   │",
-    "│  │   React   │ │  TanStack │ │   React   │ │    Framer     │   │",
-    "│  │Components │ │   Query   │ │   Router  │ │    Motion     │   │",
-    "│  └─────┬─────┘ └─────┬─────┘ └─────┬─────┘ └───────────────┘   │",
-    "│        └─────────────┴─────────────┘                            │",
-    "│                        │                                        │",
-    "│              ┌─────────▼─────────┐                              │",
-    "│              │  Supabase Client  │                              │",
-    "│              │   (SDK + Types)   │                              │",
-    "│              └─────────┬─────────┘                              │",
-    "└────────────────────────┼────────────────────────────────────────┘",
-    "                         │ HTTPS / WSS",
-    "┌────────────────────────▼────────────────────────────────────────┐",
-    "│                    SUPABASE CLOUD                               │",
-    "│  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────────┐   │",
-    "│  │   Auth    │ │  Database │ │  Storage  │ │ Edge Functions│   │",
-    "│  │ (JWT/RLS) │ │(PostgreSQL)│ │ (Buckets) │ │    (Deno)     │   │",
-    "│  └───────────┘ └───────────┘ └───────────┘ └───────────────┘   │",
-    "│                                                                 │",
-    "│  ┌─────────────────────────────────────────────────────────┐   │",
-    "│  │              Row Level Security (RLS)                    │   │",
-    "│  │    Políticas por tabla + Función has_role() + Triggers   │   │",
-    "│  └─────────────────────────────────────────────────────────┘   │",
-    "└─────────────────────────────────────────────────────────────────┘",
-  ];
-
-  diagram.forEach((line) => {
-    doc.text(line, 15, y);
-    y += 3.5;
+  // Diagrama usando tabla visual en lugar de caracteres especiales
+  autoTable(doc, {
+    startY: y + 5,
+    body: [
+      [{ content: "CAPA CLIENTE (Browser SPA)", styles: { fontStyle: "bold", fillColor: [220, 235, 250], halign: "center" } }],
+      ["React 18 + TypeScript | TanStack Query | React Router | Framer Motion"],
+      [{ content: "Supabase Client SDK + Types generados automaticamente", styles: { fillColor: [240, 248, 255] } }],
+    ],
+    theme: "grid",
+    styles: { fontSize: 8, cellPadding: 3, halign: "center" },
+    columnStyles: { 0: { cellWidth: 170 } },
   });
 
-  doc.setFont("helvetica", "normal");
+  y = (doc as any).lastAutoTable.finalY + 3;
+  
+  // Flecha de conexion
+  doc.setFontSize(10);
+  doc.setTextColor(31, 78, 121);
+  doc.text("HTTPS / WSS", pageWidth / 2, y + 3, { align: "center" });
+  doc.setFontSize(8);
+  doc.text("v", pageWidth / 2, y + 7, { align: "center" });
+  
+  y += 10;
+
+  autoTable(doc, {
+    startY: y,
+    body: [
+      [{ content: "SUPABASE CLOUD (Backend as a Service)", styles: { fontStyle: "bold", fillColor: [31, 78, 121], textColor: [255, 255, 255], halign: "center" } }],
+      [{ content: "Auth (JWT/RLS) | PostgreSQL 15 | Storage (Buckets) | Edge Functions (Deno)", styles: { fillColor: [240, 248, 255] } }],
+      [{ content: "Row Level Security (RLS) - Politicas por tabla + Funcion has_role() + Triggers", styles: { fillColor: [255, 250, 240], fontStyle: "italic" } }],
+    ],
+    theme: "grid",
+    styles: { fontSize: 8, cellPadding: 3, halign: "center" },
+    columnStyles: { 0: { cellWidth: 170 } },
+  });
+
+  y = (doc as any).lastAutoTable.finalY + 10;
+
+  // Nota sobre la arquitectura
+  y = addInfoBox(
+    doc,
+    "Arquitectura",
+    "La aplicacion sigue el patron SPA con BaaS. El cliente React se comunica directamente con Supabase via SDK, sin servidor intermedio. La seguridad se implementa mediante RLS en PostgreSQL.",
+    y,
+    "info"
+  );
 
   // Section 4: Database Schema
   doc.addPage();
