@@ -77,11 +77,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, phoneNumber: string, researcherCode: string) => {
+    // Use production URL to avoid localhost redirect issues
+    const redirectUrl = 'https://gisicf.lovable.app/auth';
+    
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth`,
+        emailRedirectTo: redirectUrl,
         data: {
           phone_number: phoneNumber,
           researcher_code: researcherCode,
@@ -92,7 +95,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Registro exitoso revise su correo. Por favor espere la aprobación del administrador.');
+      toast.success('Registro exitoso. Revise su correo electrónico (incluyendo la carpeta SPAM) para confirmar su cuenta. Luego espere la aprobación del administrador.', {
+        duration: 8000,
+      });
     }
     
     return { error };
@@ -123,14 +128,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPassword = async (email: string) => {
+    // Use production URL to avoid localhost redirect issues
+    const redirectUrl = 'https://gisicf.lovable.app/auth?reset=true';
+    
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth?reset=true`,
+      redirectTo: redirectUrl,
     });
     
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Se ha enviado un enlace de recuperación a su correo electrónico.');
+      toast.success('Se ha enviado un enlace de recuperación a su correo electrónico. Revise también la carpeta SPAM.', {
+        duration: 6000,
+      });
     }
     
     return { error };
