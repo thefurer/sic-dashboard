@@ -104,12 +104,12 @@ const achievementDefinitions: AchievementDefinition[] = [
     description: "Registrar tu primera publicación científica",
     icon: BookOpen,
     checkFn: async (userId: string) => {
-      const { count } = await supabase
-        .from("evaluation_items")
+      const query: any = supabase.from("evaluation_items");
+      const result = await query
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
         .eq("category", "publicacion");
-      return { unlocked: (count || 0) > 0 };
+      return { unlocked: (result?.count || 0) > 0 };
     },
   },
   {

@@ -15,6 +15,10 @@ import { UserStatusPanel } from "@/components/dashboard/UserStatusPanel";
 import { QuickStatsRow } from "@/components/dashboard/QuickStatsRow";
 import { MonthlyProgressChart } from "@/components/dashboard/MonthlyProgressChart";
 import { CompleteProfileBanner } from "@/components/dashboard/CompleteProfileBanner";
+import { SmartRecommendations } from "@/components/dashboard/SmartRecommendations";
+import { PriorityTaskQueue } from "@/components/dashboard/PriorityTaskQueue";
+import { ProductivityScore } from "@/components/dashboard/ProductivityScore";
+import { GoalTracker } from "@/components/dashboard/GoalTracker";
 import {
   Carousel,
   CarouselContent,
@@ -43,13 +47,24 @@ const Dashboard = () => {
       {/* Complete Profile Banner */}
       <CompleteProfileBanner />
 
-      {/* Welcome Greeting - NEW */}
-      <WelcomeGreeting userName={profile?.full_name || "Investigador"} />
+      {/* Welcome Greeting with Productivity Score */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <WelcomeGreeting userName={profile?.full_name || "Investigador"} />
+        <div className="w-full md:w-auto">
+          <ProductivityScore />
+        </div>
+      </div>
 
-      {/* Quick Access Widgets - NEW */}
+      {/* Smart Recommendations + Priority Task Queue */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <SmartRecommendations />
+        <PriorityTaskQueue />
+      </div>
+
+      {/* Quick Access Widgets */}
       <QuickAccessWidgets isAdmin={isSuperAdmin} />
 
-      {/* Quick Stats Row - NEW */}
+      {/* Quick Stats Row */}
       {stats && (
         <QuickStatsRow stats={stats} isAdmin={isSuperAdmin} isLoading={statsLoading} />
       )}
@@ -140,10 +155,15 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* User Status Panel - NEW */}
+        {/* User Status Panel + Goal Tracker */}
         <div className="col-span-12 lg:col-span-4">
           {stats && (
-            <UserStatusPanel stats={stats} isAdmin={isSuperAdmin} isLoading={statsLoading} />
+            <div className="space-y-4">
+              <UserStatusPanel stats={stats} isAdmin={isSuperAdmin} isLoading={statsLoading} />
+              <div className="metric-tile">
+                <GoalTracker />
+              </div>
+            </div>
           )}
         </div>
 
