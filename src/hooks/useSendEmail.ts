@@ -17,7 +17,8 @@ export type EmailType =
   | "activity_correction" 
   | "evaluation_submitted" 
   | "evaluation_correction" 
-  | "evaluation_approved";
+  | "evaluation_approved"
+  | "user_approved";
 
 interface SendEmailParams {
   type: EmailType;

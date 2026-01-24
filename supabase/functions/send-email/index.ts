@@ -17,6 +17,7 @@ interface EmailRequest {
     | "evaluation_submitted" 
     | "evaluation_correction" 
     | "evaluation_approved"
+    | "user_approved"
     | "check_deadlines";
   to?: string;
   userName?: string;
@@ -259,6 +260,53 @@ function getEmailContent(type: string, userName: string, data: EmailRequest["dat
                 <center>
                   <a href="${APP_URL}/evaluation" class="button">Ver Detalles</a>
                 </center>
+              </div>
+              <div class="footer">
+                <p>Sistema de Gestión de Investigación Científica</p>
+                <p>Universidad Estatal del Sur de Manabí</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      };
+
+    case "user_approved":
+      return {
+        subject: `🎉 ¡Bienvenido a GISICF! Tu cuenta ha sido aprobada`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>${styles}</head>
+          <body>
+            <div class="container">
+              <div class="header" style="background: linear-gradient(135deg, #007A33 0%, #00A94F 100%);">
+                <div class="logo">GISICF</div>
+                <h1>🎉 ¡Cuenta Aprobada!</h1>
+              </div>
+              <div class="content">
+                <p>Hola <strong>${userName}</strong>,</p>
+                <div class="success">
+                  <strong>¡Felicitaciones!</strong> Tu solicitud de registro ha sido aprobada. Ya puedes acceder al Sistema de Gestión de Investigación Científica.
+                </div>
+                <div class="alert" style="background: #e0f2fe; border-left-color: #0284c7;">
+                  <strong>📝 Importante:</strong> Te invitamos a completar tu perfil, incluyendo tu nombre completo, para una mejor experiencia en el sistema.
+                </div>
+                <div class="info-box">
+                  <p><strong>🔑 Próximos pasos:</strong></p>
+                  <ol style="margin: 10px 0; padding-left: 20px;">
+                    <li>Inicia sesión con tu cuenta</li>
+                    <li>Accede a tu <strong>Perfil</strong> y actualiza tu nombre</li>
+                    <li>Completa tu información ORCID y país</li>
+                    <li>¡Explora las funcionalidades del sistema!</li>
+                  </ol>
+                </div>
+                <center>
+                  <a href="https://gisicf.com/profile" class="button" style="background: #007A33;">Completar Mi Perfil</a>
+                </center>
+                <p style="margin-top: 20px; color: #666; font-size: 14px;">
+                  Si tienes alguna duda o necesitas ayuda, no dudes en contactar al administrador del sistema.
+                </p>
               </div>
               <div class="footer">
                 <p>Sistema de Gestión de Investigación Científica</p>
