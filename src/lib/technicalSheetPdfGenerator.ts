@@ -46,7 +46,7 @@ export async function generateTechnicalSheetPDF() {
       ["Facultad", "Facultad de Ciencias Técnicas"],
       ["Carrera", "Tecnologías de la Información"],
       ["Grupo de Investigación", "Sistemas Inteligentes y Ciberfísicos (GISICF)"],
-      ["URL de Producción", "https://gisicf.lovable.app"],
+      ["URL de Producción", "https://gisicf.com"],
       ["Fecha de Última Actualización", new Date().toLocaleDateString("es-EC")],
     ],
     theme: "grid",

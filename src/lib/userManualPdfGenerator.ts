@@ -149,7 +149,7 @@ export async function generateUserManualPDF() {
   y = addSubsectionTitle(doc, "Registro de Nuevo Usuario", y, "2.1");
 
   y = addNumberedList(doc, [
-    "Ingrese a la página principal de la plataforma GISICF (gisicf.lovable.app)",
+    "Ingrese a la página principal de la plataforma GISICF (gisicf.com)",
     "Haga clic en el botón 'Registrarse' ubicado en la pantalla de inicio",
     "Complete el formulario con sus datos: nombre completo y código de investigador",
     "Ingrese un correo electrónico institucional válido (@unesum.edu.ec)",
