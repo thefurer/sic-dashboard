@@ -1,5 +1,5 @@
-import { Bell, AlertTriangle } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Bell, AlertTriangle, Sparkles } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,21 +11,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { format, differenceInDays, isPast, isToday } from "date-fns";
+import { format, differenceInDays, isPast, isToday, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
 
 interface ActivityNotification {
   id: string;
   activity: string;
   endDate: string;
-  status: "overdue" | "urgent" | "warning" | "observado";
+  status: "new" | "overdue" | "urgent" | "warning" | "observado";
   message: string;
+  createdAt?: string;
 }
 
 export function UserActivityNotificationBell() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const previousCountRef = useRef<number>(0);
 
   const { data: notifications = [] } = useQuery({
     queryKey: ["user-activity-notifications"],
@@ -39,6 +43,7 @@ export function UserActivityNotificationBell() {
           id,
           status,
           admin_observations,
+          created_at,
           planning_activities!inner(
             activity,
             end_date
@@ -50,10 +55,26 @@ export function UserActivityNotificationBell() {
       if (error) throw error;
 
       const notifs: ActivityNotification[] = [];
+      const now = new Date();
 
       data?.forEach((task: any) => {
         const endDate = new Date(task.planning_activities.end_date);
-        const daysLeft = differenceInDays(endDate, new Date());
+        const createdAt = new Date(task.created_at);
+        const daysLeft = differenceInDays(endDate, now);
+        const hoursAgo = differenceInHours(now, createdAt);
+
+        // Check for newly assigned tasks (within last 48 hours)
+        if (task.status === "pending" && hoursAgo <= 48) {
+          notifs.push({
+            id: task.id,
+            activity: task.planning_activities.activity,
+            endDate: task.planning_activities.end_date,
+            status: "new",
+            message: hoursAgo < 1 ? "Recién asignada" : `Asignada hace ${hoursAgo}h`,
+            createdAt: task.created_at,
+          });
+          return; // Don't add duplicate notifications for new tasks
+        }
 
         // Check for observations
         if (task.status === "observado") {
@@ -97,14 +118,61 @@ export function UserActivityNotificationBell() {
         }
       });
 
-      // Sort by priority: overdue first, then observado, then urgent, then warning
-      const priority = { overdue: 0, observado: 1, urgent: 2, warning: 3 };
+      // Sort by priority: new first, then overdue, then observado, then urgent, then warning
+      const priority = { new: 0, overdue: 1, observado: 2, urgent: 3, warning: 4 };
       return notifs.sort((a, b) => priority[a.status] - priority[b.status]);
     },
-    refetchInterval: 30000,
+    refetchInterval: 15000, // Faster polling for new assignments (15 seconds)
+    refetchOnWindowFocus: true,
   });
 
-  const urgentCount = notifications.filter(n => n.status === "overdue" || n.status === "urgent" || n.status === "observado").length;
+  // Subscribe to real-time changes for assigned_tasks
+  useEffect(() => {
+    const setupRealtime = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channel = supabase
+        .channel('assigned_tasks_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'assigned_tasks',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            // Invalidate and refetch notifications when a new task is assigned
+            queryClient.invalidateQueries({ queryKey: ["user-activity-notifications"] });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'assigned_tasks',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            queryClient.invalidateQueries({ queryKey: ["user-activity-notifications"] });
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    setupRealtime();
+  }, [queryClient]);
+
+  const newCount = notifications.filter(n => n.status === "new").length;
+  const urgentCount = notifications.filter(n => 
+    n.status === "overdue" || n.status === "urgent" || n.status === "observado" || n.status === "new"
+  ).length;
   const hasNotifications = notifications.length > 0;
 
   if (!hasNotifications) {
@@ -113,6 +181,8 @@ export function UserActivityNotificationBell() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "new":
+        return <Badge className="bg-primary text-primary-foreground">Nueva</Badge>;
       case "overdue":
         return <Badge variant="destructive">Vencido</Badge>;
       case "urgent":
@@ -134,13 +204,21 @@ export function UserActivityNotificationBell() {
             animate={urgentCount > 0 ? { scale: [1, 1.2, 1] } : {}}
             transition={{ repeat: Infinity, duration: 2 }}
           >
-            <Bell className={`h-5 w-5 ${urgentCount > 0 ? "text-destructive" : ""}`} />
+            {newCount > 0 ? (
+              <Sparkles className="h-5 w-5 text-primary" />
+            ) : (
+              <Bell className={`h-5 w-5 ${urgentCount > 0 ? "text-destructive" : ""}`} />
+            )}
           </motion.div>
           {urgentCount > 0 && (
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-semibold"
+              className={`absolute -top-1 -right-1 h-5 w-5 rounded-full text-xs flex items-center justify-center font-semibold ${
+                newCount > 0 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-destructive text-destructive-foreground"
+              }`}
             >
               {urgentCount > 9 ? "9+" : urgentCount}
             </motion.span>
@@ -149,8 +227,17 @@ export function UserActivityNotificationBell() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-96 max-h-[400px] overflow-y-auto">
         <DropdownMenuLabel className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-destructive" />
-          Actividades Pendientes ({notifications.length})
+          {newCount > 0 ? (
+            <>
+              <Sparkles className="h-4 w-4 text-primary" />
+              Nuevas Actividades Asignadas ({newCount})
+            </>
+          ) : (
+            <>
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              Actividades Pendientes ({notifications.length})
+            </>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {notifications.slice(0, 10).map((notif) => (
