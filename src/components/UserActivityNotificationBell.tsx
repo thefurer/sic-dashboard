@@ -63,6 +63,18 @@ export function UserActivityNotificationBell() {
         const daysLeft = differenceInDays(endDate, now);
         const hoursAgo = differenceInHours(now, createdAt);
 
+        // Check for observations first (highest priority after overdue)
+        if (task.status === "observado") {
+          notifs.push({
+            id: task.id,
+            activity: task.planning_activities.activity,
+            endDate: task.planning_activities.end_date,
+            status: "observado",
+            message: "Requiere corrección",
+          });
+          return;
+        }
+
         // Check for newly assigned tasks (within last 48 hours)
         if (task.status === "pending" && hoursAgo <= 48) {
           notifs.push({
@@ -73,21 +85,11 @@ export function UserActivityNotificationBell() {
             message: hoursAgo < 1 ? "Recién asignada" : `Asignada hace ${hoursAgo}h`,
             createdAt: task.created_at,
           });
-          return; // Don't add duplicate notifications for new tasks
+          return;
         }
 
-        // Check for observations
-        if (task.status === "observado") {
-          notifs.push({
-            id: task.id,
-            activity: task.planning_activities.activity,
-            endDate: task.planning_activities.end_date,
-            status: "observado",
-            message: "Requiere corrección",
-          });
-        }
         // Check for overdue
-        else if (isPast(endDate) && !isToday(endDate)) {
+        if (isPast(endDate) && !isToday(endDate)) {
           notifs.push({
             id: task.id,
             activity: task.planning_activities.activity,
@@ -114,6 +116,16 @@ export function UserActivityNotificationBell() {
             endDate: task.planning_activities.end_date,
             status: "warning",
             message: `Vence en ${daysLeft} días`,
+          });
+        }
+        // ALL other pending tasks should still show (normal priority)
+        else if (task.status === "pending") {
+          notifs.push({
+            id: task.id,
+            activity: task.planning_activities.activity,
+            endDate: task.planning_activities.end_date,
+            status: "warning", // Use warning style but with different message
+            message: `Pendiente • Vence el ${format(endDate, "dd/MM", { locale: es })}`,
           });
         }
       });
