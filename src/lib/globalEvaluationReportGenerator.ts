@@ -187,7 +187,7 @@ function drawPageFooter(doc: jsPDF) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.text(
-    "E-mail: ingenieria.ti@unesum.edu.ec",
+    "E-mail: grupo.gisicf@unesum.edu.ec",
     pageWidth / 2,
     footerY,
     { align: "center" }

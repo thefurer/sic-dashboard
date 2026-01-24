@@ -19,7 +19,7 @@ function drawPageFooter(doc: jsPDF) {
   doc.setTextColor(31, 78, 121);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text("E-mail: ingenieria.ti@unesum.edu.ec", pageWidth / 2, footerY, { align: "center" });
+  doc.text("E-mail: grupo.gisicf@unesum.edu.ec", pageWidth / 2, footerY, { align: "center" });
 
   // Address line (Black, Regular)
   doc.setTextColor(0, 0, 0);
@@ -214,16 +214,8 @@ export async function generatePlanningPDF(planData: any) {
     },
   });
 
-  // Footer observations
+  // Space after table
   let finalY = (doc as any).lastAutoTable.finalY + 10;
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "italic");
-  doc.text(
-    "Observación: Todos los miembros del grupo deben estar afiliados a la UTE.",
-    14,
-    finalY
-  );
 
   // Check if there's enough space for signatures (need at least 60mm for wrapped text)
   const pageHeight = doc.internal.pageSize.getHeight();
