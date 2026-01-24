@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { SmartTextarea } from "@/components/ui/smart-textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -883,12 +883,22 @@ export default function TaskReviews() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="observations">Observaciones</Label>
-              <Textarea
+              <SmartTextarea
                 id="observations"
                 value={observations}
                 onChange={(e) => setObservations(e.target.value)}
                 placeholder="Describe qué debe corregir el usuario..."
                 rows={5}
+                storageKey="task_observations"
+                quickSuggestions={[
+                  "La evidencia presentada no corresponde a la actividad descrita. Por favor suba el documento correcto.",
+                  "Falta incluir el medio de verificación. Adjunte el documento de respaldo.",
+                  "La descripción de la evidencia es insuficiente. Detalle cómo la evidencia demuestra el cumplimiento.",
+                  "El archivo adjunto no se puede abrir. Por favor suba nuevamente en formato PDF.",
+                  "Falta la firma o validación institucional en el documento.",
+                  "El enlace proporcionado no funciona. Verifique y actualice la URL.",
+                  "La evidencia debe incluir fecha y nombre del responsable.",
+                ]}
               />
             </div>
           </div>
@@ -935,12 +945,20 @@ export default function TaskReviews() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="alertMessage">Mensaje de Alerta</Label>
-              <Textarea
+              <SmartTextarea
                 id="alertMessage"
                 value={alertMessage}
                 onChange={(e) => setAlertMessage(e.target.value)}
                 placeholder="Ej: Por favor completa tu actividad lo antes posible. El plazo está por vencer..."
                 rows={4}
+                storageKey="task_alerts"
+                quickSuggestions={[
+                  "Por favor completa tu actividad lo antes posible. El plazo está por vencer.",
+                  "Recordatorio: Tu actividad asignada está próxima a vencer. Sube tu evidencia cuanto antes.",
+                  "URGENTE: El plazo para esta actividad venció. Contacta al coordinador.",
+                  "Favor completar la actividad pendiente para evitar atrasos en el cronograma.",
+                  "Se requiere tu participación inmediata para cumplir con los objetivos del plan.",
+                ]}
               />
             </div>
           </div>
@@ -985,12 +1003,18 @@ export default function TaskReviews() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="editObservations">Observaciones (opcional)</Label>
-              <Textarea
+              <SmartTextarea
                 id="editObservations"
                 value={editObservations}
                 onChange={(e) => setEditObservations(e.target.value)}
                 placeholder="Observaciones para el usuario..."
                 rows={4}
+                storageKey="task_observations"
+                quickSuggestions={[
+                  "Actividad aprobada. Buen trabajo.",
+                  "Evidencia verificada correctamente.",
+                  "Se requieren ajustes menores en la documentación.",
+                ]}
               />
             </div>
           </div>
