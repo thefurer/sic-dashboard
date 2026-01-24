@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, phoneNumber: string, researcherCode: string) => {
     // Use production URL to avoid localhost redirect issues
-    const redirectUrl = 'https://gisicf.lovable.app/auth';
+    const redirectUrl = 'https://gisicf.com/auth';
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetPassword = async (email: string) => {
     // Use production URL to avoid localhost redirect issues
-    const redirectUrl = 'https://gisicf.lovable.app/auth?reset=true';
+    const redirectUrl = 'https://gisicf.com/auth?reset=true';
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
