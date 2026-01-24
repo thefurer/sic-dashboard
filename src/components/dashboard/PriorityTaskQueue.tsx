@@ -44,18 +44,18 @@ const priorityConfig = {
 
 export const PriorityTaskQueue = () => {
   const navigate = useNavigate();
-  const { data: tasks, isLoading } = usePriorityTasks(5);
+  const { data: tasks, isLoading } = usePriorityTasks(4);
 
   if (isLoading) {
     return (
-      <div className="metric-tile h-full">
-        <div className="flex items-center gap-3 mb-4">
-          <Skeleton className="h-10 w-10 rounded-xl" />
-          <Skeleton className="h-6 w-40" />
+      <div className="metric-tile !p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Skeleton className="h-8 w-8 rounded-lg" />
+          <Skeleton className="h-5 w-32" />
         </div>
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-14 w-full rounded-lg" />
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-11 w-full rounded-lg" />
           ))}
         </div>
       </div>
@@ -64,20 +64,20 @@ export const PriorityTaskQueue = () => {
 
   if (!tasks || tasks.length === 0) {
     return (
-      <div className="metric-tile h-full">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="icon-glow-container !w-10 !h-10">
-            <ListTodo className="h-5 w-5 text-primary" />
+      <div className="metric-tile !p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="icon-glow-container !w-8 !h-8">
+            <ListTodo className="h-4 w-4 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground">
+          <h3 className="text-sm font-semibold text-foreground">
             Cola de Prioridad
           </h3>
         </div>
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mb-4">
-            <ListTodo className="h-8 w-8 text-success" />
+        <div className="flex flex-col items-center justify-center py-6 text-center">
+          <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-3">
+            <ListTodo className="h-6 w-6 text-success" />
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             No tienes tareas pendientes
           </p>
         </div>
@@ -87,37 +87,32 @@ export const PriorityTaskQueue = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.1 }}
-      className="metric-tile h-full flex flex-col"
+      transition={{ duration: 0.3, delay: 0.1 }}
+      className="metric-tile !p-4 flex flex-col"
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="icon-glow-container !w-10 !h-10">
-            <ListTodo className="h-5 w-5 text-primary" />
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="icon-glow-container !w-8 !h-8">
+            <ListTodo className="h-4 w-4 text-primary" />
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">
-              Cola de Prioridad
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Tus tareas más urgentes
-            </p>
-          </div>
+          <h3 className="text-sm font-semibold text-foreground">
+            Cola de Prioridad
+          </h3>
         </div>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigate("/my-tasks")}
-          className="text-primary hover:text-primary/80"
+          className="text-primary hover:text-primary/80 h-7 text-xs px-2"
         >
           Ver todas
-          <ArrowRight className="h-4 w-4 ml-1" />
+          <ArrowRight className="h-3 w-3 ml-1" />
         </Button>
       </div>
 
-      <div className="space-y-2 flex-1">
+      <div className="space-y-1.5 flex-1">
         {tasks.map((task, index) => {
           const config = priorityConfig[task.priority];
           const Icon = config.icon;
@@ -125,38 +120,33 @@ export const PriorityTaskQueue = () => {
           return (
             <motion.div
               key={task.id}
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ delay: index * 0.03 }}
               onClick={() => navigate("/my-tasks")}
-              className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group border border-transparent hover:border-border"
+              className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group border border-transparent hover:border-border"
             >
               <div className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                "w-6 h-6 rounded-md flex items-center justify-center shrink-0",
                 config.badgeClass
               )}>
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3 w-3" />
               </div>
               
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                <p className="text-xs font-medium text-foreground truncate group-hover:text-primary transition-colors">
                   {task.activity}
                 </p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(task.end_date), "d MMM", { locale: es })}
-                  </span>
-                  <span className={cn("text-xs font-medium", config.textClass)}>
-                    {task.daysRemaining < 0
-                      ? `${Math.abs(task.daysRemaining)}d vencida`
-                      : task.daysRemaining === 0
-                      ? "Vence hoy"
-                      : `${task.daysRemaining}d restantes`}
-                  </span>
-                </div>
+                <span className={cn("text-[10px]", config.textClass)}>
+                  {task.daysRemaining < 0
+                    ? `${Math.abs(task.daysRemaining)}d vencida`
+                    : task.daysRemaining === 0
+                    ? "Hoy"
+                    : `${task.daysRemaining}d`}
+                </span>
               </div>
 
-              <Badge variant="outline" className={cn("shrink-0 text-[10px]", config.badgeClass)}>
+              <Badge variant="outline" className={cn("shrink-0 text-[9px] px-1.5 py-0", config.badgeClass)}>
                 {config.label}
               </Badge>
             </motion.div>

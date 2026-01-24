@@ -164,8 +164,8 @@ export const useSmartRecommendations = () => {
           title: "Registra producción científica",
           description: "No tienes publicaciones registradas este año.",
           icon: BookOpen,
-          action: "Agregar publicación",
-          route: "/scientific-production",
+          action: "Ver proyectos",
+          route: "/user/official-projects",
         });
       }
 
