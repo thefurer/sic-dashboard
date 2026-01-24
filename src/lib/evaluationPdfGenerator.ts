@@ -42,7 +42,7 @@ function drawPageFooter(doc: jsPDF) {
   doc.setTextColor(31, 78, 121);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text("E-mail: ingenieria.ti@unesum.edu.ec", pageWidth / 2, footerY, { align: "center" });
+  doc.text("E-mail: grupo.gisicf@unesum.edu.ec", pageWidth / 2, footerY, { align: "center" });
 
   doc.setTextColor(0, 0, 0);
   doc.setFont("helvetica", "normal");
