@@ -150,11 +150,12 @@ export const useSmartRecommendations = () => {
       }
 
       // Check scientific production
-      const { count: productionCount } = await supabase
-        .from("evaluation_items")
+      const prodQuery: any = supabase.from("evaluation_items");
+      const productionResult = await prodQuery
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .gte("created_at", `${currentYear}-01-01`);
+      const productionCount = productionResult?.count || 0;
 
       if (!productionCount || productionCount === 0) {
         recommendations.push({
