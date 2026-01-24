@@ -712,6 +712,7 @@ export default function TaskReviews() {
                     <TableHead>Actividad</TableHead>
                     <TableHead>Fecha Límite</TableHead>
                     <TableHead>Estado Plazo</TableHead>
+                    <TableHead>Visto</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -741,6 +742,21 @@ export default function TaskReviews() {
                                 <span className="text-xs text-muted-foreground">{deadlineStatus.daysText}</span>
                               )}
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            {task.read_at ? (
+                              <div className="flex items-center gap-1 text-primary">
+                                <CheckCircle className="h-4 w-4" />
+                                <span className="text-xs">
+                                  {format(new Date(task.read_at), "dd/MM HH:mm", { locale: es })}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 text-muted-foreground">
+                                <Clock className="h-4 w-4" />
+                                <span className="text-xs">No visto</span>
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell className="text-right">
                             {(deadlineStatus.type === "overdue" || deadlineStatus.type === "urgent" || deadlineStatus.type === "warning") && (

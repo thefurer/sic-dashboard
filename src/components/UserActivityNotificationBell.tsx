@@ -1,5 +1,5 @@
-import { Bell, AlertTriangle, Sparkles } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Bell, AlertTriangle, Sparkles, Check, Eye } from "lucide-react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,8 @@ import { format, differenceInDays, isPast, isToday, differenceInHours } from "da
 import { es } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ActivityNotification {
   id: string;
@@ -24,12 +25,14 @@ interface ActivityNotification {
   status: "new" | "overdue" | "urgent" | "warning" | "observado";
   message: string;
   createdAt?: string;
+  isRead: boolean;
+  readAt?: string;
 }
 
 export function UserActivityNotificationBell() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const previousCountRef = useRef<number>(0);
+  const { toast } = useToast();
 
   const { data: notifications = [] } = useQuery({
     queryKey: ["user-activity-notifications"],
@@ -44,6 +47,7 @@ export function UserActivityNotificationBell() {
           status,
           admin_observations,
           created_at,
+          read_at,
           planning_activities!inner(
             activity,
             end_date
@@ -62,6 +66,8 @@ export function UserActivityNotificationBell() {
         const createdAt = new Date(task.created_at);
         const daysLeft = differenceInDays(endDate, now);
         const hoursAgo = differenceInHours(now, createdAt);
+        const isRead = !!task.read_at;
+        const readAt = task.read_at;
 
         // Check for observations first (highest priority after overdue)
         if (task.status === "observado") {
@@ -71,6 +77,8 @@ export function UserActivityNotificationBell() {
             endDate: task.planning_activities.end_date,
             status: "observado",
             message: "Requiere corrección",
+            isRead,
+            readAt,
           });
           return;
         }
@@ -84,6 +92,8 @@ export function UserActivityNotificationBell() {
             status: "new",
             message: hoursAgo < 1 ? "Recién asignada" : `Asignada hace ${hoursAgo}h`,
             createdAt: task.created_at,
+            isRead,
+            readAt,
           });
           return;
         }
@@ -96,6 +106,8 @@ export function UserActivityNotificationBell() {
             endDate: task.planning_activities.end_date,
             status: "overdue",
             message: `Venció hace ${Math.abs(daysLeft)} días`,
+            isRead,
+            readAt,
           });
         }
         // Check for urgent (3 days or less)
@@ -106,6 +118,8 @@ export function UserActivityNotificationBell() {
             endDate: task.planning_activities.end_date,
             status: "urgent",
             message: daysLeft === 0 ? "Vence hoy" : `Vence en ${daysLeft} días`,
+            isRead,
+            readAt,
           });
         }
         // Check for warning (7 days or less)
@@ -116,6 +130,8 @@ export function UserActivityNotificationBell() {
             endDate: task.planning_activities.end_date,
             status: "warning",
             message: `Vence en ${daysLeft} días`,
+            isRead,
+            readAt,
           });
         }
         // ALL other pending tasks should still show (normal priority)
@@ -124,18 +140,66 @@ export function UserActivityNotificationBell() {
             id: task.id,
             activity: task.planning_activities.activity,
             endDate: task.planning_activities.end_date,
-            status: "warning", // Use warning style but with different message
+            status: "warning",
             message: `Pendiente • Vence el ${format(endDate, "dd/MM", { locale: es })}`,
+            isRead,
+            readAt,
           });
         }
       });
 
-      // Sort by priority: new first, then overdue, then observado, then urgent, then warning
+      // Sort by: unread first, then by priority
       const priority = { new: 0, overdue: 1, observado: 2, urgent: 3, warning: 4 };
-      return notifs.sort((a, b) => priority[a.status] - priority[b.status]);
+      return notifs.sort((a, b) => {
+        // Unread items first
+        if (!a.isRead && b.isRead) return -1;
+        if (a.isRead && !b.isRead) return 1;
+        // Then by priority
+        return priority[a.status] - priority[b.status];
+      });
     },
-    refetchInterval: 15000, // Faster polling for new assignments (15 seconds)
+    refetchInterval: 15000,
     refetchOnWindowFocus: true,
+  });
+
+  // Mark as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: async (taskId: string) => {
+      const { error } = await supabase
+        .from("assigned_tasks")
+        .update({ read_at: new Date().toISOString() })
+        .eq("id", taskId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-activity-notifications"] });
+    },
+  });
+
+  // Mark all as read mutation
+  const markAllAsReadMutation = useMutation({
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
+      if (unreadIds.length === 0) return;
+
+      const { error } = await supabase
+        .from("assigned_tasks")
+        .update({ read_at: new Date().toISOString() })
+        .in("id", unreadIds);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-activity-notifications"] });
+      toast({
+        title: "Notificaciones marcadas como leídas",
+        description: "Todas las notificaciones han sido marcadas como leídas",
+      });
+    },
   });
 
   // Subscribe to real-time changes for assigned_tasks
@@ -155,7 +219,6 @@ export function UserActivityNotificationBell() {
             filter: `user_id=eq.${user.id}`,
           },
           () => {
-            // Invalidate and refetch notifications when a new task is assigned
             queryClient.invalidateQueries({ queryKey: ["user-activity-notifications"] });
           }
         )
@@ -181,9 +244,9 @@ export function UserActivityNotificationBell() {
     setupRealtime();
   }, [queryClient]);
 
-  const newCount = notifications.filter(n => n.status === "new").length;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
   const urgentCount = notifications.filter(n => 
-    n.status === "overdue" || n.status === "urgent" || n.status === "observado" || n.status === "new"
+    !n.isRead && (n.status === "overdue" || n.status === "urgent" || n.status === "observado" || n.status === "new")
   ).length;
   const hasNotifications = notifications.length > 0;
 
@@ -191,18 +254,26 @@ export function UserActivityNotificationBell() {
     return null;
   }
 
-  const getStatusBadge = (status: string) => {
+  const handleNotificationClick = (notif: ActivityNotification) => {
+    if (!notif.isRead) {
+      markAsReadMutation.mutate(notif.id);
+    }
+    navigate("/my-tasks");
+  };
+
+  const getStatusBadge = (status: string, isRead: boolean) => {
+    const opacity = isRead ? "opacity-60" : "";
     switch (status) {
       case "new":
-        return <Badge className="bg-primary text-primary-foreground">Nueva</Badge>;
+        return <Badge className={`bg-primary text-primary-foreground ${opacity}`}>Nueva</Badge>;
       case "overdue":
-        return <Badge variant="destructive">Vencido</Badge>;
+        return <Badge variant="destructive" className={opacity}>Vencido</Badge>;
       case "urgent":
-        return <Badge className="bg-orange-500">Urgente</Badge>;
+        return <Badge className={`bg-orange-500 ${opacity}`}>Urgente</Badge>;
       case "warning":
-        return <Badge className="bg-yellow-500 text-black">Próximo</Badge>;
+        return <Badge className={`bg-yellow-500 text-black ${opacity}`}>Próximo</Badge>;
       case "observado":
-        return <Badge variant="destructive">Observado</Badge>;
+        return <Badge variant="destructive" className={opacity}>Observado</Badge>;
       default:
         return null;
     }
@@ -216,56 +287,83 @@ export function UserActivityNotificationBell() {
             animate={urgentCount > 0 ? { scale: [1, 1.2, 1] } : {}}
             transition={{ repeat: Infinity, duration: 2 }}
           >
-            {newCount > 0 ? (
+            {unreadCount > 0 ? (
               <Sparkles className="h-5 w-5 text-primary" />
             ) : (
-              <Bell className={`h-5 w-5 ${urgentCount > 0 ? "text-destructive" : ""}`} />
+              <Bell className="h-5 w-5" />
             )}
           </motion.div>
-          {urgentCount > 0 && (
+          {unreadCount > 0 && (
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className={`absolute -top-1 -right-1 h-5 w-5 rounded-full text-xs flex items-center justify-center font-semibold ${
-                newCount > 0 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-destructive text-destructive-foreground"
-              }`}
+              className="absolute -top-1 -right-1 h-5 w-5 rounded-full text-xs flex items-center justify-center font-semibold bg-primary text-primary-foreground"
             >
-              {urgentCount > 9 ? "9+" : urgentCount}
+              {unreadCount > 9 ? "9+" : unreadCount}
             </motion.span>
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96 max-h-[400px] overflow-y-auto">
-        <DropdownMenuLabel className="flex items-center gap-2">
-          {newCount > 0 ? (
-            <>
-              <Sparkles className="h-4 w-4 text-primary" />
-              Nuevas Actividades Asignadas ({newCount})
-            </>
-          ) : (
-            <>
-              <AlertTriangle className="h-4 w-4 text-destructive" />
-              Actividades Pendientes ({notifications.length})
-            </>
+      <DropdownMenuContent align="end" className="w-96 max-h-[450px] overflow-y-auto">
+        <DropdownMenuLabel className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 ? (
+              <>
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span>Notificaciones ({unreadCount} sin leer)</span>
+              </>
+            ) : (
+              <>
+                <Bell className="h-4 w-4" />
+                <span>Actividades Pendientes ({notifications.length})</span>
+              </>
+            )}
+          </div>
+          {unreadCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={(e) => {
+                e.preventDefault();
+                markAllAsReadMutation.mutate();
+              }}
+            >
+              <Check className="h-3 w-3 mr-1" />
+              Marcar todas
+            </Button>
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {notifications.slice(0, 10).map((notif) => (
           <DropdownMenuItem
             key={notif.id}
-            onClick={() => navigate("/my-tasks")}
-            className="cursor-pointer py-3"
+            onClick={() => handleNotificationClick(notif)}
+            className={`cursor-pointer py-3 ${notif.isRead ? "opacity-70" : "bg-accent/30"}`}
           >
             <div className="flex flex-col gap-1 w-full">
               <div className="flex items-center justify-between gap-2">
-                <p className="font-medium text-sm truncate flex-1">{notif.activity}</p>
-                {getStatusBadge(notif.status)}
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  {!notif.isRead && (
+                    <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                  )}
+                  {notif.isRead && (
+                    <Eye className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                  )}
+                  <p className={`text-sm truncate ${notif.isRead ? "text-muted-foreground" : "font-medium"}`}>
+                    {notif.activity}
+                  </p>
+                </div>
+                {getStatusBadge(notif.status, notif.isRead)}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground ml-4">
                 {notif.message} • Fecha límite: {format(new Date(notif.endDate), "dd/MM/yyyy", { locale: es })}
               </p>
+              {notif.isRead && notif.readAt && (
+                <p className="text-xs text-muted-foreground/60 ml-4">
+                  Leído el {format(new Date(notif.readAt), "dd/MM HH:mm", { locale: es })}
+                </p>
+              )}
             </div>
           </DropdownMenuItem>
         ))}
