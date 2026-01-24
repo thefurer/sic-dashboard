@@ -37,6 +37,7 @@ export default function TaskReviews() {
   const [editStatus, setEditStatus] = useState<string>("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
+  const [isClearPendingDialogOpen, setIsClearPendingDialogOpen] = useState(false);
 
   // Fetch all tasks with different statuses
   const { data: allTasks, isLoading } = useQuery({
@@ -675,11 +676,7 @@ export default function TaskReviews() {
                   {pendingTasks.length > 0 && (
                     <Button 
                       variant="destructive" 
-                      onClick={() => {
-                        if (confirm(`¿Estás seguro de eliminar las ${pendingTasks.length} actividades sin enviar? Esta acción no se puede deshacer.`)) {
-                          clearPendingTasksMutation.mutate(pendingTasks.map(t => t.id));
-                        }
-                      }}
+                      onClick={() => setIsClearPendingDialogOpen(true)}
                       disabled={clearPendingTasksMutation.isPending}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
@@ -1026,6 +1023,64 @@ export default function TaskReviews() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Clear All Pending Tasks Confirmation Dialog */}
+      <AlertDialog open={isClearPendingDialogOpen} onOpenChange={setIsClearPendingDialogOpen}>
+        <AlertDialogContent className="max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              ¿Eliminar todas las actividades pendientes?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Esta acción eliminará <strong>{pendingTasks.length} actividades</strong> sin enviar. 
+                  Esta acción no se puede deshacer.
+                </p>
+                <div className="bg-muted rounded-lg p-3 max-h-48 overflow-y-auto">
+                  <p className="text-sm font-medium mb-2 text-foreground">Usuarios afectados:</p>
+                  <ul className="space-y-1">
+                    {/* Get unique users with their task counts */}
+                    {Object.entries(
+                      pendingTasks.reduce((acc: Record<string, { name: string; count: number }>, task) => {
+                        const userId = task.user_id;
+                        const userName = task.user_profile?.full_name || "Usuario desconocido";
+                        if (!acc[userId]) {
+                          acc[userId] = { name: userName, count: 0 };
+                        }
+                        acc[userId].count++;
+                        return acc;
+                      }, {})
+                    ).map(([userId, data]) => (
+                      <li key={userId} className="text-sm flex items-center gap-2">
+                        <Users className="h-3 w-3 text-muted-foreground" />
+                        <span>{data.name}</span>
+                        <Badge variant="secondary" className="text-xs">
+                          {data.count} {data.count === 1 ? "actividad" : "actividades"}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                clearPendingTasksMutation.mutate(pendingTasks.map(t => t.id));
+                setIsClearPendingDialogOpen(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Eliminar {pendingTasks.length} actividades
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
