@@ -145,21 +145,27 @@ Deno.serve(async (req) => {
     }
 
     const authHeader = req.headers.get("authorization") ?? "";
-    if (!authHeader) {
-      return jsonResponse({ ok: false, error: "No autorizado" }, 401);
-    }
 
     const { createClient } = await import(
       "https://esm.sh/@supabase/supabase-js@2"
     );
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    let authenticatedUserId: string | null = null;
+    if (authHeader?.startsWith("Bearer ")) {
+      try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          global: { headers: { Authorization: authHeader } },
+        });
 
-    const { data: claims, error: claimsError } = await supabase.auth.getClaims();
-    if (claimsError || !claims) {
-      console.warn("Invalid JWT", claimsError?.message);
-      return jsonResponse({ ok: false, error: "No autorizado" }, 401);
+        const token = authHeader.replace("Bearer ", "");
+        const { data: jwt, error: claimsError } = await supabase.auth.getClaims(token);
+        if (claimsError || !jwt?.claims?.sub) {
+          console.warn("Invalid JWT", claimsError?.message ?? String(claimsError));
+        } else {
+          authenticatedUserId = jwt.claims.sub;
+        }
+      } catch (e) {
+        console.warn("JWT validation exception", e);
+      }
     }
 
     const body = await req.json().catch(() => ({}));
@@ -175,7 +181,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("ISBN lookup", { isbn, user: claims?.claims?.sub });
+    console.log("ISBN lookup", { isbn, user: authenticatedUserId });
 
     // Prefer Open Library (no quota issues), then Google Books
     const ol1 = await tryOpenLibraryApiBooks(isbn);
@@ -184,8 +190,11 @@ Deno.serve(async (req) => {
     const ol2 = await tryOpenLibraryIsbnEndpoint(isbn);
     if (ol2) return jsonResponse({ ok: true, source: "Open Library", metadata: ol2 });
 
-    const gb = await tryGoogleBooks(isbn);
-    if (gb) return jsonResponse({ ok: true, source: "Google Books", metadata: gb });
+    // Use Google Books only when a valid session exists (avoids browser quota issues and reduces abuse)
+    if (authenticatedUserId) {
+      const gb = await tryGoogleBooks(isbn);
+      if (gb) return jsonResponse({ ok: true, source: "Google Books", metadata: gb });
+    }
 
     return jsonResponse({ ok: false, notFound: true }, 200);
   } catch (e) {
