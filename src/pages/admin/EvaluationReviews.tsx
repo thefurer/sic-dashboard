@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,7 +22,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Search, Eye, Trash2, FileText, CheckCircle, AlertCircle, Clock } from "lucide-react";
-import { ReviewModal } from "@/components/evaluation/ReviewModal";
 import { toast } from "sonner";
 import { generateGlobalEvaluationReport } from "@/lib/globalEvaluationReportGenerator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,10 +33,10 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }>
 };
 
 export default function EvaluationReviews() {
+  const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
-  const [reviewingReport, setReviewingReport] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "reviewed">("all");
   const queryClient = useQueryClient();
 
@@ -287,45 +287,36 @@ export default function EvaluationReviews() {
                           ? new Date(report.submitted_at).toLocaleDateString("es-ES")
                           : "N/A"}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setReviewingReport(report)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(report.id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No hay evaluaciones enviadas para este año</p>
-          </div>
-        )}
-      </Card>
-
-      {reviewingReport && (
-        <ReviewModal
-          open={!!reviewingReport}
-          onOpenChange={(open) => !open && setReviewingReport(null)}
-          report={reviewingReport}
-          userName={(reviewingReport.profiles as any)?.full_name || "Sin nombre"}
-        />
-      )}
-    </div>
-  );
-}
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => navigate(`/admin/evaluations/${report.id}`)}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(report.id)}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No hay evaluaciones enviadas para este año</p>
+            </div>
+          )}
+        </Card>
+      </div>
+    );
+  }
