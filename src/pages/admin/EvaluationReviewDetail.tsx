@@ -368,9 +368,14 @@ export default function EvaluationReviewDetail() {
     return (
       <div className="space-y-4">
         {entries.map((entry, idx) => (
-          <div key={entry.id || idx} className="p-4 bg-muted/30 rounded-lg border space-y-3 overflow-hidden">
+          <div key={entry.id || idx} className="p-4 bg-muted/30 rounded-lg border space-y-3 overflow-hidden max-w-full">
             <div className="flex items-start justify-between gap-2">
-              <span className="font-semibold break-words flex-1 min-w-0">{entry.metadata?.title || `Entrada ${idx + 1}`}</span>
+              <span
+                className="font-semibold break-all flex-1 min-w-0"
+                style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+              >
+                {entry.metadata?.title || `Entrada ${idx + 1}`}
+              </span>
               {entry.project_type && (
                 <Badge variant="outline" className="flex-shrink-0">{entry.project_type}</Badge>
               )}
@@ -560,7 +565,12 @@ export default function EvaluationReviewDetail() {
             </div>
             
             {entry.description && (
-              <p className="text-sm text-muted-foreground break-words overflow-wrap-anywhere">{entry.description}</p>
+              <p
+                className="text-sm text-muted-foreground break-all"
+                style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+              >
+                {entry.description}
+              </p>
             )}
             
             {entry.amount !== undefined && entry.amount !== null && (
@@ -613,7 +623,12 @@ export default function EvaluationReviewDetail() {
             </div>
             
             {entry.description && (
-              <p className="text-sm text-muted-foreground break-words overflow-wrap-anywhere">{entry.description}</p>
+              <p
+                className="text-sm text-muted-foreground break-all"
+                style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+              >
+                {entry.description}
+              </p>
             )}
             
             {entry.related_project_id && (
@@ -914,9 +929,14 @@ export default function EvaluationReviewDetail() {
                         )}
 
                         {item.justification && (
-                          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded overflow-hidden">
+                          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded overflow-hidden max-w-full">
                             <strong>Descripción:</strong>
-                            <p className="mt-1 italic break-words overflow-wrap-anywhere">{item.justification}</p>
+                            <p
+                              className="mt-1 italic break-all"
+                              style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+                            >
+                              {item.justification}
+                            </p>
                           </div>
                         )}
 
@@ -1016,9 +1036,14 @@ export default function EvaluationReviewDetail() {
                         </div>
 
                         {item.justification && (
-                          <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 rounded-md border border-amber-200 dark:border-amber-900 overflow-hidden">
+                          <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 rounded-md border border-amber-200 dark:border-amber-900 overflow-hidden max-w-full">
                             <p className="font-semibold mb-1">Justificación del Impacto:</p>
-                            <p className="italic whitespace-pre-wrap text-foreground/90 break-words overflow-wrap-anywhere">{item.justification}</p>
+                            <p
+                              className="italic whitespace-pre-wrap text-foreground/90 break-all"
+                              style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+                            >
+                              {item.justification}
+                            </p>
                           </div>
                         )}
 
