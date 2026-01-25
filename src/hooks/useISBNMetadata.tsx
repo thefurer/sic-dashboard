@@ -38,9 +38,12 @@ export function useISBNMetadata() {
       );
 
       if (error) {
-        throw new Error(
-          error.message || "No se pudo consultar el servicio de ISBN. Intenta nuevamente."
-        );
+        const anyErr = error as unknown as { message?: string; status?: number; context?: { status?: number } };
+        const status = anyErr?.status ?? anyErr?.context?.status;
+        if (status === 401) {
+          throw new Error("Sesión no válida. Cierra sesión e inicia nuevamente.");
+        }
+        throw new Error(anyErr?.message || "No se pudo consultar el servicio de ISBN. Intenta nuevamente.");
       }
 
       if (!data) {
