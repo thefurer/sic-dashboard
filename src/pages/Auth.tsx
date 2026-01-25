@@ -624,7 +624,7 @@ export default function Auth() {
                           value={registerData.email}
                           onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                           required
-                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                       </div>
                     </motion.div>
@@ -648,7 +648,7 @@ export default function Auth() {
                           onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                           required
                           minLength={6}
-                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                       </div>
                       <PasswordStrength password={registerData.password} />
@@ -672,7 +672,7 @@ export default function Auth() {
                           value={registerData.phoneNumber}
                           onChange={(e) => setRegisterData({ ...registerData, phoneNumber: e.target.value })}
                           required
-                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                       </div>
                     </motion.div>
@@ -695,7 +695,7 @@ export default function Auth() {
                           value={registerData.researcherCode}
                           onChange={(e) => setRegisterData({ ...registerData, researcherCode: e.target.value })}
                           required
-                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                       </div>
                     </motion.div>

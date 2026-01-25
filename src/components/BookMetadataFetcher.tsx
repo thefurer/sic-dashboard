@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Wand2, CheckCircle2, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Wand2, CheckCircle2, Loader2, Info, Search } from "lucide-react";
 import { useISBNMetadata, BookMetadata } from "@/hooks/useISBNMetadata";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -44,15 +45,11 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
         }}
       >
         <div className="p-6 space-y-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Wand2 className="h-5 w-5" />
-                Búsqueda Inteligente de Metadata
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Ingrese el ISBN para obtener automáticamente los datos del libro
-              </p>
+              <Label className="text-base font-semibold flex items-center gap-2">
+                Búsqueda Inteligente ISBN <span className="text-destructive">*</span>
+              </Label>
             </div>
             <AnimatePresence>
               {isVerified && (
@@ -70,9 +67,8 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
             </AnimatePresence>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-2">
             <div className="space-y-2">
-              <Label htmlFor="isbn">ISBN del Libro</Label>
               <div className="flex gap-2">
                 <Input
                   id="isbn"
@@ -94,15 +90,40 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
                     </>
                   ) : (
                     <>
-                      <Wand2 className="h-4 w-4" />
-                      Buscar Datos
+                      <Search className="h-4 w-4" />
+                      Buscar
                     </>
                   )}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Ingrese el ISBN-10 o ISBN-13 del libro
+                Ingrese el ISBN del libro. Este campo es obligatorio.
               </p>
+
+              {/* Alert about sources */}
+              <Alert className="mt-3 bg-muted/50 border-muted">
+                <Info className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  La búsqueda se realiza en <strong>Open Library</strong> y <strong>Google Books</strong>. 
+                  Algunos libros pueden no estar disponibles si no están registrados en estas bases de datos.
+                </AlertDescription>
+              </Alert>
+
+              {/* Show fetched metadata preview */}
+              <AnimatePresence>
+                {metadata && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-3 p-3 bg-muted/30 rounded-md text-sm space-y-1"
+                  >
+                    <p><strong>Título:</strong> {metadata.title}</p>
+                    <p><strong>Autores:</strong> {metadata.authors}</p>
+                    {metadata.editorial && <p><strong>Editorial:</strong> {metadata.editorial}</p>}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
