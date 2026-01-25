@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import { Loader2, Mail, Lock, Phone, Code, KeyRound, CheckCircle } from "lucide-react";
+import { Loader2, Mail, Lock, Phone, Code, KeyRound, CheckCircle, Eye, EyeOff } from "lucide-react";
 import gisicfLogo from "@/assets/gisicf-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -163,6 +163,12 @@ export default function Auth() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetSuccess, setResetSuccess] = useState(false);
+  
+  // Password visibility toggles
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
   // Check if user came from password reset link
   useEffect(() => {
@@ -321,14 +327,22 @@ export default function Auth() {
                       <Lock className="absolute left-3 top-3 h-5 w-5 text-green-600" />
                       <Input
                         id="new-password"
-                        type="password"
+                        type={showNewPassword ? "text" : "password"}
                         placeholder="••••••••"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         required
                         minLength={6}
-                        className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                        className="pl-10 pr-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-3 text-slate-500 hover:text-slate-700 transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
                     </div>
                     <PasswordStrength password={newPassword} />
                   </motion.div>
@@ -346,14 +360,22 @@ export default function Auth() {
                       <Lock className="absolute left-3 top-3 h-5 w-5 text-green-600" />
                       <Input
                         id="confirm-password"
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         placeholder="••••••••"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
                         minLength={6}
-                        className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                        className="pl-10 pr-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-3 text-slate-500 hover:text-slate-700 transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
                     </div>
                     {confirmPassword && newPassword !== confirmPassword && (
                       <p className="text-xs text-red-500">Las contraseñas no coinciden</p>
@@ -502,13 +524,21 @@ export default function Auth() {
                         <Lock className="absolute left-3 top-3 h-5 w-5 text-green-600" />
                         <Input
                           id="login-password"
-                          type="password"
+                          type={showLoginPassword ? "text" : "password"}
                           placeholder="••••••••"
                           value={loginData.password}
                           onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                           required
-                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 pr-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowLoginPassword(!showLoginPassword)}
+                          className="absolute right-3 top-3 text-slate-500 hover:text-slate-700 transition-colors"
+                          tabIndex={-1}
+                        >
+                          {showLoginPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
                       </div>
                     </motion.div>
 
@@ -642,14 +672,22 @@ export default function Auth() {
                         <Lock className="absolute left-3 top-3 h-5 w-5 text-green-600" />
                         <Input
                           id="register-password"
-                          type="password"
+                          type={showRegisterPassword ? "text" : "password"}
                           placeholder="••••••••"
                           value={registerData.password}
                           onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                           required
                           minLength={6}
-                          className="pl-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 pr-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                          className="absolute right-3 top-3 text-slate-500 hover:text-slate-700 transition-colors"
+                          tabIndex={-1}
+                        >
+                          {showRegisterPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
                       </div>
                       <PasswordStrength password={registerData.password} />
                     </motion.div>
