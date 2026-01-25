@@ -368,29 +368,29 @@ export default function EvaluationReviewDetail() {
     return (
       <div className="space-y-4">
         {entries.map((entry, idx) => (
-          <div key={entry.id || idx} className="p-4 bg-muted/30 rounded-lg border space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">{entry.metadata?.title || `Entrada ${idx + 1}`}</span>
+          <div key={entry.id || idx} className="p-4 bg-muted/30 rounded-lg border space-y-3 overflow-hidden">
+            <div className="flex items-start justify-between gap-2">
+              <span className="font-semibold break-words flex-1 min-w-0">{entry.metadata?.title || `Entrada ${idx + 1}`}</span>
               {entry.project_type && (
-                <Badge variant="outline">{entry.project_type}</Badge>
+                <Badge variant="outline" className="flex-shrink-0">{entry.project_type}</Badge>
               )}
             </div>
             
             {entry.metadata && (
-              <div className="text-sm space-y-1 p-3 bg-slate-50 dark:bg-slate-900 rounded">
-                {entry.metadata.authors && <p><strong>Autores:</strong> {entry.metadata.authors}</p>}
-                {entry.metadata.journal && <p><strong>Revista:</strong> {entry.metadata.journal}</p>}
-                {entry.metadata.editorial && <p><strong>Editorial:</strong> {entry.metadata.editorial}</p>}
+              <div className="text-sm space-y-1 p-3 bg-slate-50 dark:bg-slate-900 rounded overflow-hidden">
+                {entry.metadata.authors && <p className="break-words"><strong>Autores:</strong> {entry.metadata.authors}</p>}
+                {entry.metadata.journal && <p className="break-words"><strong>Revista:</strong> {entry.metadata.journal}</p>}
+                {entry.metadata.editorial && <p className="break-words"><strong>Editorial:</strong> {entry.metadata.editorial}</p>}
                 {entry.metadata.year && <p><strong>Año:</strong> {entry.metadata.year}</p>}
                 {entry.metadata.issn && <p><strong>ISSN:</strong> {entry.metadata.issn}</p>}
                 {entry.metadata.isbn && <p><strong>ISBN:</strong> {entry.metadata.isbn}</p>}
                 {entry.metadata.doi && <p className="break-all"><strong>DOI:</strong> {entry.metadata.doi}</p>}
-                {entry.metadata.repository && <p><strong>Indizado en:</strong> {entry.metadata.repository}</p>}
+                {entry.metadata.repository && <p className="break-words"><strong>Indizado en:</strong> {entry.metadata.repository}</p>}
                 {entry.metadata.quartile && <p><strong>Cuartil:</strong> {entry.metadata.quartile}</p>}
                 {entry.metadata.link && (
                   <p className="break-all">
                     <strong>Enlace:</strong>{' '}
-                    <a href={entry.metadata.link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    <a href={entry.metadata.link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
                       {entry.metadata.link}
                     </a>
                   </p>
@@ -560,7 +560,7 @@ export default function EvaluationReviewDetail() {
             </div>
             
             {entry.description && (
-              <p className="text-sm text-muted-foreground">{entry.description}</p>
+              <p className="text-sm text-muted-foreground break-words overflow-wrap-anywhere">{entry.description}</p>
             )}
             
             {entry.amount !== undefined && entry.amount !== null && (
@@ -613,7 +613,7 @@ export default function EvaluationReviewDetail() {
             </div>
             
             {entry.description && (
-              <p className="text-sm text-muted-foreground">{entry.description}</p>
+              <p className="text-sm text-muted-foreground break-words overflow-wrap-anywhere">{entry.description}</p>
             )}
             
             {entry.related_project_id && (
@@ -795,7 +795,7 @@ export default function EvaluationReviewDetail() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full overflow-x-hidden">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -914,9 +914,9 @@ export default function EvaluationReviewDetail() {
                         )}
 
                         {item.justification && (
-                          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded">
+                          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded overflow-hidden">
                             <strong>Descripción:</strong>
-                            <p className="mt-1 italic">{item.justification}</p>
+                            <p className="mt-1 italic break-words overflow-wrap-anywhere">{item.justification}</p>
                           </div>
                         )}
 
@@ -1016,9 +1016,9 @@ export default function EvaluationReviewDetail() {
                         </div>
 
                         {item.justification && (
-                          <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 rounded-md border border-amber-200 dark:border-amber-900">
+                          <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 rounded-md border border-amber-200 dark:border-amber-900 overflow-hidden">
                             <p className="font-semibold mb-1">Justificación del Impacto:</p>
-                            <p className="italic whitespace-pre-wrap text-foreground/90">{item.justification}</p>
+                            <p className="italic whitespace-pre-wrap text-foreground/90 break-words overflow-wrap-anywhere">{item.justification}</p>
                           </div>
                         )}
 
