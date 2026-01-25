@@ -333,7 +333,7 @@ export default function Auth() {
                         onChange={(e) => setNewPassword(e.target.value)}
                         required
                         minLength={6}
-                        className="pl-10 pr-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                        className="pl-10 pr-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                       />
                       <button
                         type="button"
@@ -366,7 +366,7 @@ export default function Auth() {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
                         minLength={6}
-                        className="pl-10 pr-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                        className="pl-10 pr-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                       />
                       <button
                         type="button"
@@ -506,7 +506,7 @@ export default function Auth() {
                           value={loginData.email}
                           onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                           required
-                          className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                       </div>
                     </motion.div>
@@ -529,7 +529,7 @@ export default function Auth() {
                           value={loginData.password}
                           onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                           required
-                          className="pl-10 pr-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 pr-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                         <button
                           type="button"
@@ -601,7 +601,7 @@ export default function Auth() {
                               value={forgotPasswordEmail}
                               onChange={(e) => setForgotPasswordEmail(e.target.value)}
                               required
-                              className="pl-10 bg-slate-50 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                              className="pl-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                             />
                           </div>
                           <div className="flex gap-3">
@@ -654,7 +654,7 @@ export default function Auth() {
                           value={registerData.email}
                           onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                           required
-                          className="pl-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                       </div>
                     </motion.div>
@@ -678,7 +678,7 @@ export default function Auth() {
                           onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                           required
                           minLength={6}
-                          className="pl-10 pr-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 pr-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                         <button
                           type="button"
@@ -710,7 +710,7 @@ export default function Auth() {
                           value={registerData.phoneNumber}
                           onChange={(e) => setRegisterData({ ...registerData, phoneNumber: e.target.value })}
                           required
-                          className="pl-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                       </div>
                     </motion.div>
@@ -733,7 +733,7 @@ export default function Auth() {
                           value={registerData.researcherCode}
                           onChange={(e) => setRegisterData({ ...registerData, researcherCode: e.target.value })}
                           required
-                          className="pl-10 bg-slate-50 border-slate-200 text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                          className="pl-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                       </div>
                     </motion.div>
