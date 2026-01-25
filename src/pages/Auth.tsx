@@ -708,7 +708,20 @@ export default function Auth() {
                           type="tel"
                           placeholder="0987654321"
                           value={registerData.phoneNumber}
-                          onChange={(e) => setRegisterData({ ...registerData, phoneNumber: e.target.value })}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            setRegisterData({ ...registerData, phoneNumber: value });
+                          }}
+                          onKeyDown={(e) => {
+                            // Allow: backspace, delete, tab, escape, enter, arrows
+                            if ([8, 9, 27, 13, 46, 37, 38, 39, 40].includes(e.keyCode)) return;
+                            // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                            if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) return;
+                            // Block if not a number
+                            if (!/[0-9]/.test(e.key)) e.preventDefault();
+                          }}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           required
                           className="pl-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
