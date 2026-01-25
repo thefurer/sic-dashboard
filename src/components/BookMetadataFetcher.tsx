@@ -103,9 +103,12 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
               {/* Alert about sources */}
               <Alert className="mt-3 bg-muted/50 border-muted">
                 <Info className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  La búsqueda se realiza en <strong>Open Library</strong> y <strong>Google Books</strong>. 
-                  Algunos libros pueden no estar disponibles si no están registrados en estas bases de datos.
+                <AlertDescription className="text-xs leading-relaxed">
+                  <strong>Nota:</strong> La búsqueda se limita a bases de datos públicas: 
+                  <strong> Open Library</strong>, <strong>Google Books</strong>, <strong>Internet Archive</strong> y 
+                  <strong> Library of Congress (EE.UU.)</strong>. 
+                  Algunos libros académicos, ediciones regionales o publicaciones recientes pueden no estar indexados en estas fuentes.
+                  Si no se encuentra el libro, ingrese los datos manualmente.
                 </AlertDescription>
               </Alert>
 
