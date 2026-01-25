@@ -9,6 +9,70 @@ export interface BookMetadata {
   editorial?: string;
 }
 
+// Try fetching from Google Books API
+async function fetchFromGoogleBooks(cleanISBN: string): Promise<BookMetadata | null> {
+  const response = await fetch(
+    `https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanISBN}`
+  );
+  
+  if (!response.ok) {
+    return null;
+  }
+  
+  const data = await response.json();
+  
+  if (!data.items || data.items.length === 0) {
+    return null;
+  }
+  
+  const book = data.items[0].volumeInfo;
+  
+  return {
+    title: book.title || "",
+    authors: book.authors?.join(", ") || "",
+    year: book.publishedDate?.split("-")[0] || "",
+    isbn: cleanISBN,
+    editorial: book.publisher || "",
+  };
+}
+
+// Try fetching from Open Library API (fallback)
+async function fetchFromOpenLibrary(cleanISBN: string): Promise<BookMetadata | null> {
+  const response = await fetch(
+    `https://openlibrary.org/api/books?bibkeys=ISBN:${cleanISBN}&format=json&jscmd=data`
+  );
+  
+  if (!response.ok) {
+    return null;
+  }
+  
+  const data = await response.json();
+  const key = `ISBN:${cleanISBN}`;
+  
+  if (!data[key]) {
+    return null;
+  }
+  
+  const book = data[key];
+  
+  // Extract year from publish_date (can be in various formats like "2005", "March 2005", etc.)
+  let year = "";
+  if (book.publish_date) {
+    const yearMatch = book.publish_date.match(/\d{4}/);
+    if (yearMatch) {
+      year = yearMatch[0];
+    }
+  }
+  
+  return {
+    title: book.title || "",
+    authors: book.authors?.map((a: { name: string }) => a.name).join(", ") || "",
+    year,
+    isbn: cleanISBN,
+    editorial: book.publishers?.[0]?.name || "",
+  };
+}
+
 export function useISBNMetadata() {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -19,39 +83,18 @@ export function useISBNMetadata() {
       // Clean ISBN (remove hyphens and spaces)
       const cleanISBN = isbn.replace(/[-\s]/g, "");
       
-      // Fetch from Google Books API
-      const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanISBN}`
-      );
+      // Try Google Books first
+      let metadata = await fetchFromGoogleBooks(cleanISBN);
       
-      if (!response.ok) {
-        throw new Error("ISBN no encontrado");
+      // If not found in Google Books, try Open Library
+      if (!metadata) {
+        metadata = await fetchFromOpenLibrary(cleanISBN);
       }
       
-      const data = await response.json();
-      
-      if (!data.items || data.items.length === 0) {
-        throw new Error("No se encontró información para este ISBN");
+      // If still not found, throw error
+      if (!metadata) {
+        throw new Error("No se encontró información para este ISBN en ninguna base de datos");
       }
-      
-      const book = data.items[0].volumeInfo;
-      
-      // Extract authors
-      const authors = book.authors?.join(", ") || "";
-      
-      // Extract publication year
-      const year = book.publishedDate?.split("-")[0] || "";
-      
-      // Extract publisher
-      const editorial = book.publisher || "";
-      
-      const metadata: BookMetadata = {
-        title: book.title || "",
-        authors,
-        year,
-        isbn: cleanISBN,
-        editorial,
-      };
       
       toast({
         title: "Metadata obtenida",
