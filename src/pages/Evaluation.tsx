@@ -202,6 +202,49 @@ export default function Evaluation() {
         .eq("id", reportId);
 
       if (error) throw error;
+
+      // Get current user info for email notification
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      // Get all admin users to notify
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (!adminRoles || adminRoles.length === 0) return;
+
+      // Get admin emails
+      const adminIds = adminRoles.map(r => r.user_id);
+      const { data: adminContacts } = await supabase
+        .from("profile_contacts")
+        .select("user_id, email")
+        .in("user_id", adminIds);
+
+      // Send notification to each admin
+      const currentYear = new Date().getFullYear();
+      for (const contact of adminContacts || []) {
+        if (contact.email) {
+          supabase.functions.invoke("send-email", {
+            body: {
+              type: "evaluation_submitted",
+              to: contact.email,
+              userName: profile?.full_name || user.email,
+              data: {
+                evaluationYear: currentYear,
+                score: totalScore,
+              },
+            },
+          }).catch(err => console.error("Error sending admin notification:", err));
+        }
+      }
     },
     onSuccess: () => {
       confetti({
@@ -211,7 +254,7 @@ export default function Evaluation() {
       });
       
       toast.success("¡Evaluación enviada exitosamente!", {
-        description: "Su informe ha sido sometido para revisión.",
+        description: "Su informe ha sido sometido para revisión. Los administradores han sido notificados.",
       });
 
       setTimeout(() => {

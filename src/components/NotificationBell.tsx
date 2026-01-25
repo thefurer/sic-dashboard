@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+import { Bell, FileText, UserPlus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,8 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const { data: userRole } = useUserRole();
 
-  const { data: pendingCount = 0 } = useQuery({
+  // Pending user approvals count
+  const { data: pendingUsersCount = 0 } = useQuery({
     queryKey: ["pending-approvals-count"],
     queryFn: async () => {
       const { count, error } = await supabase
@@ -29,8 +30,26 @@ export function NotificationBell() {
       return count || 0;
     },
     enabled: userRole === "admin",
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
   });
+
+  // Pending evaluations count (submitted status)
+  const { data: pendingEvaluationsCount = 0 } = useQuery({
+    queryKey: ["pending-evaluations-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("evaluation_reports")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "submitted");
+
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: userRole === "admin",
+    refetchInterval: 30000,
+  });
+
+  const totalNotifications = pendingUsersCount + pendingEvaluationsCount;
 
   if (userRole !== "admin") return null;
 
@@ -39,9 +58,9 @@ export function NotificationBell() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
-          {pendingCount > 0 && (
+          {totalNotifications > 0 && (
             <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-semibold">
-              {pendingCount}
+              {totalNotifications > 9 ? "9+" : totalNotifications}
             </span>
           )}
         </Button>
@@ -49,20 +68,48 @@ export function NotificationBell() {
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel>Notificaciones</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {pendingCount > 0 ? (
+        
+        {/* Pending User Registrations */}
+        {pendingUsersCount > 0 && (
           <DropdownMenuItem
             onClick={() => navigate("/admin/pending-approvals")}
             className="cursor-pointer"
           >
-            <div className="flex flex-col gap-1">
-              <p className="font-medium">Solicitudes Pendientes</p>
-              <p className="text-sm text-muted-foreground">
-                Tienes {pendingCount} {pendingCount === 1 ? "solicitud" : "solicitudes"} de registro pendiente
-                {pendingCount === 1 ? "" : "s"} de aprobación
-              </p>
+            <div className="flex items-start gap-3">
+              <UserPlus className="h-5 w-5 text-blue-500 mt-0.5" />
+              <div className="flex flex-col gap-1">
+                <p className="font-medium">Solicitudes Pendientes</p>
+                <p className="text-sm text-muted-foreground">
+                  {pendingUsersCount} {pendingUsersCount === 1 ? "usuario espera" : "usuarios esperan"} aprobación
+                </p>
+              </div>
             </div>
           </DropdownMenuItem>
-        ) : (
+        )}
+
+        {/* Pending Evaluations */}
+        {pendingEvaluationsCount > 0 && (
+          <>
+            {pendingUsersCount > 0 && <DropdownMenuSeparator />}
+            <DropdownMenuItem
+              onClick={() => navigate("/admin/evaluaciones")}
+              className="cursor-pointer"
+            >
+              <div className="flex items-start gap-3">
+                <FileText className="h-5 w-5 text-amber-500 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <p className="font-medium">Evaluaciones por Revisar</p>
+                  <p className="text-sm text-muted-foreground">
+                    {pendingEvaluationsCount} {pendingEvaluationsCount === 1 ? "evaluación requiere" : "evaluaciones requieren"} revisión
+                  </p>
+                </div>
+              </div>
+            </DropdownMenuItem>
+          </>
+        )}
+
+        {/* No notifications */}
+        {totalNotifications === 0 && (
           <div className="px-2 py-6 text-center text-sm text-muted-foreground">
             No hay notificaciones nuevas
           </div>
