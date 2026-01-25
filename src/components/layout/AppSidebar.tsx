@@ -22,6 +22,10 @@ const baseMenuItems = [{
 
 // Menu items only for regular users (not admin)
 const userOnlyItems = [{
+  title: "Proyectos Oficiales",
+  url: "/projects",
+  icon: FolderOpen
+}, {
   title: "Evaluación",
   url: "/evaluation",
   icon: ClipboardCheck
@@ -29,10 +33,6 @@ const userOnlyItems = [{
   title: "Mis Actividades",
   url: "/my-tasks",
   icon: CheckSquare
-}, {
-  title: "Proyectos Oficiales",
-  url: "/projects",
-  icon: FolderOpen
 }, {
   title: "Directorio de Investigadores",
   url: "/researchers",
