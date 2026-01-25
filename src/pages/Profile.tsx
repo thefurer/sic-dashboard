@@ -356,7 +356,20 @@ export default function Profile() {
                         id="phone" 
                         type="tel" 
                         value={phone.replace(/^\+\d{2,3}/, '')} 
-                        onChange={(e) => setPhone(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '');
+                          setPhone(value);
+                        }}
+                        onKeyDown={(e) => {
+                          // Allow: backspace, delete, tab, escape, enter, arrows
+                          if ([8, 9, 27, 13, 46, 37, 38, 39, 40].includes(e.keyCode)) return;
+                          // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                          if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) return;
+                          // Block if not a number
+                          if (!/[0-9]/.test(e.key)) e.preventDefault();
+                        }}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         placeholder="999999999"
                         className="rounded-l-none bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50"
                       />
