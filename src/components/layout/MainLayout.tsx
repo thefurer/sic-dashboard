@@ -82,7 +82,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           <AppSidebar />
         </div>
         
-        <main className="flex-1 flex flex-col p-4 z-10">
+        <main className="flex-1 flex flex-col p-4 z-10 min-w-0">
           {/* Floating Glass Navbar */}
           <header className="glass-navbar h-16 flex items-center px-6 gap-4 mb-6">
             <SidebarTrigger className="text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-colors rounded-xl" />
@@ -195,7 +195,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           </header>
           
           {/* Main Content Area - Glass Container */}
-          <div className="flex-1 glass-card-premium p-8 overflow-auto">
+          <div className="flex-1 glass-card-premium p-8 overflow-y-auto overflow-x-hidden max-w-full min-w-0">
             <PageTransition key={location.pathname}>
               {children}
             </PageTransition>
