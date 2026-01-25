@@ -38,6 +38,7 @@ export default function TaskReviews() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
   const [isClearPendingDialogOpen, setIsClearPendingDialogOpen] = useState(false);
+  const [isClearReviewedDialogOpen, setIsClearReviewedDialogOpen] = useState(false);
   const [showUrgentAlert, setShowUrgentAlert] = useState(true);
 
   // Fetch all tasks with different statuses
@@ -285,6 +286,32 @@ export default function TaskReviews() {
     },
   });
 
+  // Clear all reviewed tasks mutation
+  const clearReviewedTasksMutation = useMutation({
+    mutationFn: async (taskIds: string[]) => {
+      const { error } = await supabase
+        .from("assigned_tasks")
+        .delete()
+        .in("id", taskIds);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-assigned-tasks"] });
+      toast({
+        title: "Actividades eliminadas",
+        description: "Las actividades revisadas han sido eliminadas correctamente",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleEditTask = (task: any) => {
     setSelectedTask(task);
     setEditObservations(task.admin_observations || "");
@@ -410,6 +437,30 @@ export default function TaskReviews() {
     };
   };
 
+  // Footer drawing function for PDF
+  const drawPageFooter = (doc: jsPDF) => {
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const footerY = pageHeight - 20;
+
+    // Draw separator line (Navy Blue)
+    doc.setDrawColor(31, 78, 121);
+    doc.setLineWidth(0.8);
+    doc.line(14, footerY - 5, pageWidth - 14, footerY - 5);
+
+    // Email line (Navy Blue, Bold)
+    doc.setTextColor(31, 78, 121);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("E-mail: grupo.gisicf@unesum.edu.ec", pageWidth / 2, footerY, { align: "center" });
+
+    // Address line (Black, Regular)
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text("Complejo Deportivo – UNESUM – Km. 1 vía Noboa", pageWidth / 2, footerY + 4, { align: "center" });
+  };
+
   const generateReport = async () => {
     if (!allTasks || allTasks.length === 0) {
       toast({
@@ -422,6 +473,8 @@ export default function TaskReviews() {
 
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const footerMargin = 45; // Space needed for footer + signatures
 
     let y = await drawPDFHeader(doc);
     y += 10;
@@ -490,10 +543,90 @@ export default function TaskReviews() {
           3: { cellWidth: 35 },
           4: { cellWidth: 30, halign: "center" },
         },
+        margin: { bottom: footerMargin },
+        didDrawPage: (data) => {
+          drawPageFooter(doc);
+        },
       });
 
       y = (doc as any).lastAutoTable.finalY + 10;
     }
+
+    // Fetch signature names from settings
+    const { data: settings } = await supabase
+      .from("app_settings")
+      .select("signature_president_name, signature_coordinator_name, signature_responsible_name")
+      .single();
+
+    const coordinadorGrupoName = settings?.signature_coordinator_name || "Ing. Christian Caicedo Plúa, PhD";
+    const responsableComisionName = settings?.signature_responsible_name || "Ing. Karina Mero, MSc";
+    const coordinadorCarreraName = settings?.signature_president_name || "Ing. Javier Marcillo Merino, Mg";
+
+    // Calculate if we need a new page for signatures (need at least 60mm space)
+    const signatureSpaceNeeded = 60;
+    let finalY = (doc as any).lastAutoTable.finalY + 25;
+
+    if (finalY + signatureSpaceNeeded > pageHeight - 25) {
+      doc.addPage();
+      drawPageFooter(doc);
+      finalY = 40;
+    }
+
+    // Reset text color to black for signatures
+    doc.setTextColor(0, 0, 0);
+    
+    // Three-column signature layout
+    const colWidth = (pageWidth - 28) / 3;
+    const leftX = 14 + colWidth / 2;
+    const centerX = pageWidth / 2;
+    const rightX = pageWidth - 14 - colWidth / 2;
+    
+    // Left signature line (Coordinador del Grupo GISICF)
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(0, 0, 0);
+    doc.line(leftX - 25, finalY, leftX + 25, finalY);
+    
+    // Left signature - Name (Bold)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text(coordinadorGrupoName, leftX, finalY + 5, { align: "center" });
+    
+    // Left signature - Title (Regular, wrapped)
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    const titleLeft = "Coordinador del Grupo de Investigación GISICF";
+    const splitTitleLeft = doc.splitTextToSize(titleLeft, 50);
+    doc.text(splitTitleLeft, leftX, finalY + 10, { align: "center" });
+    
+    // Center signature line (Responsable Comisión de Investigación)
+    doc.line(centerX - 25, finalY, centerX + 25, finalY);
+    
+    // Center signature - Name (Bold)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text(responsableComisionName, centerX, finalY + 5, { align: "center" });
+    
+    // Center signature - Title (Regular, wrapped)
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    const titleCenter = "Responsable Comisión de Investigación";
+    const splitTitleCenter = doc.splitTextToSize(titleCenter, 50);
+    doc.text(splitTitleCenter, centerX, finalY + 10, { align: "center" });
+    
+    // Right signature line (Coordinador de la Carrera de TI)
+    doc.line(rightX - 25, finalY, rightX + 25, finalY);
+    
+    // Right signature - Name (Bold)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text(coordinadorCarreraName, rightX, finalY + 5, { align: "center" });
+    
+    // Right signature - Title (Regular, wrapped)
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    const titleRight = "Coordinador de la Carrera de TI";
+    const splitTitleRight = doc.splitTextToSize(titleRight, 50);
+    doc.text(splitTitleRight, rightX, finalY + 10, { align: "center" });
 
     doc.save(`Informe_Actividades_${format(new Date(), "yyyy-MM-dd")}.pdf`);
   };
@@ -804,8 +937,22 @@ export default function TaskReviews() {
         <TabsContent value="reviewed">
           <Card>
             <CardHeader>
-              <CardTitle>Actividades Revisadas</CardTitle>
-              <CardDescription>Historial de actividades aprobadas u observadas</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Actividades Revisadas</CardTitle>
+                  <CardDescription>Historial de actividades aprobadas u observadas</CardDescription>
+                </div>
+                {reviewedTasks.length > 0 && (
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => setIsClearReviewedDialogOpen(true)}
+                    disabled={clearReviewedTasksMutation.isPending}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {clearReviewedTasksMutation.isPending ? "Eliminando..." : "Eliminar Todas"}
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -1132,6 +1279,63 @@ export default function TaskReviews() {
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Eliminar {pendingTasks.length} actividades
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Clear All Reviewed Tasks Confirmation Dialog */}
+      <AlertDialog open={isClearReviewedDialogOpen} onOpenChange={setIsClearReviewedDialogOpen}>
+        <AlertDialogContent className="max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              ¿Eliminar todas las actividades revisadas?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Esta acción eliminará <strong>{reviewedTasks.length} actividades</strong> revisadas (aprobadas u observadas). 
+                  Esta acción no se puede deshacer.
+                </p>
+                <div className="bg-muted rounded-lg p-3 max-h-48 overflow-y-auto">
+                  <p className="text-sm font-medium mb-2 text-foreground">Usuarios afectados:</p>
+                  <ul className="space-y-1">
+                    {Object.entries(
+                      reviewedTasks.reduce((acc: Record<string, { name: string; count: number }>, task) => {
+                        const userId = task.user_id;
+                        const userName = task.user_profile?.full_name || "Usuario desconocido";
+                        if (!acc[userId]) {
+                          acc[userId] = { name: userName, count: 0 };
+                        }
+                        acc[userId].count++;
+                        return acc;
+                      }, {})
+                    ).map(([userId, data]) => (
+                      <li key={userId} className="text-sm flex items-center gap-2">
+                        <Users className="h-3 w-3 text-muted-foreground" />
+                        <span>{data.name}</span>
+                        <Badge variant="secondary" className="text-xs">
+                          {data.count} {data.count === 1 ? "actividad" : "actividades"}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                clearReviewedTasksMutation.mutate(reviewedTasks.map(t => t.id));
+                setIsClearReviewedDialogOpen(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Eliminar {reviewedTasks.length} actividades
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

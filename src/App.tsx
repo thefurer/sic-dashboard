@@ -22,6 +22,7 @@ import PlanningBuilder from "./pages/admin/PlanningBuilder";
 import Settings from "./pages/admin/Settings";
 import OfficialProjectsList from "./pages/admin/OfficialProjectsList";
 import EvaluationReviews from "./pages/admin/EvaluationReviews";
+import EvaluationReviewDetail from "./pages/admin/EvaluationReviewDetail";
 import TaskReviews from "./pages/admin/TaskReviews";
 import MyTasks from "./pages/MyTasks";
 import TermsOfService from "./pages/legal/TermsOfService";
@@ -106,6 +107,11 @@ const App = () => (
               <Route path="/admin/evaluations" element={
                 <ProtectedRoute requiredRole="admin">
                   <MainLayout><EvaluationReviews /></MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/evaluations/:id" element={
+                <ProtectedRoute requiredRole="admin">
+                  <MainLayout><EvaluationReviewDetail /></MainLayout>
                 </ProtectedRoute>
               } />
               <Route path="/admin/task-reviews" element={
