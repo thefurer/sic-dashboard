@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Wand2, CheckCircle2, Loader2, Info, Search } from "lucide-react";
+import { CheckCircle2, Loader2, Info, Search, PenLine } from "lucide-react";
 import { useISBNMetadata, BookMetadata } from "@/hooks/useISBNMetadata";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -16,17 +16,38 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
   const [isbnInput, setIsbnInput] = useState("");
   const [metadata, setMetadata] = useState<BookMetadata | null>(null);
   const [isVerified, setIsVerified] = useState(false);
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [searchFailed, setSearchFailed] = useState(false);
   const { fetchMetadata, isLoading } = useISBNMetadata();
 
   const handleFetchMetadata = async () => {
     if (!isbnInput.trim()) return;
     
+    setSearchFailed(false);
     const result = await fetchMetadata(isbnInput);
     if (result) {
       setMetadata(result);
       setIsVerified(true);
+      setShowManualEntry(false);
       onMetadataFetched?.(result);
+    } else {
+      setSearchFailed(true);
     }
+  };
+
+  const handleEnableManualEntry = () => {
+    setShowManualEntry(true);
+    setSearchFailed(false);
+    // Initialize empty metadata for manual entry
+    const emptyMetadata: BookMetadata = {
+      title: "",
+      authors: "",
+      year: "",
+      isbn: isbnInput.trim(),
+      editorial: "",
+    };
+    setMetadata(emptyMetadata);
+    onMetadataFetched?.(emptyMetadata);
   };
 
   const handleMetadataChange = (updatedMetadata: BookMetadata) => {
@@ -61,6 +82,18 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
                   <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3" />
                     Verificado
+                  </div>
+                </motion.div>
+              )}
+              {showManualEntry && !isVerified && (
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                >
+                  <div className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                    <PenLine className="h-3 w-3" />
+                    Entrada manual
                   </div>
                 </motion.div>
               )}
@@ -108,13 +141,43 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
                   <strong> Open Library</strong>, <strong>Google Books</strong>, <strong>Internet Archive</strong> y 
                   <strong> Library of Congress (EE.UU.)</strong>. 
                   Algunos libros académicos, ediciones regionales o publicaciones recientes pueden no estar indexados en estas fuentes.
-                  Si no se encuentra el libro, ingrese los datos manualmente.
+                  Si no se encuentra el libro, puede ingresar los datos manualmente.
                 </AlertDescription>
               </Alert>
 
+              {/* Search failed - show manual entry option */}
+              <AnimatePresence>
+                {searchFailed && !showManualEntry && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="mt-3"
+                  >
+                    <Alert className="border-amber-500/50 bg-amber-500/10">
+                      <Info className="h-4 w-4 text-amber-600" />
+                      <AlertDescription className="text-sm">
+                        <div className="flex flex-col gap-2">
+                          <span>No se encontró información para este ISBN en las fuentes disponibles.</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleEnableManualEntry}
+                            className="w-fit gap-2"
+                          >
+                            <PenLine className="h-4 w-4" />
+                            Ingresar datos manualmente
+                          </Button>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Show fetched metadata preview */}
               <AnimatePresence>
-                {metadata && (
+                {metadata && isVerified && !showManualEntry && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
@@ -132,7 +195,7 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
         </div>
       </Card>
 
-      {/* Metadata Form Fields */}
+      {/* Metadata Form Fields - Always visible after fetch or manual entry */}
       <AnimatePresence>
         {metadata && (
           <motion.div
@@ -144,9 +207,10 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
           >
             <div className="grid gap-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Título</Label>
+                <Label htmlFor="title">Título <span className="text-destructive">*</span></Label>
                 <Input
                   id="title"
+                  placeholder="Título del libro"
                   value={metadata.title}
                   onChange={(e) => handleMetadataChange({ ...metadata, title: e.target.value })}
                   className="bg-background"
@@ -154,7 +218,7 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="authors">Autores</Label>
+                <Label htmlFor="authors">Autores <span className="text-destructive">*</span></Label>
                 <Input
                   id="authors"
                   placeholder="Apellido, N., et al."
@@ -166,7 +230,7 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="year">Año</Label>
+                  <Label htmlFor="year">Año <span className="text-destructive">*</span></Label>
                   <Input
                     id="year"
                     placeholder="2024"
@@ -177,7 +241,7 @@ export function BookMetadataFetcher({ onMetadataFetched }: BookMetadataFetcherPr
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="isbn-display">ISBN</Label>
+                  <Label htmlFor="isbn-display">ISBN <span className="text-destructive">*</span></Label>
                   <Input
                     id="isbn-display"
                     placeholder="978-84-1234-567-8"
