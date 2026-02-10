@@ -12,6 +12,7 @@ interface ProfileData {
   orcid: string | null;
   country_code: string | null;
   cv_url: string | null;
+  cedula: string | null;
 }
 
 export function CompleteProfileBanner() {
@@ -25,7 +26,7 @@ export function CompleteProfileBanner() {
     const checkProfile = async () => {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, researcher_code, orcid, country_code, cv_url')
+        .select('full_name, researcher_code, orcid, country_code, cv_url, cedula')
         .eq('id', user.id)
         .single();
 
@@ -39,6 +40,7 @@ export function CompleteProfileBanner() {
         const missing: string[] = [];
         
         if (!profile.full_name || profile.full_name === user.email) missing.push('Nombre completo');
+        if (!profile.cedula) missing.push('Cédula de identidad');
         if (!contact?.phone) missing.push('Teléfono');
         if (!profile.researcher_code) missing.push('Código de investigador');
         if (!profile.orcid) missing.push('Código ORCID');
