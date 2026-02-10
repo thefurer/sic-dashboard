@@ -365,7 +365,18 @@ export function ActivityDialog({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} locale={es} />
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    locale={es}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      return date < today;
+                    }}
+                    className="pointer-events-auto"
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -380,7 +391,19 @@ export function ActivityDialog({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} locale={es} />
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    locale={es}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      if (startDate) return date < startDate;
+                      return date < today;
+                    }}
+                    className="pointer-events-auto"
+                  />
                 </PopoverContent>
               </Popover>
             </div>
