@@ -7,7 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { User, Phone, FileText, Lock, BadgeCheck, Upload, Eye, Globe, Link as LinkIcon } from "lucide-react";
+import { User, Phone, FileText, Lock, BadgeCheck, Upload, Eye, Globe, Link as LinkIcon, CreditCard, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getSignedUrl } from "@/hooks/useSignedUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,6 +22,7 @@ export default function Profile() {
   const [fullName, setFullName] = useState<string>(metadata.full_name ?? "");
   const [phone, setPhone] = useState<string>(metadata.phone_number ?? "");
   const [researcherCode, setResearcherCode] = useState<string>(metadata.researcher_code ?? "");
+  const [cedula, setCedula] = useState<string>("");
   const [orcid, setOrcid] = useState<string>("");
   const [countryCode, setCountryCode] = useState<string>("EC");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -40,7 +42,7 @@ export default function Profile() {
       // Fetch profile data
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('full_name, researcher_code, avatar_url, cv_url, orcid, country_code')
+        .select('full_name, researcher_code, avatar_url, cv_url, orcid, country_code, cedula')
         .eq('id', user.id)
         .single();
       
@@ -58,6 +60,7 @@ export default function Profile() {
         setCvUrl(profileData.cv_url ?? null);
         setOrcid(profileData.orcid ?? "");
         setCountryCode(profileData.country_code ?? "EC");
+        setCedula(profileData.cedula ?? "");
       }
       
       if (contactData) {
@@ -168,6 +171,7 @@ export default function Profile() {
           cv_url: newCvUrl,
           orcid: orcid || null,
           country_code: countryCode,
+          cedula: cedula || null,
         })
         .eq('id', user.id);
 
@@ -308,6 +312,15 @@ export default function Profile() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSave} className="space-y-4">
+                {!cedula && (
+                  <Alert variant="destructive" className="border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Falta completar tu número de cédula de identidad.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Nombre completo *</Label>
                   <Input 
@@ -317,6 +330,31 @@ export default function Profile() {
                     required 
                     className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="cedula" className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Cédula de Identidad *
+                  </Label>
+                  <Input 
+                    id="cedula" 
+                    value={cedula} 
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      if (value.length <= 10) setCedula(value);
+                    }}
+                    onKeyDown={(e) => {
+                      if ([8, 9, 27, 13, 46, 37, 38, 39, 40].includes(e.keyCode)) return;
+                      if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) return;
+                      if (!/[0-9]/.test(e.key)) e.preventDefault();
+                    }}
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="0000000000"
+                    className={`bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary/50 font-mono ${!cedula ? 'border-amber-500/50' : ''}`}
+                  />
+                  <p className="text-xs text-muted-foreground">{cedula.length}/10 dígitos</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
