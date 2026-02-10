@@ -778,6 +778,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_plan_member: {
+        Args: { _plan_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "researcher" | "student"
