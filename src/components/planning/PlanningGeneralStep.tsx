@@ -202,6 +202,11 @@ export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGener
                   selected={tempDate}
                   onSelect={setTempDate}
                   initialFocus
+                  disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return date < today;
+                  }}
                   className={cn("pointer-events-auto")}
                   locale={es}
                 />
