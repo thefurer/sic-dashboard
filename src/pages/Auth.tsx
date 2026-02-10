@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import { Loader2, Mail, Lock, Phone, Code, KeyRound, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, Phone, Code, KeyRound, CheckCircle, Eye, EyeOff, CreditCard } from "lucide-react";
 import gisicfLogo from "@/assets/gisicf-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -155,6 +155,7 @@ export default function Auth() {
     email: "",
     password: "",
     phoneNumber: "",
+    cedula: "",
     researcherCode: "",
   });
 
@@ -212,8 +213,12 @@ export default function Auth() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (registerData.cedula.length !== 10) {
+      toast.error("La cédula de identidad debe tener exactamente 10 dígitos");
+      return;
+    }
     setLoading(true);
-    await signUp(registerData.email, registerData.password, registerData.phoneNumber, registerData.researcherCode);
+    await signUp(registerData.email, registerData.password, registerData.phoneNumber, registerData.researcherCode, registerData.cedula);
     setLoading(false);
   };
 
@@ -733,6 +738,43 @@ export default function Auth() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5 }}
+                    >
+                      <Label htmlFor="register-cedula" className="text-sm font-medium text-slate-700">
+                        Cédula de Identidad
+                      </Label>
+                      <div className="relative">
+                        <CreditCard className="absolute left-3 top-3 h-5 w-5 text-green-600" />
+                        <Input
+                          id="register-cedula"
+                          type="text"
+                          placeholder="0123456789"
+                          value={registerData.cedula}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setRegisterData({ ...registerData, cedula: value });
+                          }}
+                          onKeyDown={(e) => {
+                            if ([8, 9, 27, 13, 46, 37, 38, 39, 40].includes(e.keyCode)) return;
+                            if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) return;
+                            if (!/[0-9]/.test(e.key)) e.preventDefault();
+                          }}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={10}
+                          required
+                          className="pl-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                        />
+                      </div>
+                      {registerData.cedula.length > 0 && registerData.cedula.length !== 10 && (
+                        <p className="text-xs text-amber-600">{registerData.cedula.length}/10 dígitos</p>
+                      )}
+                    </motion.div>
+
+                    <motion.div
+                      className="space-y-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.55 }}
                     >
                       <Label htmlFor="register-code" className="text-sm font-medium text-slate-700">
                         Código de Investigador

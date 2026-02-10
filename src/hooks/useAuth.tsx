@@ -9,7 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, phoneNumber: string, researcherCode: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, phoneNumber: string, researcherCode: string, cedula?: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, phoneNumber: string, researcherCode: string) => {
+  const signUp = async (email: string, password: string, phoneNumber: string, researcherCode: string, cedula?: string) => {
     // Use production URL to avoid localhost redirect issues
     const redirectUrl = 'https://gisicf.com/auth';
     
@@ -88,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: {
           phone_number: phoneNumber,
           researcher_code: researcherCode,
+          cedula: cedula || '',
         },
       },
     });
