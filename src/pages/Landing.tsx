@@ -12,6 +12,7 @@ import { FAQSection } from "@/components/landing/FAQSection";
 
 import { FloatingBadge } from "@/components/landing/FloatingBadge";
 import { ScrollProgress } from "@/components/landing/ScrollProgress";
+import { ImageCollageHero } from "@/components/landing/ImageCollageHero";
 const fadeInUp = {
   hidden: {
     opacity: 0,
@@ -150,95 +151,8 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero Section with Mesh Gradient */}
-      <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
-        {/* Mesh Gradient Background */}
-        <div className="absolute inset-0 mesh-gradient-hero" />
-        <div className="absolute inset-0 dot-pattern opacity-30 dark:opacity-20" />
-        
-        {/* Floating Badge */}
-        <FloatingBadge text="Hecho en Ecuador" emoji="🇪🇨" position="top-right" />
-        
-        <div className="container mx-auto px-6 relative z-10">
-          <motion.div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center" initial="hidden" animate="visible" variants={staggerContainer}>
-            {/* Left: Image Collage */}
-            <motion.div variants={fadeInUp} className="relative order-2 lg:order-1">
-              <div className="relative">
-                {/* Glow behind main image */}
-                <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-90" />
-                
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/20 dark:shadow-black/40">
-                  <img src="/manual-screenshots/dashboard.png" alt="Dashboard GISICF" className="w-full h-auto" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent" />
-                </div>
-                
-                <motion.div className="absolute -bottom-8 -right-8 w-2/3 rounded-xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800" initial={{
-                opacity: 0,
-                scale: 0.8,
-                x: 20
-              }} animate={{
-                opacity: 1,
-                scale: 1,
-                x: 0
-              }} transition={{
-                delay: 0.5,
-                duration: 0.6
-              }}>
-                  <img src="/manual-screenshots/revision-evaluaciones.png" alt="Revisión de Evaluaciones" className="w-full h-auto" />
-                </motion.div>
-
-                <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
-                <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-primary/20 rounded-full blur-xl" />
-              </div>
-            </motion.div>
-
-            {/* Right: Text Content */}
-            <motion.div variants={fadeInUp} className="order-1 lg:order-2 text-center lg:text-left">
-              <motion.div initial={{
-              opacity: 0,
-              y: -10
-            }} animate={{
-              opacity: 1,
-              y: 0
-            }} transition={{
-              delay: 0.2
-            }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                Plataforma de Gestión Científica
-              </motion.div>
-              
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight mb-6">
-                Gestión de{" "}
-                <span className="italic font-serif text-primary">Investigación</span>{" "}
-                Inteligente
-              </h1>
-              
-              <p className="text-lg md:text-xl text-slate-600 dark:text-white/70 mb-8 max-w-lg mx-auto lg:mx-0">
-                Plataforma integral del Grupo de Investigación en Sistemas Inteligentes y Ciberfísicos. 
-                Donde la innovación y la tecnología se unen al servicio de la sociedad.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                <Link to="/auth">
-                  <Button size="lg" className="btn-shine bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg rounded-full shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40 hover:scale-105">
-                    Comenzar Ahora
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="flex items-center justify-center lg:justify-start gap-3 mt-8 text-slate-500 dark:text-white/50">
-                <div className="flex -space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold border-2 border-white dark:border-slate-800">U</div>
-                  <div className="w-8 h-8 rounded-full bg-slate-300 dark:bg-slate-600 flex items-center justify-center text-slate-600 dark:text-white text-xs font-bold border-2 border-white dark:border-slate-800">G</div>
-                  <div className="w-8 h-8 rounded-full bg-slate-400 dark:bg-slate-700 flex items-center justify-center text-white text-xs font-bold border-2 border-white dark:border-slate-800">I</div>
-                </div>
-                <span className="text-sm">UNESUM - Ecuador</span>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+      {/* Hero Section with Image Collage */}
+      <ImageCollageHero />
 
 
       {/* Logo Marquee */}

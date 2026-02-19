@@ -359,6 +359,30 @@ All colors MUST be HSL.
   .btn-shine:hover::after {
     transform: rotate(45deg) translateX(100%);
   }
+
+  /* Collage floating animations */
+  .collage-float-1 {
+    animation: collageFloat1 6s ease-in-out infinite;
+  }
+  .collage-float-2 {
+    animation: collageFloat2 7s ease-in-out infinite;
+  }
+  .collage-float-3 {
+    animation: collageFloat3 5s ease-in-out infinite;
+  }
+
+  @keyframes collageFloat1 {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-12px) rotate(2deg); }
+  }
+  @keyframes collageFloat2 {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(-2deg); }
+  }
+  @keyframes collageFloat3 {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(1deg); }
+  }
 }
 
 /* Accessibility Styles */
