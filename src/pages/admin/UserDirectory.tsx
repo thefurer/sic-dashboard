@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter, Clock, ChevronLeft, ChevronRight, Globe, Link as LinkIcon, Send, PartyPopper } from "lucide-react";
+import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter, Clock, ChevronLeft, ChevronRight, Globe, Link as LinkIcon, Send, PartyPopper, Search } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useState } from "react";
@@ -19,6 +19,7 @@ import { getSignedUrl } from "@/hooks/useSignedUrl";
 import { getCountryFlag, getCountryName } from "@/lib/countryUtils";
 import { sendNotificationEmail } from "@/hooks/useSendEmail";
 import { useProfile } from "@/hooks/useProfile";
+import { Input } from "@/components/ui/input";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -58,6 +59,7 @@ export default function UserDirectory() {
   const [greetingUser, setGreetingUser] = useState<Profile | null>(null);
   const [greetingMessage, setGreetingMessage] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
   const { profile: adminProfile } = useProfile();
@@ -179,9 +181,12 @@ export default function UserDirectory() {
   };
 
   const filteredUsers = users?.filter((user) => {
-    if (roleFilter === "all") return true;
-    if (roleFilter === "none") return !user.research_role;
-    return user.research_role === roleFilter;
+    const matchesRole = roleFilter === "all" ? true : roleFilter === "none" ? !user.research_role : user.research_role === roleFilter;
+    const matchesSearch = searchQuery.trim() === "" ? true : 
+      user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.researcher_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.contact?.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesRole && matchesSearch;
   });
 
   // Pagination logic
@@ -206,7 +211,17 @@ export default function UserDirectory() {
 
       <Card className="mb-4">
         <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="relative flex-1 w-full sm:max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nombre, código o correo..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                className="pl-9"
+              />
+            </div>
+            <div className="flex items-center gap-3">
             <Filter className="h-5 w-5 text-muted-foreground" />
             <Label>Filtrar por Rol:</Label>
             <Select value={roleFilter} onValueChange={handleFilterChange}>
@@ -223,6 +238,7 @@ export default function UserDirectory() {
                 ))}
               </SelectContent>
             </Select>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -4,6 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { X, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef } from "react";
+import confetti from "canvas-confetti";
 
 interface Greeting {
   id: string;
@@ -16,6 +18,8 @@ interface Greeting {
 export function GreetingBanner() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const prevCountRef = useRef<number>(0);
+  const hasTriggeredConfetti = useRef(false);
 
   const { data: greetings } = useQuery({
     queryKey: ["user-greetings", user?.id],
@@ -30,7 +34,6 @@ export function GreetingBanner() {
 
       if (error) throw error;
 
-      // Fetch sender names
       const fromIds = [...new Set((data as any[]).map((g: any) => g.from_user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
@@ -45,6 +48,22 @@ export function GreetingBanner() {
     enabled: !!user?.id,
     refetchInterval: 30000,
   });
+
+  // Trigger confetti when new greetings appear
+  useEffect(() => {
+    const currentCount = greetings?.length || 0;
+    if (currentCount > 0 && (currentCount > prevCountRef.current || !hasTriggeredConfetti.current)) {
+      hasTriggeredConfetti.current = true;
+      // Fire confetti from both sides
+      const defaults = { startVelocity: 25, spread: 60, ticks: 80, zIndex: 9999 };
+      confetti({ ...defaults, particleCount: 40, origin: { x: 0.1, y: 0.6 }, angle: 60 });
+      confetti({ ...defaults, particleCount: 40, origin: { x: 0.9, y: 0.6 }, angle: 120 });
+      setTimeout(() => {
+        confetti({ ...defaults, particleCount: 30, origin: { x: 0.5, y: 0.4 }, spread: 100 });
+      }, 200);
+    }
+    prevCountRef.current = currentCount;
+  }, [greetings]);
 
   const dismissMutation = useMutation({
     mutationFn: async (greetingId: string) => {
@@ -74,7 +93,7 @@ export function GreetingBanner() {
             className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 p-4 shadow-sm"
           >
             <div className="flex items-start gap-3">
-              <div className="shrink-0 rounded-full bg-primary/20 p-2">
+              <div className="shrink-0 rounded-full bg-primary/20 p-2 animate-bounce">
                 <PartyPopper className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
