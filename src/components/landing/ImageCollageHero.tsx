@@ -29,16 +29,18 @@ const imageSets = [
   ],
 ];
 
-// Position configs for collage: [top, left, width, height, borderRadius, animDelay, floatClass]
+// Positions: 4 top corners, 4 bottom corners — well outside the center text area
 const positions = [
-  { top: "2%", left: "3%", w: "140px", h: "140px", rounded: "rounded-full", delay: 0, float: "collage-float-1" },
-  { top: "5%", left: "28%", w: "160px", h: "110px", rounded: "rounded-3xl", delay: 0.1, float: "collage-float-2" },
-  { top: "0%", right: "25%", w: "120px", h: "120px", rounded: "rounded-full", delay: 0.2, float: "collage-float-3" },
-  { top: "8%", right: "2%", w: "150px", h: "105px", rounded: "rounded-3xl", delay: 0.3, float: "collage-float-1" },
-  { bottom: "5%", left: "5%", w: "150px", h: "105px", rounded: "rounded-3xl", delay: 0.4, float: "collage-float-2" },
-  { bottom: "2%", left: "30%", w: "120px", h: "120px", rounded: "rounded-full", delay: 0.5, float: "collage-float-3" },
-  { bottom: "8%", right: "28%", w: "140px", h: "100px", rounded: "rounded-3xl", delay: 0.6, float: "collage-float-1" },
-  { bottom: "0%", right: "3%", w: "130px", h: "130px", rounded: "rounded-full", delay: 0.7, float: "collage-float-2" },
+  // Top row — spread across, pushed to edges
+  { top: "-2%", left: "0%", w: "130px", h: "130px", rounded: "rounded-full", delay: 0, float: "collage-float-1" },
+  { top: "-4%", left: "18%", w: "150px", h: "100px", rounded: "rounded-3xl", delay: 0.1, float: "collage-float-2" },
+  { top: "-4%", right: "18%", w: "150px", h: "100px", rounded: "rounded-3xl", delay: 0.2, float: "collage-float-3" },
+  { top: "-2%", right: "0%", w: "130px", h: "130px", rounded: "rounded-full", delay: 0.3, float: "collage-float-1" },
+  // Bottom row — mirror of top
+  { bottom: "-2%", left: "0%", w: "140px", h: "100px", rounded: "rounded-3xl", delay: 0.4, float: "collage-float-2" },
+  { bottom: "-4%", left: "18%", w: "120px", h: "120px", rounded: "rounded-full", delay: 0.5, float: "collage-float-3" },
+  { bottom: "-4%", right: "18%", w: "120px", h: "120px", rounded: "rounded-full", delay: 0.6, float: "collage-float-1" },
+  { bottom: "-2%", right: "0%", w: "140px", h: "100px", rounded: "rounded-3xl", delay: 0.7, float: "collage-float-2" },
 ];
 
 export function ImageCollageHero() {
