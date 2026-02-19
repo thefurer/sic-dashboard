@@ -19,6 +19,7 @@ interface EmailRequest {
     | "evaluation_correction" 
     | "evaluation_approved"
     | "user_approved"
+    | "admin_greeting"
     | "check_deadlines";
   to?: string;
   userName?: string;
@@ -31,6 +32,8 @@ interface EmailRequest {
     correctionDeadline?: string;
     daysRemaining?: number;
     score?: number;
+    greetingMessage?: string;
+    fromName?: string;
   };
 }
 
@@ -347,6 +350,41 @@ function getEmailContent(type: string, userName: string, data: EmailRequest["dat
                 <p style="margin-top: 20px; color: #666; font-size: 14px;">
                   Si tienes alguna duda o necesitas ayuda, no dudes en contactar al administrador del sistema.
                 </p>
+              </div>
+              <div class="footer">
+                <p>Sistema de Gestión de Investigación Científica</p>
+                <p>Universidad Estatal del Sur de Manabí</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      };
+
+    case "admin_greeting":
+      return {
+        subject: `👋 ¡Saludo de ${data?.fromName || "el equipo GISICF"}!`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>${styles}</head>
+          <body>
+            <div class="container">
+              <div class="header" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+                <div class="logo">GISICF</div>
+                <h1>👋 ¡Tienes un saludo!</h1>
+              </div>
+              <div class="content">
+                <p>Hola <strong>${userName}</strong>,</p>
+                <div class="success" style="background: #ede9fe; border-left-color: #6366f1;">
+                  <strong>${data?.fromName || "Un administrador"}</strong> te ha enviado un saludo:
+                </div>
+                <div class="info-box" style="text-align: center; font-size: 16px; padding: 25px;">
+                  <p style="margin: 0; font-style: italic;">"${data?.greetingMessage || "¡Saludos cordiales!"}"</p>
+                </div>
+                <center>
+                  <a href="${APP_URL}/dashboard" class="button" style="background: #6366f1;">Ir al Dashboard</a>
+                </center>
               </div>
               <div class="footer">
                 <p>Sistema de Gestión de Investigación Científica</p>

@@ -7,8 +7,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter, Clock, ChevronLeft, ChevronRight, Globe, Link as LinkIcon } from "lucide-react";
+import { Loader2, Mail, Phone, FileText, Trash2, Eye, Filter, Clock, ChevronLeft, ChevronRight, Globe, Link as LinkIcon, Send, PartyPopper } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useState } from "react";
@@ -16,6 +17,8 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getSignedUrl } from "@/hooks/useSignedUrl";
 import { getCountryFlag, getCountryName } from "@/lib/countryUtils";
+import { sendNotificationEmail } from "@/hooks/useSendEmail";
+import { useProfile } from "@/hooks/useProfile";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -52,9 +55,12 @@ const RESEARCH_ROLES = [
 export default function UserDirectory() {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
+  const [greetingUser, setGreetingUser] = useState<Profile | null>(null);
+  const [greetingMessage, setGreetingMessage] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
+  const { profile: adminProfile } = useProfile();
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["all-users"],
@@ -116,6 +122,50 @@ export default function UserDirectory() {
     },
     onError: () => {
       toast.error("Error al eliminar usuario");
+    },
+  });
+
+  const PREDEFINED_GREETINGS = [
+    "👋 ¡Hola! Bienvenido/a al equipo de investigación. ¡Estamos encantados de tenerte!",
+    "🎉 ¡Felicitaciones por tu excelente trabajo! Sigue así.",
+    "📢 ¡Te recordamos que estamos aquí para apoyarte en tu investigación!",
+    "🌟 ¡Gracias por tu dedicación y compromiso con la investigación científica!",
+    "💪 ¡Ánimo! Tu aporte es fundamental para nuestro grupo de investigación.",
+  ];
+
+  const greetingMutation = useMutation({
+    mutationFn: async ({ userId, message, userEmail, userName }: { userId: string; message: string; userEmail?: string; userName: string }) => {
+      // Insert greeting into DB
+      const { error } = await supabase
+        .from("user_greetings" as any)
+        .insert({
+          from_user_id: adminProfile?.id,
+          to_user_id: userId,
+          message,
+        } as any);
+
+      if (error) throw error;
+
+      // Send email if available
+      if (userEmail) {
+        await sendNotificationEmail({
+          type: "admin_greeting",
+          to: userEmail,
+          userName,
+          data: {
+            greetingMessage: message,
+            fromName: adminProfile?.full_name || "Administrador",
+          },
+        });
+      }
+    },
+    onSuccess: () => {
+      toast.success("¡Saludo enviado correctamente!");
+      setGreetingUser(null);
+      setGreetingMessage("");
+    },
+    onError: () => {
+      toast.error("Error al enviar el saludo");
     },
   });
 
@@ -266,17 +316,31 @@ export default function UserDirectory() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setUserToDelete(user);
-                          }}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setGreetingUser(user);
+                            }}
+                            className="text-primary hover:text-primary hover:bg-primary/10"
+                            title="Enviar saludo"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUserToDelete(user);
+                            }}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -482,6 +546,74 @@ export default function UserDirectory() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Greeting Dialog */}
+      <Dialog open={!!greetingUser} onOpenChange={() => { setGreetingUser(null); setGreetingMessage(""); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PartyPopper className="h-5 w-5 text-primary" />
+              Enviar Saludo
+            </DialogTitle>
+            <DialogDescription>
+              Envía un saludo a <span className="font-semibold">{greetingUser?.full_name}</span>. 
+              Le llegará como notificación y por correo electrónico.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Saludos predefinidos:</Label>
+              <div className="grid gap-2">
+                {PREDEFINED_GREETINGS.map((msg, idx) => (
+                  <Button
+                    key={idx}
+                    variant={greetingMessage === msg ? "default" : "outline"}
+                    size="sm"
+                    className="text-left h-auto py-2 px-3 whitespace-normal justify-start"
+                    onClick={() => setGreetingMessage(msg)}
+                  >
+                    <span className="text-xs">{msg}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-2 block">O escribe un mensaje personalizado:</Label>
+              <Textarea
+                value={greetingMessage}
+                onChange={(e) => setGreetingMessage(e.target.value)}
+                placeholder="Escribe tu saludo aquí..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setGreetingUser(null); setGreetingMessage(""); }}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                if (greetingUser && greetingMessage.trim()) {
+                  greetingMutation.mutate({
+                    userId: greetingUser.id,
+                    message: greetingMessage.trim(),
+                    userEmail: greetingUser.contact?.email || undefined,
+                    userName: greetingUser.full_name,
+                  });
+                }
+              }}
+              disabled={!greetingMessage.trim() || greetingMutation.isPending}
+            >
+              {greetingMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              Enviar Saludo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -9,6 +9,8 @@ export interface EmailData {
   correctionDeadline?: string;
   daysRemaining?: number;
   score?: number;
+  greetingMessage?: string;
+  fromName?: string;
 }
 
 export type EmailType = 
@@ -19,7 +21,8 @@ export type EmailType =
   | "evaluation_submitted" 
   | "evaluation_correction" 
   | "evaluation_approved"
-  | "user_approved";
+  | "user_approved"
+  | "admin_greeting";
 
 interface SendEmailParams {
   type: EmailType;

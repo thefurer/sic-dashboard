@@ -748,6 +748,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_greetings: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          message: string
+          read_at: string | null
+          to_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          message: string
+          read_at?: string | null
+          to_user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          to_user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

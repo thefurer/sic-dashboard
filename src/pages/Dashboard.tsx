@@ -15,6 +15,7 @@ import { UserStatusPanel } from "@/components/dashboard/UserStatusPanel";
 import { QuickStatsRow } from "@/components/dashboard/QuickStatsRow";
 import { MonthlyProgressChart } from "@/components/dashboard/MonthlyProgressChart";
 import { CompleteProfileBanner } from "@/components/dashboard/CompleteProfileBanner";
+import { GreetingBanner } from "@/components/dashboard/GreetingBanner";
 import { SmartRecommendations } from "@/components/dashboard/SmartRecommendations";
 import { PriorityTaskQueue } from "@/components/dashboard/PriorityTaskQueue";
 import { ProductivityScore } from "@/components/dashboard/ProductivityScore";
@@ -44,6 +45,9 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-[70vh] font-sans space-y-5">
+      {/* Greeting Banner */}
+      <GreetingBanner />
+
       {/* Complete Profile Banner */}
       <CompleteProfileBanner />
 
