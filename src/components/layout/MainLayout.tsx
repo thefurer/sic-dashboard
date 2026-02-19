@@ -107,9 +107,11 @@ export function MainLayout({ children }: MainLayoutProps) {
               <span className="sr-only">Toggle theme</span>
             </Button>
             
-            <div data-tour="tour-button">
-              <TourGuideButton onClick={startTour} hasSeenTour={hasSeenTour} />
-            </div>
+            {!hasSeenTour && (
+              <div data-tour="tour-button">
+                <TourGuideButton onClick={startTour} hasSeenTour={hasSeenTour} />
+              </div>
+            )}
             
             <div data-tour="notifications" className="flex items-center gap-1">
               <UserActivityNotificationBell />
