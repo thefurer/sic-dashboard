@@ -16,6 +16,8 @@ const imageSets = [
     { src: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=400&fit=crop", alt: "Visualización de datos" },
     { src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop", alt: "Investigador" },
     { src: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=400&h=300&fit=crop", alt: "Red neuronal IA" },
+    { src: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400&h=300&fit=crop", alt: "Ciberseguridad" },
+    { src: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=400&h=300&fit=crop", alt: "Servidor de datos" },
   ],
   [
     { src: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=400&fit=crop", alt: "Matemáticas y ciencia" },
@@ -26,21 +28,27 @@ const imageSets = [
     { src: "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=400&h=400&fit=crop", alt: "Análisis de datos" },
     { src: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400&h=400&fit=crop", alt: "Investigación científica" },
     { src: "https://images.unsplash.com/photo-1580894894513-541e068a3e2b?w=400&h=300&fit=crop", alt: "Placa electrónica" },
+    { src: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=300&fit=crop", alt: "Centro de datos" },
+    { src: "https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&h=300&fit=crop", alt: "Innovación digital" },
   ],
 ];
 
-// Positions: 4 top corners, 4 bottom corners — well outside the center text area
+// Positions: 4 top, 2 sides center, 4 bottom
 const positions = [
-  // Top row — spread across, pushed to edges
+  // Top row
   { top: "-2%", left: "0%", w: "130px", h: "130px", rounded: "rounded-full", delay: 0, float: "collage-float-1" },
   { top: "-4%", left: "18%", w: "150px", h: "100px", rounded: "rounded-3xl", delay: 0.1, float: "collage-float-2" },
   { top: "-4%", right: "18%", w: "150px", h: "100px", rounded: "rounded-3xl", delay: 0.2, float: "collage-float-3" },
   { top: "-2%", right: "0%", w: "130px", h: "130px", rounded: "rounded-full", delay: 0.3, float: "collage-float-1" },
-  // Bottom row — mirror of top
+  // Bottom row
   { bottom: "-2%", left: "0%", w: "140px", h: "100px", rounded: "rounded-3xl", delay: 0.4, float: "collage-float-2" },
   { bottom: "-4%", left: "18%", w: "120px", h: "120px", rounded: "rounded-full", delay: 0.5, float: "collage-float-3" },
   { bottom: "-4%", right: "18%", w: "120px", h: "120px", rounded: "rounded-full", delay: 0.6, float: "collage-float-1" },
   { bottom: "-2%", right: "0%", w: "140px", h: "100px", rounded: "rounded-3xl", delay: 0.7, float: "collage-float-2" },
+  // Center left
+  { top: "40%", left: "-2%", w: "120px", h: "120px", rounded: "rounded-full", delay: 0.35, float: "collage-float-3" },
+  // Center right
+  { top: "40%", right: "-2%", w: "120px", h: "120px", rounded: "rounded-full", delay: 0.55, float: "collage-float-1" },
 ];
 
 export function ImageCollageHero() {
