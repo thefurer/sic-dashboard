@@ -121,7 +121,7 @@ export function ImageCollageHero() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4"
             >
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              Jipijapa — Manabí
+              Plataforma de Gestión Científica
             </motion.div>
 
             <motion.div
