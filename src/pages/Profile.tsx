@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { User, Phone, FileText, Lock, BadgeCheck, Upload, Eye, Globe, Link as LinkIcon, CreditCard, AlertCircle } from "lucide-react";
+import { User, Phone, FileText, Lock, BadgeCheck, Upload, Eye, Globe, Link as LinkIcon, CreditCard, AlertCircle, Camera } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getSignedUrl } from "@/hooks/useSignedUrl";
@@ -435,13 +435,22 @@ export default function Profile() {
                       <AvatarImage src={avatarPreview || undefined} />
                       <AvatarFallback className="bg-primary/20">{getInitials(fullName || "U")}</AvatarFallback>
                     </Avatar>
-                    <label className="flex-1">
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-slate-300 dark:border-white/20 hover:border-primary/50 cursor-pointer transition-colors bg-slate-50/50 dark:bg-transparent">
-                        <Upload className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Cambiar foto</span>
-                      </div>
-                      <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
-                    </label>
+                    <div className="flex flex-col gap-2 flex-1">
+                      <label>
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-primary/40 hover:border-primary/70 cursor-pointer transition-colors bg-primary/5 dark:bg-primary/10">
+                          <Camera className="h-4 w-4 text-primary" />
+                          <span className="text-sm text-primary font-medium">Tomar foto</span>
+                        </div>
+                        <input type="file" accept="image/*" capture="user" onChange={handleFile} className="hidden" />
+                      </label>
+                      <label>
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-slate-300 dark:border-white/20 hover:border-primary/50 cursor-pointer transition-colors bg-slate-50/50 dark:bg-transparent">
+                          <Upload className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Subir desde galería</span>
+                        </div>
+                        <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
+                      </label>
+                    </div>
                   </div>
                 </div>
 
