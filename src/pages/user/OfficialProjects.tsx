@@ -33,18 +33,18 @@ export default function OfficialProjects() {
   const { data: projects, isLoading } = useQuery({
     queryKey: ["official-projects"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("official_projects")
-        .select("*")
-        .order("year", { ascending: false });
-      
+      const { data, error } = await supabase.
+      from("official_projects").
+      select("*").
+      order("year", { ascending: false });
+
       if (error) throw error;
       return data;
-    },
+    }
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (data: { id?: string; name: string; year: number; file?: File | null; docName?: string }) => {
+    mutationFn: async (data: {id?: string;name: string;year: number;file?: File | null;docName?: string;}) => {
       let documents: ProjectDocument[] = [];
 
       // Upload file if provided for new project
@@ -53,15 +53,15 @@ export default function OfficialProjects() {
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `project-docs/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('institutional-docs')
-          .upload(filePath, data.file);
+        const { error: uploadError } = await supabase.storage.
+        from('institutional-docs').
+        upload(filePath, data.file);
 
         if (uploadError) throw uploadError;
 
-        const { data: urlData } = supabase.storage
-          .from('institutional-docs')
-          .getPublicUrl(filePath);
+        const { data: urlData } = supabase.storage.
+        from('institutional-docs').
+        getPublicUrl(filePath);
 
         documents = [{
           url: urlData.publicUrl,
@@ -71,24 +71,24 @@ export default function OfficialProjects() {
       }
 
       if (data.id) {
-        const { error } = await supabase
-          .from("official_projects")
-          .update({ 
-            name: data.name, 
-            year: data.year, 
-            updated_at: new Date().toISOString() 
-          })
-          .eq("id", data.id);
+        const { error } = await supabase.
+        from("official_projects").
+        update({
+          name: data.name,
+          year: data.year,
+          updated_at: new Date().toISOString()
+        }).
+        eq("id", data.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from("official_projects")
-          .insert({ 
-            name: data.name, 
-            year: data.year,
-            documents: documents as unknown as Json,
-            project_document_url: documents[0]?.url || null
-          });
+        const { error } = await supabase.
+        from("official_projects").
+        insert({
+          name: data.name,
+          year: data.year,
+          documents: documents as unknown as Json,
+          project_document_url: documents[0]?.url || null
+        });
         if (error) throw error;
       }
     },
@@ -100,24 +100,24 @@ export default function OfficialProjects() {
     },
     onError: (error: any) => {
       toast.error("Error al guardar", { description: error.message });
-    },
+    }
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       // First, remove references from evaluation_items
-      const { error: refError } = await supabase
-        .from("evaluation_items")
-        .update({ related_project_id: null })
-        .eq("related_project_id", id);
-      
+      const { error: refError } = await supabase.
+      from("evaluation_items").
+      update({ related_project_id: null }).
+      eq("related_project_id", id);
+
       if (refError) throw refError;
 
       // Now delete the project
-      const { error } = await supabase
-        .from("official_projects")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.
+      from("official_projects").
+      delete().
+      eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -126,29 +126,29 @@ export default function OfficialProjects() {
     },
     onError: (error: any) => {
       toast.error("Error al eliminar", { description: error.message });
-    },
+    }
   });
 
   const uploadDocMutation = useMutation({
-    mutationFn: async ({ projectId, file, name, currentDocs }: { 
-      projectId: string; 
-      file: File; 
-      name: string;
-      currentDocs: ProjectDocument[];
-    }) => {
+    mutationFn: async ({ projectId, file, name, currentDocs
+
+
+
+
+    }: {projectId: string;file: File;name: string;currentDocs: ProjectDocument[];}) => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `project-docs/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('institutional-docs')
-        .upload(filePath, file);
+      const { error: uploadError } = await supabase.storage.
+      from('institutional-docs').
+      upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('institutional-docs')
-        .getPublicUrl(filePath);
+      const { data: { publicUrl } } = supabase.storage.
+      from('institutional-docs').
+      getPublicUrl(filePath);
 
       const newDoc: ProjectDocument = {
         url: publicUrl,
@@ -158,13 +158,13 @@ export default function OfficialProjects() {
 
       const updatedDocs = [...currentDocs, newDoc];
 
-      const { error: updateError } = await supabase
-        .from("official_projects")
-        .update({ 
-          documents: updatedDocs as unknown as Json,
-          project_document_url: updatedDocs[0]?.url || null
-        })
-        .eq("id", projectId);
+      const { error: updateError } = await supabase.
+      from("official_projects").
+      update({
+        documents: updatedDocs as unknown as Json,
+        project_document_url: updatedDocs[0]?.url || null
+      }).
+      eq("id", projectId);
 
       if (updateError) throw updateError;
 
@@ -181,24 +181,24 @@ export default function OfficialProjects() {
     },
     onError: (error: any) => {
       toast.error("Error al subir", { description: error.message });
-    },
+    }
   });
 
   const deleteDocMutation = useMutation({
-    mutationFn: async ({ projectId, docIndex, currentDocs }: { 
-      projectId: string; 
-      docIndex: number;
-      currentDocs: ProjectDocument[];
-    }) => {
+    mutationFn: async ({ projectId, docIndex, currentDocs
+
+
+
+    }: {projectId: string;docIndex: number;currentDocs: ProjectDocument[];}) => {
       const updatedDocs = currentDocs.filter((_, i) => i !== docIndex);
 
-      const { error } = await supabase
-        .from("official_projects")
-        .update({ 
-          documents: updatedDocs as unknown as Json,
-          project_document_url: updatedDocs[0]?.url || null
-        })
-        .eq("id", projectId);
+      const { error } = await supabase.
+      from("official_projects").
+      update({
+        documents: updatedDocs as unknown as Json,
+        project_document_url: updatedDocs[0]?.url || null
+      }).
+      eq("id", projectId);
 
       if (error) throw error;
       return updatedDocs;
@@ -212,7 +212,7 @@ export default function OfficialProjects() {
     },
     onError: (error: any) => {
       toast.error("Error al eliminar", { description: error.message });
-    },
+    }
   });
 
   const resetForm = () => {
@@ -255,7 +255,7 @@ export default function OfficialProjects() {
   const handleUploadDoc = async () => {
     if (!projectFile || !viewingProject) return;
     setUploading(true);
-    const currentDocs = (viewingProject.documents as ProjectDocument[]) || [];
+    const currentDocs = viewingProject.documents as ProjectDocument[] || [];
     await uploadDocMutation.mutateAsync({
       projectId: viewingProject.id,
       file: projectFile,
@@ -268,7 +268,7 @@ export default function OfficialProjects() {
   const handleDeleteDoc = (docIndex: number) => {
     if (!viewingProject) return;
     if (confirm("¿Eliminar este documento?")) {
-      const currentDocs = (viewingProject.documents as ProjectDocument[]) || [];
+      const currentDocs = viewingProject.documents as ProjectDocument[] || [];
       deleteDocMutation.mutate({
         projectId: viewingProject.id,
         docIndex,
@@ -324,8 +324,8 @@ export default function OfficialProjects() {
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                   placeholder="Ej: Desarrollo de plataforma IoT para agricultura"
-                  className="mt-1"
-                />
+                  className="mt-1" />
+
               </div>
               <div>
                 <Label htmlFor="year">Año *</Label>
@@ -334,33 +334,33 @@ export default function OfficialProjects() {
                   type="number"
                   value={projectYear}
                   onChange={(e) => setProjectYear(parseInt(e.target.value))}
-                  className="mt-1"
-                />
+                  className="mt-1" />
+
               </div>
-              {!editingProject && (
-                <>
+              {!editingProject &&
+              <>
                   <div>
                     <Label htmlFor="docName">Nombre del Documento</Label>
                     <Input
-                      id="docName"
-                      value={documentName}
-                      onChange={(e) => setDocumentName(e.target.value)}
-                      placeholder="Ej: Propuesta de Proyecto"
-                      className="mt-1"
-                    />
+                    id="docName"
+                    value={documentName}
+                    onChange={(e) => setDocumentName(e.target.value)}
+                    placeholder="Ej: Propuesta de Proyecto"
+                    className="mt-1" />
+
                   </div>
                   <div>
                     <Label htmlFor="docFile">Documento del Proyecto (PDF)</Label>
                     <Input
-                      id="docFile"
-                      type="file"
-                      accept="application/pdf"
-                      onChange={(e) => setProjectFile(e.target.files?.[0] || null)}
-                      className="mt-1 cursor-pointer"
-                    />
+                    id="docFile"
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => setProjectFile(e.target.files?.[0] || null)}
+                    className="mt-1 cursor-pointer" />
+
                   </div>
                 </>
-              )}
+              }
               <Button onClick={handleSave} className="w-full" disabled={saveMutation.isPending || uploading}>
                 {saveMutation.isPending || uploading ? "Guardando..." : "Guardar"}
               </Button>
@@ -371,11 +371,11 @@ export default function OfficialProjects() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Proyectos</CardTitle>
+          <CardTitle>Lista de Proyectos Articulados al Grupo de Investigación</CardTitle>
         </CardHeader>
         <CardContent>
-          {projects && projects.length > 0 ? (
-            <Table>
+          {projects && projects.length > 0 ?
+          <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Nombre del Proyecto</TableHead>
@@ -386,17 +386,17 @@ export default function OfficialProjects() {
               </TableHeader>
               <TableBody>
                 {projects.map((project) => {
-                  const docs = getDocuments(project);
-                  return (
-                    <TableRow key={project.id}>
+                const docs = getDocuments(project);
+                return (
+                  <TableRow key={project.id}>
                       <TableCell className="font-medium">{project.name}</TableCell>
                       <TableCell>{project.year}</TableCell>
                       <TableCell>
                         <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewDocs(project)}
-                        >
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewDocs(project)}>
+
                           <FileText className="w-4 h-4 mr-1" />
                           {docs.length} documento{docs.length !== 1 ? 's' : ''}
                         </Button>
@@ -404,35 +404,35 @@ export default function OfficialProjects() {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(project)}
-                          >
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(project)}>
+
                             <Pencil className="w-4 h-4" />
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              if (confirm("¿Eliminar este proyecto?")) {
-                                deleteMutation.mutate(project.id);
-                              }
-                            }}
-                          >
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (confirm("¿Eliminar este proyecto?")) {
+                              deleteMutation.mutate(project.id);
+                            }
+                          }}>
+
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  );
-                })}
+                    </TableRow>);
+
+              })}
               </TableBody>
-            </Table>
-          ) : (
-            <p className="text-center text-muted-foreground py-8">
+            </Table> :
+
+          <p className="text-center text-muted-foreground py-8">
               No hay proyectos registrados. Crea uno para comenzar.
             </p>
-          )}
+          }
         </CardContent>
       </Card>
 
@@ -452,8 +452,8 @@ export default function OfficialProjects() {
           
           {/* Documents List */}
           <div className="space-y-3 max-h-[300px] overflow-y-auto">
-            {viewingProject && getDocuments(viewingProject).map((doc, index) => (
-              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+            {viewingProject && getDocuments(viewingProject).map((doc, index) =>
+            <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3 min-w-0">
                   <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
                   <div className="min-w-0">
@@ -465,27 +465,27 @@ export default function OfficialProjects() {
                 </div>
                 <div className="flex gap-1">
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => window.open(doc.url, '_blank')}
-                  >
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open(doc.url, '_blank')}>
+
                     <ExternalLink className="w-4 h-4" />
                   </Button>
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteDoc(index)}
-                  >
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteDoc(index)}>
+
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 </div>
               </div>
-            ))}
-            {viewingProject && getDocuments(viewingProject).length === 0 && (
-              <p className="text-center text-muted-foreground py-4">
+            )}
+            {viewingProject && getDocuments(viewingProject).length === 0 &&
+            <p className="text-center text-muted-foreground py-4">
                 No hay documentos
               </p>
-            )}
+            }
           </div>
 
           {/* Upload Form */}
@@ -494,29 +494,29 @@ export default function OfficialProjects() {
             <Input
               value={documentName}
               onChange={(e) => setDocumentName(e.target.value)}
-              placeholder="Nombre del documento"
-            />
+              placeholder="Nombre del documento" />
+
             <Input
               type="file"
               accept="application/pdf"
               onChange={(e) => setProjectFile(e.target.files?.[0] || null)}
-              className="cursor-pointer"
-            />
-            <Button 
-              onClick={handleUploadDoc} 
-              className="w-full" 
-              disabled={!projectFile || uploading}
-            >
-              {uploading ? "Subiendo..." : (
-                <>
+              className="cursor-pointer" />
+
+            <Button
+              onClick={handleUploadDoc}
+              className="w-full"
+              disabled={!projectFile || uploading}>
+
+              {uploading ? "Subiendo..." :
+              <>
                   <Upload className="w-4 h-4 mr-2" />
                   Subir Documento
                 </>
-              )}
+              }
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 }
