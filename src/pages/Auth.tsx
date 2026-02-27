@@ -777,7 +777,7 @@ export default function Auth() {
                       transition={{ delay: 0.55 }}
                     >
                       <Label htmlFor="register-code" className="text-sm font-medium text-slate-700">
-                        Código de Investigador <span className="text-muted-foreground font-normal">(opcional)</span>
+                        Código de investigador Senescyt
                       </Label>
                       <div className="relative">
                         <Code className="absolute left-3 top-3 h-5 w-5 text-green-600" />
