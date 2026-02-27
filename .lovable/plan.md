@@ -1,62 +1,70 @@
 
 
-# Rediseno del Hero de la Landing Page - Collage de Imagenes Estilo UNESUM
+# Codigo de Investigador Opcional + Superadmin con Cambio de Rol
 
-## Objetivo
-Reemplazar el hero actual (dos screenshots del dashboard) con un collage dinamico de imagenes circulares y redondeadas distribuidas alrededor del texto central, inspirado en el diseno de la pagina oficial de UNESUM. Las imagenes seran tematicas de tecnologia, investigacion e inteligencia artificial, obtenidas de URLs publicas (Unsplash).
+## 1. Hacer "Codigo de Investigador" opcional en el registro
 
-## Cambios Principales
+**Archivo: `src/pages/Auth.tsx`**
+- Quitar el atributo `required` del campo "Codigo de Investigador" (linea 790)
+- Agregar texto "(opcional)" a la etiqueta del campo
+- No se necesitan cambios en el backend ya que `researcher_code` ya es nullable en la tabla `profiles`
 
-### 1. Nuevo componente: ImageCollageHero
-- Crear `src/components/landing/ImageCollageHero.tsx`
-- Collage de 8-10 imagenes posicionadas con CSS absolute en formas circulares y redondeadas (rounded-full, rounded-3xl)
-- Cada imagen tendra una animacion de entrada escalonada con framer-motion
-- Las imagenes rotaran/se deslizaran automaticamente con un intervalo, cambiando entre sets de imagenes
-- Imagenes de tecnologia desde Unsplash (URLs publicas): IA, circuitos, laboratorios, programacion, robots, datos
+## 2. Sistema de Superadmin con cambio de rol
 
-### 2. Diseno del collage
-- Texto central: "Jipijapa - Manabi" subtitulo + titulo principal "GISICF Investigacion Inteligente" en estilo serif/italico
-- Imagenes distribuidas alrededor del texto en posiciones fijas (top-left, top-right, bottom-left, etc.)
-- Mezcla de formas: circulos grandes, circulos pequenos, rectangulos redondeados
-- Efecto de parallax sutil al hacer scroll
-- Transicion suave entre sets de imagenes cada 5 segundos
+### Concepto
+El usuario `christian.caicedo@unesum.edu.ec` tendra un rol especial "superadmin" que le permite:
+- Ver siempre el menu de administrador
+- Cambiar su vista activa entre "admin" y "student" con un click desde el sidebar
+- El rol superadmin nunca se pierde, solo cambia la vista/experiencia
+- Se diferencia visualmente con un color dorado/ambar
 
-### 3. Modificacion de Landing.tsx
-- Reemplazar el hero section actual (grid de 2 columnas con screenshots) por el nuevo ImageCollageHero centrado
-- Mantener el texto del hero pero reorganizarlo al centro del collage
-- Conservar el boton "Comenzar Ahora" y el badge "Hecho en Ecuador"
-- Mantener todas las demas secciones sin cambios (research lines, about, FAQ, footer)
+### Migracion de base de datos
+- Agregar `superadmin` al enum `app_role`
+- Actualizar el rol de `christian.caicedo@unesum.edu.ec` de `student` a `superadmin`
 
-## Detalles Tecnicos
+### Cambios en archivos
 
-### Imagenes (URLs de Unsplash, sin necesidad de API key)
-Se usaran ~10 imagenes de alta calidad relacionadas con:
-- Inteligencia artificial y redes neuronales
-- Laboratorios y microscopios
-- Codigo y programacion
-- Circuitos electronicos
-- Trabajo colaborativo en tecnologia
-- Datos y visualizaciones
+**Archivo: `src/hooks/useUserRole.tsx`**
+- Agregar estado local `activeRole` que permite al superadmin alternar entre "admin" y "student"
+- Exponer funcion `switchRole()` y `activeRole` junto con el `role` real
+- Si el rol es `superadmin`, el `activeRole` por defecto es "admin"
 
-### Animaciones (framer-motion)
-- Entrada escalonada de cada imagen con scale + opacity
-- Transicion de slide entre grupos de imagenes cada 5 segundos usando AnimatePresence
-- Efecto hover con scale sutil en cada imagen
-- Las imagenes flotaran ligeramente con una animacion CSS continua (float effect)
+**Archivo: `src/components/layout/AppSidebar.tsx`**
+- Agregar un boton de cambio de rol en el header del sidebar (solo visible para superadmin)
+- El boton mostrara "Vista Admin" o "Vista Estudiante" con un toggle animado
+- Usar color dorado/ambar para diferenciar al superadmin (borde dorado en el logo, badge dorado)
+- Mostrar el menu correspondiente segun el `activeRole`
 
-### Layout del collage
+**Archivo: `src/components/ProtectedRoute.tsx`**
+- Tratar `superadmin` como equivalente a `admin` para bypass de aprobacion y acceso a rutas admin
+- Cuando el activeRole es "student", permitir acceso a rutas de usuario normal
+
+**Archivo: `src/pages/admin/UserDirectory.tsx`**
+- Mostrar badge especial dorado para el usuario superadmin en el listado
+
+### Detalles tecnicos
+
+Nuevo hook `useUserRole` retornara:
 ```text
-  [circle]    [rounded-lg]         [circle]    [rounded-lg]
-        \          |                  /           |
-         \         |                 /            |
-          --- TEXTO CENTRAL ---
-         /         |                 \            |
-        /          |                  \           |
-  [rounded-lg]  [circle]         [rounded-lg]  [circle]
+{
+  role: "superadmin" | "admin" | "researcher" | "student",
+  activeRole: "admin" | "student",  // solo relevante para superadmin
+  isSuperAdmin: boolean,
+  switchRole: () => void,           // alterna entre admin/student
+}
 ```
 
-### Archivos a crear/modificar
-1. **Crear** `src/components/landing/ImageCollageHero.tsx` - Componente del collage con imagenes deslizantes
-2. **Modificar** `src/pages/Landing.tsx` - Reemplazar hero section con el nuevo componente
-3. **Modificar** `src/index.css` - Agregar keyframes para animacion de flotacion (float)
+SQL de migracion:
+```text
+ALTER TYPE app_role ADD VALUE 'superadmin';
+-- Luego actualizar el rol del usuario especifico
+UPDATE user_roles SET role = 'superadmin' 
+WHERE user_id = (SELECT id FROM auth.users WHERE email = 'christian.caicedo@unesum.edu.ec');
+```
+
+### Diferenciacion visual del superadmin
+- Color dorado (#F59E0B / amber-500) para badges y bordes
+- Icono de corona o escudo junto al nombre en el sidebar
+- Badge "Super Admin" dorado en el directorio de usuarios
+- El boton de cambio de rol usa un switch con colores verde (admin) y azul (estudiante)
 
