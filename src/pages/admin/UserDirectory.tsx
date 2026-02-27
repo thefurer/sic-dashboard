@@ -80,13 +80,19 @@ export default function UserDirectory() {
         .from("profile_contacts")
         .select("user_id, email, phone");
 
-      // Merge contacts into profiles
+      // Fetch user roles
+      const { data: rolesData } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+
+      // Merge contacts and roles into profiles
       const usersWithContacts = profilesData?.map(profile => ({
         ...profile,
-        contact: contactsData?.find(c => c.user_id === profile.id) || null
+        contact: contactsData?.find(c => c.user_id === profile.id) || null,
+        app_role: rolesData?.find(r => r.user_id === profile.id)?.role || null,
       })) || [];
 
-      return usersWithContacts as Profile[];
+      return usersWithContacts as (Profile & { app_role: string | null })[];
     },
   });
 
@@ -288,6 +294,11 @@ export default function UserDirectory() {
                               <span className="text-sm" title={getCountryName(user.country_code)}>
                                 {getCountryFlag(user.country_code)}
                               </span>
+                            )}
+                            {(user as any).app_role === "superadmin" && (
+                              <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30 text-[10px] dark:text-amber-400">
+                                ⭐ Super Admin
+                              </Badge>
                             )}
                           </div>
                         </div>

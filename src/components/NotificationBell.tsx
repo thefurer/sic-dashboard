@@ -15,7 +15,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 export function NotificationBell() {
   const navigate = useNavigate();
-  const { data: userRole } = useUserRole();
+  const { isAdmin } = useUserRole();
 
   // Pending user approvals count
   const { data: pendingUsersCount = 0 } = useQuery({
@@ -29,7 +29,7 @@ export function NotificationBell() {
       if (error) throw error;
       return count || 0;
     },
-    enabled: userRole === "admin",
+    enabled: isAdmin,
     refetchInterval: 30000,
   });
 
@@ -45,13 +45,13 @@ export function NotificationBell() {
       if (error) throw error;
       return count || 0;
     },
-    enabled: userRole === "admin",
+    enabled: isAdmin,
     refetchInterval: 30000,
   });
 
   const totalNotifications = pendingUsersCount + pendingEvaluationsCount;
 
-  if (userRole !== "admin") return null;
+  if (!isAdmin) return null;
 
   return (
     <DropdownMenu>

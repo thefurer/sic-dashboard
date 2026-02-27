@@ -1,11 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useState, useCallback, useMemo } from "react";
+
+type AppRole = "superadmin" | "admin" | "researcher" | "student";
+type ActiveRole = "admin" | "student";
 
 export function useUserRole() {
   const { user } = useAuth();
+  const [activeRole, setActiveRole] = useState<ActiveRole>("admin");
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ["user-role", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -17,8 +22,31 @@ export function useUserRole() {
         .single();
 
       if (error) throw error;
-      return data?.role;
+      return data?.role as AppRole;
     },
     enabled: !!user,
   });
+
+  const role = query.data;
+  const isSuperAdmin = role === "superadmin";
+
+  const switchRole = useCallback(() => {
+    setActiveRole((prev) => (prev === "admin" ? "student" : "admin"));
+  }, []);
+
+  const effectiveRole = useMemo(() => {
+    if (isSuperAdmin) return activeRole;
+    if (role === "admin") return "admin";
+    return role || "student";
+  }, [isSuperAdmin, activeRole, role]);
+
+  return {
+    ...query,
+    data: role,
+    role,
+    activeRole: effectiveRole as ActiveRole,
+    isSuperAdmin,
+    switchRole,
+    isAdmin: effectiveRole === "admin" || isSuperAdmin,
+  };
 }

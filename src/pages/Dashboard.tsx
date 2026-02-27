@@ -33,12 +33,9 @@ import gisicfLogo from "@/assets/gisicf-logo.png";
 const Dashboard = () => {
   const { data: newsPosts, isLoading } = useNewsPosts();
   const { profile } = useProfile();
-  const { data: userRole } = useUserRole();
+  const { isAdmin: isSuperAdmin } = useUserRole();
   const [selectedNews, setSelectedNews] = useState<NewsPost | null>(null);
   const [showManager, setShowManager] = useState(false);
-  
-  // Super admin check - only admin role gets news management
-  const isSuperAdmin = userRole === "admin";
   
   // Dashboard stats
   const { data: stats, isLoading: statsLoading } = useDashboardStats(isSuperAdmin);

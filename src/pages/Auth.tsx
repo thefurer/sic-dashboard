@@ -777,7 +777,7 @@ export default function Auth() {
                       transition={{ delay: 0.55 }}
                     >
                       <Label htmlFor="register-code" className="text-sm font-medium text-slate-700">
-                        Código de Investigador
+                        Código de Investigador <span className="text-muted-foreground font-normal">(opcional)</span>
                       </Label>
                       <div className="relative">
                         <Code className="absolute left-3 top-3 h-5 w-5 text-green-600" />
@@ -787,7 +787,6 @@ export default function Auth() {
                           placeholder="INV-2024-001"
                           value={registerData.researcherCode}
                           onChange={(e) => setRegisterData({ ...registerData, researcherCode: e.target.value })}
-                          required
                           className="pl-10 !bg-white !text-slate-900 border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                         />
                       </div>

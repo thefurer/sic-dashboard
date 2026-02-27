@@ -46,8 +46,7 @@ import { motion } from "framer-motion";
 
 export default function Institutional() {
   const queryClient = useQueryClient();
-  const { data: userRole } = useUserRole();
-  const isAdmin = userRole === "admin";
+  const { isAdmin } = useUserRole();
 
   const [missionText, setMissionText] = useState("");
   const [visionText, setVisionText] = useState("");

@@ -19,8 +19,7 @@ import { es } from "date-fns/locale";
 
 export default function Tasks() {
   const { user } = useAuth();
-  const { data: userRole } = useUserRole();
-  const isAdmin = userRole === "admin";
+  const { isAdmin } = useUserRole();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newTask, setNewTask] = useState({
