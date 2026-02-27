@@ -33,7 +33,7 @@ interface TourProviderProps {
 export function TourProvider({ children }: TourProviderProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: userRole } = useUserRole();
+  const { isAdmin: isAdminRole } = useUserRole();
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const {
@@ -46,7 +46,7 @@ export function TourProvider({ children }: TourProviderProps) {
     prevStep,
   } = useTourGuide();
 
-  const isAdmin = userRole === "admin";
+  const isAdmin = isAdminRole;
   const steps = isAdmin ? adminTourSteps : userTourSteps;
   const currentStepData = steps[currentStep];
 

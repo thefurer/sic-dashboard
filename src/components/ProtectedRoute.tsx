@@ -1,9 +1,10 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useLocation } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Button } from "@/components/ui/button";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -50,27 +51,7 @@ function getLoadingMessage(pathname: string): string {
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { user, loading, signOut } = useAuth();
   const location = useLocation();
-
-  const { data: userRole, isLoading: roleLoading } = useQuery({
-    queryKey: ["user-role", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching role:", error);
-        return null;
-      }
-      return data?.role;
-    },
-    enabled: !!user,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
-  });
+  const { role: userRole, activeRole, isSuperAdmin, isLoading: roleLoading } = useUserRole();
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", user?.id],
@@ -101,11 +82,11 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/auth" replace />;
   }
 
-  // Admins bypass approval check
-  const isAdmin = userRole === "admin";
+  // Admins and superadmins bypass approval check
+  const hasAdminAccess = userRole === "admin" || isSuperAdmin;
   
   // Only check approval for non-admin users
-  if (!isAdmin && profile && !profile.is_approved) {
+  if (!hasAdminAccess && profile && !profile.is_approved) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center space-y-4">
@@ -126,8 +107,16 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   }
 
   // Check role-based access for protected routes
-  if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
+  if (requiredRole) {
+    const hasAccess = 
+      isSuperAdmin || // superadmin has access to everything
+      userRole === requiredRole || 
+      userRole === 'admin' ||
+      (isSuperAdmin && activeRole === requiredRole);
+    
+    if (!hasAccess) {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <>{children}</>;

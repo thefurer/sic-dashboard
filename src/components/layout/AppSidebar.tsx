@@ -1,6 +1,6 @@
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
-import { LayoutDashboard, ClipboardCheck, Users, UserPlus, FileText, CheckSquare, CalendarClock, Settings, Landmark, FolderOpen, ChevronDown, LogOut } from "lucide-react";
+import { LayoutDashboard, ClipboardCheck, Users, UserPlus, FileText, CheckSquare, CalendarClock, Settings, Landmark, FolderOpen, ChevronDown, LogOut, Shield, GraduationCap } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 // Base menu items visible to all users
 const baseMenuItems = [{
@@ -77,10 +78,12 @@ export function AppSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const {
-    data: userRole
+    activeRole,
+    isSuperAdmin,
+    switchRole,
   } = useUserRole();
   const { signOut } = useAuth();
-  const isAdmin = userRole === "admin";
+  const isAdmin = activeRole === "admin";
   const isExpanded = state === "expanded";
   const [navOpen, setNavOpen] = useState(true);
   const [userOpen, setUserOpen] = useState(true);
@@ -153,21 +156,67 @@ export function AppSidebar() {
       </CollapsibleContent>
     </Collapsible>;
   return <Sidebar variant="floating" className={`${isExpanded ? "w-72" : "w-16"} transition-all duration-300 h-[calc(100vh-2rem)]`} collapsible="icon">
-      <SidebarContent className="glass-card-premium bg-slate-900/80 h-full rounded-[30px] overflow-hidden">
-        {/* Logo Header with green glow */}
-        <div className="p-6 border-b border-white/10 flex items-center justify-center">
+      <SidebarContent className={`glass-card-premium bg-slate-900/80 h-full rounded-[30px] overflow-hidden ${isSuperAdmin ? 'ring-2 ring-amber-500/40' : ''}`}>
+        {/* Logo Header with glow */}
+        <div className={`p-6 border-b ${isSuperAdmin ? 'border-amber-500/30' : 'border-white/10'} flex flex-col items-center justify-center gap-3`}>
           {isExpanded ? <div className="text-center">
               <div className="relative inline-block">
-                <div className="absolute inset-0 bg-[hsla(153,100%,24%,0.4)] blur-2xl rounded-full scale-150" />
+                <div className={`absolute inset-0 ${isSuperAdmin ? 'bg-[hsla(38,92%,50%,0.3)]' : 'bg-[hsla(153,100%,24%,0.4)]'} blur-2xl rounded-full scale-150`} />
                 <h2 className="relative text-2xl font-bold text-white tracking-tight">UNESUM</h2>
               </div>
               <p className="text-xs text-white/50 mt-2">Sistemas Inteligentes y Ciberfísicos</p>
+              {isSuperAdmin && (
+                <Badge className="mt-2 bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">
+                  ⭐ Super Admin
+                </Badge>
+              )}
             </div> : <div className="relative">
-              <div className="absolute inset-0 bg-[hsla(153,100%,24%,0.5)] blur-xl rounded-xl scale-150" />
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-[hsl(153,100%,24%)] to-[hsl(153,100%,32%)] flex items-center justify-center text-white font-bold text-lg shadow-lg glow-green">
+              <div className={`absolute inset-0 ${isSuperAdmin ? 'bg-[hsla(38,92%,50%,0.4)]' : 'bg-[hsla(153,100%,24%,0.5)]'} blur-xl rounded-xl scale-150`} />
+              <div className={`relative w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg ${isSuperAdmin ? 'bg-gradient-to-br from-amber-500 to-amber-600 ring-2 ring-amber-400/50' : 'bg-gradient-to-br from-[hsl(153,100%,24%)] to-[hsl(153,100%,32%)] glow-green'}`}>
                 U
               </div>
             </div>}
+
+          {/* Superadmin Role Switcher */}
+          {isSuperAdmin && isExpanded && (
+            <button
+              onClick={switchRole}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-amber-500/20 transition-all group"
+            >
+              <div className="flex items-center gap-2">
+                {activeRole === "admin" ? (
+                  <Shield className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <GraduationCap className="h-4 w-4 text-blue-400" />
+                )}
+                <span className="text-xs font-medium text-white/80">
+                  {activeRole === "admin" ? "Vista Admin" : "Vista Estudiante"}
+                </span>
+              </div>
+              <div className={`w-8 h-4 rounded-full relative transition-colors ${activeRole === "admin" ? 'bg-emerald-500/30' : 'bg-blue-500/30'}`}>
+                <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${activeRole === "admin" ? 'left-0.5 bg-emerald-400' : 'left-4.5 bg-blue-400'}`} />
+              </div>
+            </button>
+          )}
+          {isSuperAdmin && !isExpanded && (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={switchRole}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 border border-amber-500/20 transition-all"
+                >
+                  {activeRole === "admin" ? (
+                    <Shield className="h-4 w-4 text-emerald-400" />
+                  ) : (
+                    <GraduationCap className="h-4 w-4 text-blue-400" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-slate-900 text-white border-white/20 px-3 py-2 rounded-lg shadow-xl" sideOffset={8}>
+                <span className="font-medium">{activeRole === "admin" ? "Vista Admin" : "Vista Estudiante"}</span>
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
         
         <div className="flex-1 overflow-y-auto py-6 space-y-4 px-3">

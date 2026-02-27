@@ -37,7 +37,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const { theme, setTheme } = useTheme();
-  const { data: userRole } = useUserRole();
+  const { isAdmin, isSuperAdmin, data: userRole } = useUserRole();
   const { startTour, hasSeenTour } = useTour();
   const location = useLocation();
   // Theme is now user-controlled (no longer forced)
@@ -53,9 +53,10 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || "Usuario";
   const avatarUrl = profile?.avatar_url;
-  const isAdmin = userRole === "admin";
+  
 
   const getRoleBadge = () => {
+    if (isSuperAdmin) return { label: "Super Admin", variant: "default" as const, icon: Shield };
     if (isAdmin) return { label: "Administrador", variant: "default" as const, icon: Shield };
     if (userRole === "researcher") return { label: "Investigador", variant: "secondary" as const, icon: BadgeCheck };
     return { label: "Estudiante", variant: "outline" as const, icon: User };
@@ -115,7 +116,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             
             <div data-tour="notifications" className="flex items-center gap-1">
               <UserActivityNotificationBell />
-              {userRole === "admin" ? <NotificationBell /> : <UserNotificationBell />}
+              {isAdmin ? <NotificationBell /> : <UserNotificationBell />}
             </div>
             
             {/* Premium Profile Dropdown */}
