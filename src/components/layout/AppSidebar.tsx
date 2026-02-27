@@ -190,7 +190,7 @@ export function AppSidebar() {
                   <GraduationCap className="h-4 w-4 text-blue-400" />
                 )}
                 <span className="text-xs font-medium text-white/80">
-                  {activeRole === "admin" ? "Vista Admin" : "Vista Estudiante"}
+                {activeRole === "admin" ? "Vista Admin" : "Vista Investigador"}
                 </span>
               </div>
               <div className={`w-8 h-4 rounded-full relative transition-colors ${activeRole === "admin" ? 'bg-emerald-500/30' : 'bg-blue-500/30'}`}>
@@ -213,7 +213,7 @@ export function AppSidebar() {
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right" className="bg-slate-900 text-white border-white/20 px-3 py-2 rounded-lg shadow-xl" sideOffset={8}>
-                <span className="font-medium">{activeRole === "admin" ? "Vista Admin" : "Vista Estudiante"}</span>
+                <span className="font-medium">{activeRole === "admin" ? "Vista Admin" : "Vista Investigador"}</span>
               </TooltipContent>
             </Tooltip>
           )}
