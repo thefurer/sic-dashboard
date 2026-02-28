@@ -49,8 +49,7 @@ const RESEARCH_ROLES = [
   'Investigador principal',
   'Investigador asociado',
   'Investigador',
-  'Estudiante Investigador',
-  'Personal técnico'
+  'Estudiante Investigador'
 ];
 
 export default function UserDirectory() {
