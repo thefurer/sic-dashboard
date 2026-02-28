@@ -50,7 +50,7 @@ const adminItems = [{
   url: "/admin/users",
   icon: Users
 }, {
-  title: "Planificación Estratégica",
+  title: "Tareas Planificación Estratégica",
   url: "/admin/planning",
   icon: CalendarClock
 }, {
