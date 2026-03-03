@@ -262,7 +262,7 @@ export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGener
       </div>
 
       <div>
-        <Label htmlFor="driveLink">Enlace de Drive (Opcional)</Label>
+        <Label htmlFor="driveLink">Enlace meet, drive, otros (Opcional)</Label>
         <Input
           id="driveLink"
           type="url"
