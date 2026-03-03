@@ -257,7 +257,7 @@ export function PlanningPreviewStep({
 
             {plan.drive_link && (
               <div>
-                <p className="text-sm text-muted-foreground">Enlace Drive</p>
+                <p className="text-sm text-muted-foreground">Enlace meet, drive, otros</p>
                 <a href={plan.drive_link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   {plan.drive_link}
                 </a>
