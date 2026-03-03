@@ -269,12 +269,6 @@ export default function EntryFormDialog({
 
     // Validate search verification was performed based on indicator type
     if (indicatorType === "Artículos JCR/Scopus") {
-      if (!metadata.doi?.trim()) {
-        toast.error("DOI requerido", {
-          description: "Debe ingresar el DOI y realizar la búsqueda inteligente para verificar el artículo",
-        });
-        return;
-      }
       if (!metadata.repository) {
         toast.error("Base de datos requerida", {
           description: "Seleccione en qué base de datos está indizado el artículo",
@@ -300,14 +294,8 @@ export default function EntryFormDialog({
       }
     }
 
-    if (indicatorType === "Artículos Regionales") {
-      if (!metadata.issn?.trim()) {
-        toast.error("ISSN requerido", {
-          description: "Debe ingresar el ISSN y verificar en MIAR para artículos regionales",
-        });
-        return;
-      }
-      // Validate ISSN format (XXXX-XXXX)
+    // ISSN validation for Regional Articles is now optional (complementary)
+    if (indicatorType === "Artículos Regionales" && metadata.issn?.trim()) {
       const issnClean = metadata.issn.replace(/[-\s]/g, '');
       if (!/^\d{7}[\dXx]$/.test(issnClean)) {
         toast.error("ISSN inválido", {
@@ -346,12 +334,12 @@ export default function EntryFormDialog({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Smart Search - REQUIRED for JCR/Scopus (DOI) and Books (ISBN) */}
+          {/* Smart Search - Optional for JCR/Scopus (DOI), Required for Books (ISBN) */}
           {(isArticle || isBook) && indicatorType !== "Artículos Regionales" && (
             <>
               <div className="border border-primary/20 rounded-lg p-4 bg-primary/5">
                 <Label className="text-sm font-medium mb-2 block">
-                  {isBook ? "Búsqueda Inteligente ISBN *" : "Búsqueda Inteligente DOI *"}
+                  {isBook ? "Búsqueda Inteligente ISBN *" : "Búsqueda Inteligente DOI (Opcional)"}
                 </Label>
                 <div className="flex gap-2">
                   <Input
@@ -359,7 +347,6 @@ export default function EntryFormDialog({
                     value={searchValue}
                     onChange={(e) => {
                       setSearchValue(e.target.value);
-                      // Auto-save the DOI/ISBN when user types
                       if (isBook) {
                         setMetadata({ ...metadata, isbn: e.target.value });
                       } else {
@@ -381,7 +368,7 @@ export default function EntryFormDialog({
                 <p className="text-xs text-muted-foreground mt-2">
                   {isBook 
                     ? "Ingrese el ISBN del libro. Este campo es obligatorio."
-                    : "Ingrese el DOI del artículo. Este campo es obligatorio para verificar la publicación."
+                    : "Ingrese el DOI del artículo para autocompletar datos. También puede llenar los campos manualmente."
                   }
                 </p>
                 {metadata.title && (
@@ -397,12 +384,12 @@ export default function EntryFormDialog({
             </>
           )}
 
-          {/* MIAR ISSN Search for Regional Articles - REQUIRED */}
+          {/* MIAR ISSN Search for Regional Articles - OPTIONAL (complementary) */}
           {indicatorType === "Artículos Regionales" && (
             <>
               <div className="border border-amber-500/20 rounded-lg p-4 bg-amber-500/5">
                 <Label className="text-sm font-medium mb-2 block">
-                  Verificación MIAR por ISSN *
+                  Verificación MIAR por ISSN (Opcional)
                 </Label>
                 <div className="flex gap-2">
                   <Input
@@ -431,7 +418,7 @@ export default function EntryFormDialog({
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  <strong>Obligatorio:</strong> Ingrese el ISSN de la revista (formato XXXX-XXXX) y verifique su indexación en MIAR antes de guardar.
+                  Ingrese el ISSN de la revista (formato XXXX-XXXX) para verificar su indexación en MIAR. También puede llenar los campos manualmente.
                 </p>
               </div>
               <div className="border-t border-border" />
@@ -721,17 +708,26 @@ export default function EntryFormDialog({
           <div className="space-y-3">
             <Label className="text-base font-semibold">Evidencias Requeridas</Label>
             
+            {/* Certificado Aceptación - FIRST */}
+            <FileUploadBox
+              label="Certificado de aceptación *"
+              file={files.aceptacion}
+              onUpload={(file) => handleFileUpload("aceptacion", file)}
+              onRemove={() => setFiles({ ...files, aceptacion: undefined })}
+              uploading={uploading === "aceptacion"}
+            />
+
             {/* Producto Publicado */}
             <FileUploadBox
-              label="Evidencia del producto publicado *"
+              label="Evidencia del producto publicado"
               file={files.producto}
               onUpload={(file) => handleFileUpload("producto", file)}
               onRemove={() => setFiles({ ...files, producto: undefined })}
               uploading={uploading === "producto"}
             />
 
-            {/* Evaluación por Pares */}
-            {!isPonencias && (
+            {/* Evaluación por Pares - ONLY for Libros Científicos */}
+            {isBook && (
               <FileUploadBox
                 label="Evaluación por pares"
                 file={files.pares}
@@ -740,15 +736,6 @@ export default function EntryFormDialog({
                 uploading={uploading === "pares"}
               />
             )}
-
-            {/* Certificado Aceptación */}
-            <FileUploadBox
-              label="Certificado de aceptación"
-              file={files.aceptacion}
-              onUpload={(file) => handleFileUpload("aceptacion", file)}
-              onRemove={() => setFiles({ ...files, aceptacion: undefined })}
-              uploading={uploading === "aceptacion"}
-            />
 
             {/* Certificado Publicación */}
             <FileUploadBox

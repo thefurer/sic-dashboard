@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,12 +31,19 @@ export default function VinculacionDialog({
   editingEntry,
   reportId,
 }: VinculacionDialogProps) {
-  const [projectId, setProjectId] = useState(editingEntry?.related_project_id || "");
-  const [projectName, setProjectName] = useState(editingEntry?.project_name || "");
-  const [evidences, setEvidences] = useState<Array<{ url: string; description: string; type: string }>>(
-    editingEntry?.evidences || []
-  );
+  const [projectId, setProjectId] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const [evidences, setEvidences] = useState<Array<{ url: string; description: string; type: string }>>([]);
   const [uploading, setUploading] = useState<string | null>(null);
+
+  // Reset form when dialog opens/closes or editingEntry changes
+  useEffect(() => {
+    if (open) {
+      setProjectId(editingEntry?.related_project_id || "");
+      setProjectName(editingEntry?.project_name || "");
+      setEvidences(editingEntry?.evidences || []);
+    }
+  }, [open, editingEntry]);
 
   const handleFileUpload = async (file: File, type: string) => {
     if (!file.type.includes("pdf")) {
