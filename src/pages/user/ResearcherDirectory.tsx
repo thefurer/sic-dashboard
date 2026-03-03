@@ -35,12 +35,10 @@ interface ProfileWithEmail extends Profile {
   email?: string | null;
 }
 
-const RESEARCH_ROLES = [
-  'Director de proyecto',
-  'Investigador principal',
-  'Investigador asociado',
-  'Investigador',
-  'Estudiante Investigador'
+const MEMBERSHIP_ROLES = [
+  'COORDINADOR GISICF',
+  'MIEMBRO',
+  'INVITADO'
 ];
 
 export default function ResearcherDirectory() {
@@ -122,7 +120,7 @@ export default function ResearcherDirectory() {
               <SelectContent>
                 <SelectItem value="all">Todos los roles</SelectItem>
                 <SelectItem value="none">Sin rol asignado</SelectItem>
-                {RESEARCH_ROLES.map((role) => (
+                {MEMBERSHIP_ROLES.map((role) => (
                   <SelectItem key={role} value={role}>
                     {role}
                   </SelectItem>
@@ -149,13 +147,13 @@ export default function ResearcherDirectory() {
             <>
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Investigador</TableHead>
-                    <TableHead>Código</TableHead>
-                    <TableHead>ORCID</TableHead>
-                    <TableHead>Rol</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
+                 <TableRow>
+                     <TableHead>Investigador</TableHead>
+                     <TableHead>Código</TableHead>
+                     <TableHead>ORCID</TableHead>
+                     <TableHead>Rol GISICF</TableHead>
+                     <TableHead className="text-right">Acciones</TableHead>
+                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedUsers.map((user) => (
