@@ -28,7 +28,7 @@ interface PlanningGeneralStepProps {
 
 export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGeneralStepProps) {
   const [periodName, setPeriodName] = useState("");
-  const [presidentName, setPresidentName] = useState("Ing. Mario Marcillo Merino, Mg.");
+  const [presidentName, setPresidentName] = useState("Ing. Christian Ruperto Caicedo Plúa, PhD.");
   const [meetingDates, setMeetingDates] = useState<Array<{ date: Date; time: string }>>([]);
   const [driveLink, setDriveLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -181,7 +181,7 @@ export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGener
       </div>
 
       <div>
-        <Label htmlFor="presidentName">Presidente</Label>
+        <Label htmlFor="presidentName">Coordinador del GISICF</Label>
         <Input id="presidentName" value={presidentName} onChange={(e) => setPresidentName(e.target.value)} />
       </div>
 
