@@ -127,7 +127,7 @@ export function PlanningTeamStep({
       <div>
         <Label className="text-base font-semibold mb-4 block">
           <UserPlus className="inline mr-2 h-5 w-5" />
-          Miembros Docentes
+          Miembros Docentes e Invitados
         </Label>
         <MultiSelect
           options={profileOptions}
