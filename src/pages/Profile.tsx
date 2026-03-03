@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -17,6 +18,7 @@ import { OrcidInput } from "@/components/ui/OrcidInput";
 
 export default function Profile() {
   const { user } = useAuth();
+  const { isSuperAdmin } = useUserRole();
   const metadata: any = (user as any)?.user_metadata ?? {};
 
   const [fullName, setFullName] = useState<string>(metadata.full_name ?? "");
@@ -26,6 +28,7 @@ export default function Profile() {
   const [orcid, setOrcid] = useState<string>("");
   const [countryCode, setCountryCode] = useState<string>("EC");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [investigationRole, setInvestigationRole] = useState<string>("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(metadata.avatar_url ?? null);
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvUrl, setCvUrl] = useState<string | null>(null);
@@ -42,7 +45,7 @@ export default function Profile() {
       // Fetch profile data
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('full_name, researcher_code, avatar_url, cv_url, orcid, country_code, cedula')
+        .select('full_name, researcher_code, avatar_url, cv_url, orcid, country_code, cedula, investigation_role')
         .eq('id', user.id)
         .single();
       
@@ -61,6 +64,7 @@ export default function Profile() {
         setOrcid(profileData.orcid ?? "");
         setCountryCode(profileData.country_code ?? "EC");
         setCedula(profileData.cedula ?? "");
+        setInvestigationRole(profileData.investigation_role ?? "");
       }
       
       if (contactData) {
@@ -172,6 +176,7 @@ export default function Profile() {
           orcid: orcid || null,
           country_code: countryCode,
           cedula: cedula || null,
+          investigation_role: investigationRole || null,
         })
         .eq('id', user.id);
 
@@ -427,6 +432,29 @@ export default function Profile() {
                 </div>
 
                 <OrcidInput value={orcid} onChange={setOrcid} />
+
+                <div className="space-y-2">
+                  <Label htmlFor="investigationRole" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Rol en la Investigación
+                  </Label>
+                  <Select value={investigationRole || "none"} onValueChange={(v) => setInvestigationRole(v === "none" ? "" : v)}>
+                    <SelectTrigger className="bg-slate-50 dark:bg-background/50 border-slate-200 dark:border-white/10">
+                      <SelectValue placeholder="Seleccionar rol" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin rol asignado</SelectItem>
+                      {isSuperAdmin && (
+                        <SelectItem value="Director de proyecto">Director de proyecto</SelectItem>
+                      )}
+                      <SelectItem value="Investigador principal">Investigador principal</SelectItem>
+                      <SelectItem value="Investigador asociado">Investigador asociado</SelectItem>
+                      <SelectItem value="Investigador">Investigador</SelectItem>
+                      <SelectItem value="Estudiante">Estudiante</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Selecciona tu rol dentro del equipo de investigación</p>
+                </div>
 
                 <div className="space-y-2">
                   <Label>Foto de perfil (opcional)</Label>

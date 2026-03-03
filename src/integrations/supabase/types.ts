@@ -552,6 +552,7 @@ export type Database = {
           cv_url: string | null
           full_name: string
           id: string
+          investigation_role: string | null
           is_approved: boolean
           last_login_at: string | null
           orcid: string | null
@@ -568,6 +569,7 @@ export type Database = {
           cv_url?: string | null
           full_name: string
           id: string
+          investigation_role?: string | null
           is_approved?: boolean
           last_login_at?: string | null
           orcid?: string | null
@@ -584,6 +586,7 @@ export type Database = {
           cv_url?: string | null
           full_name?: string
           id?: string
+          investigation_role?: string | null
           is_approved?: boolean
           last_login_at?: string | null
           orcid?: string | null

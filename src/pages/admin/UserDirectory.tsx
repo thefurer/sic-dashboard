@@ -44,12 +44,10 @@ interface Profile {
   contact?: ProfileContact | null;
 }
 
-const RESEARCH_ROLES = [
-  'Director de proyecto',
-  'Investigador principal',
-  'Investigador asociado',
-  'Investigador',
-  'Estudiante Investigador'
+const MEMBERSHIP_ROLES = [
+  'COORDINADOR GISICF',
+  'MIEMBRO',
+  'INVITADO'
 ];
 
 export default function UserDirectory() {
@@ -236,7 +234,7 @@ export default function UserDirectory() {
               <SelectContent>
                 <SelectItem value="all">Todos los roles</SelectItem>
                 <SelectItem value="none">Sin rol asignado</SelectItem>
-                {RESEARCH_ROLES.map((role) => (
+                {MEMBERSHIP_ROLES.map((role) => (
                   <SelectItem key={role} value={role}>
                     {role}
                   </SelectItem>
@@ -267,7 +265,7 @@ export default function UserDirectory() {
                   <TableRow>
                     <TableHead>Usuario</TableHead>
                     <TableHead>Código</TableHead>
-                    <TableHead>Rol de Investigación</TableHead>
+                    <TableHead>Rol GISICF</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Último acceso</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
@@ -317,7 +315,7 @@ export default function UserDirectory() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="none">Sin rol</SelectItem>
-                            {RESEARCH_ROLES.map((role) => (
+                            {MEMBERSHIP_ROLES.map((role) => (
                               <SelectItem key={role} value={role}>
                                 {role}
                               </SelectItem>
