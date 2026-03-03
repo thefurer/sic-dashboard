@@ -265,7 +265,7 @@ export function PlanningPreviewStep({
             )}
 
             <div>
-              <p className="text-sm text-muted-foreground mb-2">Miembros Docentes ({docentes.length})</p>
+              <p className="text-sm text-muted-foreground mb-2">Miembros Docentes e Invitados ({docentes.length})</p>
               <div className="flex flex-wrap gap-2">
                 {docentes.map((m: any, i: number) => (
                   <Badge key={i} variant="secondary">{m.profiles.full_name}</Badge>
