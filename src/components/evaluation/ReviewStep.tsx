@@ -241,7 +241,7 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
     return Array.from(uniqueByName.values());
   };
 
-  const canSubmit = totalScore === 100 && reportStatus === "draft";
+  const canSubmit = reportStatus === "draft" || reportStatus === "observado";
   const isSubmitted = reportStatus === "submitted";
   const categories = ["A", "B", "C", "D"];
 
@@ -295,12 +295,12 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
         </Alert>
       )}
 
-      {/* Validation Alert */}
-      {!canSubmit && (
-        <Alert variant="destructive">
+      {/* Info about submission */}
+      {totalScore < 100 && reportStatus === "draft" && (
+        <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Debe completar 100 puntos para enviar la evaluación. Actualmente tiene {totalScore} puntos.
+            Tiene {totalScore} de 100 puntos. Puede enviar la evaluación con cualquier puntaje.
           </AlertDescription>
         </Alert>
       )}
@@ -345,20 +345,20 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
 
       {/* Total Score and PDF Download */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className={`md:col-span-2 border-2 ${canSubmit ? "bg-gradient-to-r from-green-500/10 to-green-500/5 border-green-500" : "bg-gradient-to-r from-primary/10 to-primary/5 border-primary"}`}>
+        <Card className={`md:col-span-2 border-2 ${totalScore === 100 ? "bg-gradient-to-r from-green-500/10 to-green-500/5 border-green-500" : "bg-gradient-to-r from-primary/10 to-primary/5 border-primary"}`}>
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-sm text-muted-foreground mb-2">Puntuación Total</p>
-              <p className={`text-6xl font-bold mb-2 ${canSubmit ? "text-green-600" : "text-primary"}`}>
+              <p className={`text-6xl font-bold mb-2 ${totalScore === 100 ? "text-green-600" : "text-primary"}`}>
                 {totalScore}
               </p>
               <p className="text-2xl text-muted-foreground">/ 100 puntos</p>
               <div className="mt-4">
                 <Badge
-                  variant={canSubmit ? "default" : "outline"}
-                  className={`text-lg px-4 py-1 ${canSubmit ? "bg-green-600" : ""}`}
+                  variant={totalScore === 100 ? "default" : "outline"}
+                  className={`text-lg px-4 py-1 ${totalScore === 100 ? "bg-green-600" : ""}`}
                 >
-                  {canSubmit ? "Completo" : `Faltan ${100 - totalScore} puntos`}
+                  {totalScore === 100 ? "Completo" : `${totalScore} puntos obtenidos`}
                 </Badge>
               </div>
             </div>
@@ -473,7 +473,7 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
       })}
 
       {/* Submit Button */}
-      <Card className={`border-2 ${canSubmit ? "border-green-500/20 bg-green-50 dark:bg-green-950/20" : "border-orange-500/20 bg-orange-50 dark:bg-orange-950/20"}`}>
+      <Card className={`border-2 ${canSubmit ? "border-green-500/20 bg-green-50 dark:bg-green-950/20" : "border-muted"}`}>
         <CardContent className="pt-6">
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-4">
@@ -481,24 +481,22 @@ export default function ReviewStep({ items, totalScore, onSubmit, isSubmitting, 
                 <>
                   Al enviar, su evaluación será sometida para revisión por el equipo administrativo.
                   <br />
-                  No podrá realizar cambios después del envío.
+                  Puede enviar con cualquier puntaje obtenido.
                 </>
               ) : (
                 <>
-                  Complete todos los campos obligatorios y alcance 100 puntos para enviar la evaluación.
-                  <br />
-                  Faltan {100 - totalScore} puntos para completar.
+                  Su evaluación ya ha sido enviada.
                 </>
               )}
             </p>
             <Button
               size="lg"
               onClick={onSubmit}
-              disabled={isSubmitting || !canSubmit || (reportStatus !== "draft" && reportStatus !== "observado")}
+              disabled={isSubmitting || !canSubmit}
               className={canSubmit ? "bg-green-600 hover:bg-green-700" : ""}
             >
               <Send className="w-5 h-5 mr-2" />
-              {isSubmitting ? "Enviando..." : canSubmit ? "Enviar Evaluación Final" : "Complete 100 puntos para enviar"}
+              {isSubmitting ? "Enviando..." : "Enviar Evaluación Final"}
             </Button>
           </div>
         </CardContent>

@@ -106,8 +106,8 @@ export async function generatePlanningPDF(planData: any) {
     : plan.president_name;
 
   const teamTableData = [
-    ["PRESIDENTE", plan.president_name],
-    ["RESPONSABLE", responsableName],
+    ["COORDINADOR GISICF", plan.president_name],
+    ["RESPONSABLE(S)", responsableName],
     ["MIEMBROS", allMembersList],
   ];
 
@@ -217,9 +217,9 @@ export async function generatePlanningPDF(planData: any) {
   // Space after table
   let finalY = (doc as any).lastAutoTable.finalY + 10;
 
-  // Check if there's enough space for signatures (need at least 60mm for wrapped text)
+  // Check if there's enough space for signatures (need at least 80mm for wrapped text + footer)
   const pageHeight = doc.internal.pageSize.getHeight();
-  if (pageHeight - finalY < 60) {
+  if (pageHeight - finalY < 80) {
     doc.addPage();
     drawPageFooter(doc);
     finalY = 40;

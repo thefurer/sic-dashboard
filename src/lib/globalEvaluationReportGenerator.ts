@@ -126,17 +126,17 @@ export async function generateGlobalEvaluationReport(
     },
   });
 
-  // Signature section
+  // Signature section - ensure enough space before footer
   const finalY = (doc as any).lastAutoTable.finalY + 20;
   const pageHeight = doc.internal.pageSize.getHeight();
 
-  // Check if we need a new page for signatures
-  if (finalY > pageHeight - 60) {
+  // Check if we need a new page for signatures (need 80mm for signatures + footer)
+  if (finalY > pageHeight - 80) {
     doc.addPage();
     drawPageFooter(doc);
   }
 
-  const sigY = finalY > pageHeight - 60 ? 40 : finalY;
+  const sigY = finalY > pageHeight - 80 ? 40 : finalY;
   const colWidth = (pageWidth - 28) / 3;
 
   // Three signatures in order: Coordinador Grupo, Responsable Comisión, Coordinador Carrera

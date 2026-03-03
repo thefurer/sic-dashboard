@@ -227,7 +227,7 @@ export function PlanningPreviewStep({
           
           <div className="space-y-4">
             <div>
-              <p className="text-sm text-muted-foreground">Presidente</p>
+              <p className="text-sm text-muted-foreground">Coordinador GISICF</p>
               <p className="font-medium">{plan.president_name}</p>
             </div>
 

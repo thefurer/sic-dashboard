@@ -181,7 +181,7 @@ export function PlanningGeneralStep({ planId, setPlanId, onNext }: PlanningGener
       </div>
 
       <div>
-        <Label htmlFor="presidentName">Coordinador del GISICF</Label>
+        <Label htmlFor="presidentName">Coordinador GISICF</Label>
         <Input id="presidentName" value={presidentName} onChange={(e) => setPresidentName(e.target.value)} />
       </div>
 

@@ -156,8 +156,8 @@ export async function generateEvaluationPDF(data: EvaluationData) {
     const categoryItems = data.items.filter((item) => item.category === category);
     
     if (categoryItems.length > 0) {
-      // Check if we need a new page
-      if (finalY > 250) {
+      // Check if we need a new page (need space for content + signatures + footer)
+      if (finalY > 230) {
         doc.addPage();
         drawPageFooter(doc);
         finalY = 20;
@@ -191,7 +191,7 @@ export async function generateEvaluationPDF(data: EvaluationData) {
     }
   });
 
-  // Status note
+  // Status note - ensure it doesn't overlap with footer
   const statusText = data.status === 'draft' 
     ? 'Este documento es un borrador y no tiene validez oficial hasta su envío.'
     : data.status === 'submitted'
@@ -201,6 +201,12 @@ export async function generateEvaluationPDF(data: EvaluationData) {
     : '';
 
   if (statusText) {
+    const pageHeight2 = doc.internal.pageSize.getHeight();
+    if (finalY > pageHeight2 - 30) {
+      doc.addPage();
+      drawPageFooter(doc);
+      finalY = 20;
+    }
     doc.setFontSize(8);
     doc.setFont("helvetica", "italic");
     doc.text(statusText, 14, finalY);

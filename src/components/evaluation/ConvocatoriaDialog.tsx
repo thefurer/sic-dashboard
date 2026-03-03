@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,15 +38,25 @@ export default function ConvocatoriaDialog({
   reportId,
   type,
 }: ConvocatoriaDialogProps) {
-  const [projectId, setProjectId] = useState(editingEntry?.related_project_id || "");
-  const [entityType, setEntityType] = useState<"interna" | "externa">(editingEntry?.entity_type || "interna");
-  const [entityName, setEntityName] = useState(editingEntry?.entity_name || "");
-  const [description, setDescription] = useState(editingEntry?.description || "");
-  const [amount, setAmount] = useState(editingEntry?.amount?.toString() || "");
-  const [evidences, setEvidences] = useState<Array<{ url: string; description: string; type: string }>>(
-    editingEntry?.evidences || []
-  );
+  const [projectId, setProjectId] = useState("");
+  const [entityType, setEntityType] = useState<"interna" | "externa">("interna");
+  const [entityName, setEntityName] = useState("");
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const [evidences, setEvidences] = useState<Array<{ url: string; description: string; type: string }>>([]);
   const [uploading, setUploading] = useState<string | null>(null);
+
+  // Reset form when dialog opens/closes or editingEntry changes
+  useEffect(() => {
+    if (open) {
+      setProjectId(editingEntry?.related_project_id || "");
+      setEntityType(editingEntry?.entity_type || "interna");
+      setEntityName(editingEntry?.entity_name || "");
+      setDescription(editingEntry?.description || "");
+      setAmount(editingEntry?.amount?.toString() || "");
+      setEvidences(editingEntry?.evidences || []);
+    }
+  }, [open, editingEntry]);
 
   const handleFileUpload = async (file: File, evidenceType: string) => {
     if (!file.type.includes("pdf")) {

@@ -7,7 +7,7 @@ import { SmartTextarea } from "@/components/ui/smart-textarea";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, CheckCircle2, AlertCircle, ExternalLink, FileText, Users, BookOpen, Building, DollarSign, Briefcase, ArrowLeft } from "lucide-react";
+import { CalendarIcon, CheckCircle2, AlertCircle, ExternalLink, FileText, Users, BookOpen, Building, DollarSign, Briefcase, ArrowLeft, Download } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { openSignedUrl } from "@/hooks/useSignedUrl";
 import { sendNotificationEmail, getUserEmail } from "@/hooks/useSendEmail";
+import { generateEvaluationPDF } from "@/lib/evaluationPdfGenerator";
 
 // Types for evidence_details structures
 interface ProjectEntry {
@@ -824,6 +825,34 @@ export default function EvaluationReviewDetail() {
             </p>
           </div>
         </div>
+        <Button
+          variant="outline"
+          onClick={async () => {
+            try {
+              toast.loading("Generando informe individual...");
+              await generateEvaluationPDF({
+                year: report.year,
+                total_score: report.total_score || 0,
+                status: report.status,
+                items: evaluationItems?.map(i => ({
+                  category: i.category,
+                  indicator_name: i.indicator_name,
+                  score_obtained: i.score_obtained,
+                })) || [],
+                userName,
+              });
+              toast.dismiss();
+              toast.success("Informe individual generado");
+            } catch (err: any) {
+              toast.dismiss();
+              toast.error("Error al generar informe", { description: err.message });
+            }
+          }}
+          className="gap-2"
+        >
+          <Download className="w-4 h-4" />
+          Generar Informe Individual
+        </Button>
       </div>
 
       {/* Score Summary */}

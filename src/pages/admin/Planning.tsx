@@ -256,7 +256,7 @@ export default function Planning() {
               <CardContent>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>
-                    <strong>Presidente:</strong> {plan.president_name}
+                    <strong>Coordinador GISICF:</strong> {plan.president_name}
                   </p>
                   <p>
                     <strong>Reuniones:</strong>{" "}
