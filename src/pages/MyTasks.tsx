@@ -158,15 +158,26 @@ function TaskCard({
               </Button>
             )}
             
-            {task.evidence_url && (
-              <Button 
-                variant="outline" 
-                onClick={() => openSignedUrl('evaluation-evidence', task.evidence_url)}
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                Ver Archivo
-              </Button>
-            )}
+            {task.evidence_url && (() => {
+              let files: { path: string; name: string }[] = [];
+              try {
+                const parsed = JSON.parse(task.evidence_url);
+                if (Array.isArray(parsed)) files = parsed;
+                else files = [{ path: task.evidence_url, name: "Archivo" }];
+              } catch {
+                files = [{ path: task.evidence_url, name: "Archivo" }];
+              }
+              return files.map((file, idx) => (
+                <Button 
+                  key={idx}
+                  variant="outline" 
+                  onClick={() => openSignedUrl('evaluation-evidence', file.path)}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  {files.length > 1 ? `Ver Archivo ${idx + 1}` : "Ver Archivo"}
+                </Button>
+              ));
+            })()}
             
             {task.evidence_link && (
               <Button variant="outline" asChild>
