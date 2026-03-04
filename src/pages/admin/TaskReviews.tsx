@@ -750,16 +750,27 @@ export default function TaskReviews() {
                         <TableCell>{getStatusBadge(task.status)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            {task.evidence_url && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => openSignedUrl('evaluation-evidence', task.evidence_url)}
-                              >
-                                <FileText className="h-4 w-4 mr-1" />
-                                Ver
-                              </Button>
-                            )}
+                            {task.evidence_url && (() => {
+                              let files: { path: string; name: string }[] = [];
+                              try {
+                                const parsed = JSON.parse(task.evidence_url);
+                                if (Array.isArray(parsed)) files = parsed;
+                                else files = [{ path: task.evidence_url, name: "Archivo" }];
+                              } catch {
+                                files = [{ path: task.evidence_url, name: "Archivo" }];
+                              }
+                              return files.map((file, idx) => (
+                                <Button 
+                                  key={idx}
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => openSignedUrl('evaluation-evidence', file.path)}
+                                >
+                                  <FileText className="h-4 w-4 mr-1" />
+                                  {files.length > 1 ? `Ver ${idx + 1}` : "Ver"}
+                                </Button>
+                              ));
+                            })()}
                             {task.evidence_link && (
                               <Button variant="ghost" size="sm" asChild>
                                 <a href={task.evidence_link} target="_blank" rel="noopener noreferrer">
@@ -980,16 +991,27 @@ export default function TaskReviews() {
                         <TableCell>{getStatusBadge(task.status)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            {task.evidence_url && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => openSignedUrl('evaluation-evidence', task.evidence_url)}
-                              >
-                                <FileText className="h-4 w-4 mr-1" />
-                                Ver
-                              </Button>
-                            )}
+                            {task.evidence_url && (() => {
+                              let files: { path: string; name: string }[] = [];
+                              try {
+                                const parsed = JSON.parse(task.evidence_url);
+                                if (Array.isArray(parsed)) files = parsed;
+                                else files = [{ path: task.evidence_url, name: "Archivo" }];
+                              } catch {
+                                files = [{ path: task.evidence_url, name: "Archivo" }];
+                              }
+                              return files.map((file, idx) => (
+                                <Button 
+                                  key={idx}
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => openSignedUrl('evaluation-evidence', file.path)}
+                                >
+                                  <FileText className="h-4 w-4 mr-1" />
+                                  {files.length > 1 ? `Ver ${idx + 1}` : "Ver"}
+                                </Button>
+                              ));
+                            })()}
                             {task.evidence_link && (
                               <Button variant="ghost" size="sm" asChild>
                                 <a href={task.evidence_link} target="_blank" rel="noopener noreferrer">
