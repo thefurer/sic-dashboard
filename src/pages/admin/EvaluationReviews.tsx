@@ -274,7 +274,7 @@ export default function EvaluationReviews() {
                       <TableCell>{report.year}</TableCell>
                       <TableCell>
                         <span className="font-semibold">
-                          {report.status === 'approved' ? '100/100' : '0/100'}
+                          {report.total_score ?? 0}/100
                         </span>
                       </TableCell>
                       <TableCell>
